@@ -885,12 +885,20 @@ img {
     border-right: 1px solid var(--color-border);
     height: 600px;
     background-color: var(--color-surface);
+    position: relative;
+    overflow: hidden;
+    cursor: zoom-in;
 }
 
 .modal-gallery img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.2s ease-out, transform-origin 0.08s ease-out;
+}
+
+.modal-gallery.zoomed {
+    cursor: zoom-out;
 }
 
 .modal-info {
