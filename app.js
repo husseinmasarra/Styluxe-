@@ -172,15 +172,58 @@ function setupEventListeners() {
     closeCartBtn.addEventListener("click", () => toggleCartDrawer(false));
     cartBackdrop.addEventListener("click", () => toggleCartDrawer(false));
 
-    // Currency selector click
-    currencyBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        currencyDropdown.classList.toggle("active");
-    });
+    // Currency selector click (guarded for deletion)
+    if (currencyBtn) {
+        currencyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            currencyDropdown.classList.toggle("active");
+        });
+    }
     
     document.addEventListener("click", () => {
-        currencyDropdown.classList.remove("active");
+        if (currencyDropdown) {
+            currencyDropdown.classList.remove("active");
+        }
     });
+
+    // Product Modal Image Zoom & Pan interactions for mobile/desktop details view
+    const gallery = document.querySelector(".modal-gallery");
+    const img = document.getElementById("modalProductImg");
+    if (gallery && img) {
+        // Toggle Zoom on click
+        gallery.addEventListener("click", () => {
+            gallery.classList.toggle("zoomed");
+            if (!gallery.classList.contains("zoomed")) {
+                img.style.transform = "scale(1)";
+                img.style.transformOrigin = "center";
+            } else {
+                img.style.transform = "scale(2.2)";
+            }
+        });
+
+        // Track mouse or touch panning inside zoomed container
+        const handleMove = (e) => {
+            if (!gallery.classList.contains("zoomed")) return;
+            const rect = gallery.getBoundingClientRect();
+            let pointerX = 0;
+            let pointerY = 0;
+
+            if (e.touches && e.touches[0]) {
+                pointerX = e.touches[0].clientX - rect.left;
+                pointerY = e.touches[0].clientY - rect.top;
+            } else {
+                pointerX = e.clientX - rect.left;
+                pointerY = e.clientY - rect.top;
+            }
+
+            const xPercent = Math.max(0, Math.min(100, (pointerX / rect.width) * 100));
+            const yPercent = Math.max(0, Math.min(100, (pointerY / rect.height) * 100));
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        };
+
+        gallery.addEventListener("mousemove", handleMove);
+        gallery.addEventListener("touchmove", handleMove, { passive: true });
+    }
 
     // Mobile Menu Drawer
     menuToggle.addEventListener("click", toggleMobileDrawer);
@@ -188,21 +231,20 @@ function setupEventListeners() {
     drawerBackdrop.addEventListener("click", toggleMobileDrawer);
 }
 
-// FORMAT PRICE ACCORDING TO ACTIVE CURRENCY
+// FORMAT PRICE ACCORDING TO ACTIVE CURRENCY (Always USD)
 function formatPrice(priceInUSD) {
-    if (currentCurrency === "LBP") {
-        const lbpPrice = priceInUSD * LBP_RATE;
-        return lbpPrice.toLocaleString('en-US', { maximumFractionDigits: 0 }) + " L.L.";
-    } else {
-        return priceInUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    }
+    return priceInUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }
 
-// SWITCH CURRENCY
+// SWITCH CURRENCY (guarded for deletion)
 function changeCurrency(currency) {
     currentCurrency = currency;
-    currencyBtn.textContent = currency === "USD" ? "USD ($)" : "LBP (ل.ل)";
-    currencyDropdown.classList.remove("active");
+    if (currencyBtn) {
+        currencyBtn.textContent = currency === "USD" ? "USD ($)" : "LBP (ل.ل)";
+    }
+    if (currencyDropdown) {
+        currencyDropdown.classList.remove("active");
+    }
     renderProducts();
     updateCartUI();
     if (activeModalProduct) {
