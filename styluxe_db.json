@@ -1,0 +1,540 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "STYLUXE OVERSIZED COTTON HOODIE",
+      "price": 85,
+      "category": "Hoodies",
+      "department": "Men",
+      "image": "assets/hoodie_black.png",
+      "description": "Crafted from 500GSM ultra-heavyweight Egyptian cotton fleece. Features drop shoulders, a double-lined hood without drawstrings for a clean look, kangaroo pocket, and thick ribbed cuffs. Made for a premium relaxed silhouette.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "badge": "BESTSELLER",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "S-Black": 10,
+        "S-Charcoal": 10,
+        "S-Grey": 10,
+        "M-Black": 0,
+        "M-Charcoal": 10,
+        "M-Grey": 10,
+        "L-Black": 1,
+        "L-Charcoal": 10,
+        "L-Grey": 10,
+        "XL-Black": 10,
+        "XL-Charcoal": 10,
+        "XL-Grey": 10,
+        "XXL-Black": 10,
+        "XXL-Charcoal": 10,
+        "XXL-Grey": 10
+      }
+    },
+    {
+      "id": 2,
+      "name": "MATTE BOMBER LEATHER JACKET",
+      "price": 180,
+      "category": "Jackets",
+      "department": "Men",
+      "image": "assets/jacket_leather.png",
+      "description": "Engineered from genuine matte-finish calfskin leather. Designed with a custom satin lining, silver-tone heavy zippers, interior breast pockets, and ribbed hem and cuffs. A timeless, versatile outerwear essential.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "badge": "LIMITED EDITION",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "S-Black": 10,
+        "S-Charcoal": 10,
+        "S-Grey": 10,
+        "M-Black": 0,
+        "M-Charcoal": 10,
+        "M-Grey": 10,
+        "L-Black": 10,
+        "L-Charcoal": 10,
+        "L-Grey": 10,
+        "XL-Black": 10,
+        "XL-Charcoal": 10,
+        "XL-Grey": 10
+      }
+    },
+    {
+      "id": 3,
+      "name": "SIGNATURE CARGO DENIM JEANS",
+      "price": 95,
+      "category": "Jeans",
+      "department": "Men",
+      "image": "assets/jeans_cargo.png",
+      "description": "14oz heavy denim features an updated relaxed straight leg cut. Multi-pocket cargo utility layout with secure snap closures, custom silver hardware, and adjustable drawstring ankle cuffs for versatility in styling.",
+      "sizes": [
+        "30",
+        "32",
+        "34",
+        "36"
+      ],
+      "badge": "NEW ARRIVAL",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "30-Black": 10,
+        "30-Charcoal": 10,
+        "30-Grey": 10,
+        "32-Black": 10,
+        "32-Charcoal": 10,
+        "32-Grey": 10,
+        "34-Black": 10,
+        "34-Charcoal": 10,
+        "34-Grey": 10,
+        "36-Black": 10,
+        "36-Charcoal": 10,
+        "36-Grey": 10
+      }
+    },
+    {
+      "id": 4,
+      "name": "CORE HIGH-TOP SNEAKERS",
+      "price": 140,
+      "category": "Footwear",
+      "department": "Men",
+      "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=600",
+      "description": "Handcrafted high-top sneakers using full-grain Italian leather panels. Features clean vulcanized rubber soles, minimalist logo embossing on the heel, wax-coated cotton laces, and a cushioned calfskin leather insole for maximum comfort.",
+      "sizes": [
+        "40",
+        "41",
+        "42",
+        "43",
+        "44"
+      ],
+      "badge": "ARCHIVE",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "40-Black": 10,
+        "40-Charcoal": 10,
+        "40-Grey": 10,
+        "41-Black": 10,
+        "41-Charcoal": 10,
+        "41-Grey": 10,
+        "42-Black": 10,
+        "42-Charcoal": 10,
+        "42-Grey": 10,
+        "43-Black": 10,
+        "43-Charcoal": 10,
+        "43-Grey": 10,
+        "44-Black": 10,
+        "44-Charcoal": 10,
+        "44-Grey": 10
+      }
+    },
+    {
+      "id": 5,
+      "name": "WOMEN'S GLOSSY DOWN PUFFER",
+      "price": 160,
+      "category": "Jackets",
+      "department": "Women",
+      "image": "https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&q=80&w=600",
+      "description": "Water-resistant glossy nylon puffer jacket filled with 90/10 duck down fill. Includes a detachable cropped hood, zip pockets, toggle waist adjusters, and elasticated cuffs to seal in warmth.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "badge": "MUST-HAVE",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "XS-Black": 10,
+        "XS-Charcoal": 10,
+        "XS-Grey": 10,
+        "S-Black": 10,
+        "S-Charcoal": 10,
+        "S-Grey": 10,
+        "M-Black": 0,
+        "M-Charcoal": 10,
+        "M-Grey": 10,
+        "L-Black": 10,
+        "L-Charcoal": 10,
+        "L-Grey": 10
+      }
+    },
+    {
+      "id": 6,
+      "name": "WOMEN'S CROP OVERSIZED HOODIE",
+      "price": 75,
+      "category": "Hoodies",
+      "department": "Women",
+      "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=600",
+      "description": "Crop cut oversized hoodie built from premium French terry cotton. Styled with drop shoulders, raw-edge waist hem, and wide cozy sleeves. Ideal for modern luxury styling.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "badge": "NEW",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "XS-Black": 10,
+        "XS-Charcoal": 10,
+        "XS-Grey": 10,
+        "S-Black": 10,
+        "S-Charcoal": 10,
+        "S-Grey": 10,
+        "M-Black": 0,
+        "M-Charcoal": 10,
+        "M-Grey": 10,
+        "L-Black": 10,
+        "L-Charcoal": 10,
+        "L-Grey": 10
+      }
+    },
+    {
+      "id": 7,
+      "name": "WIDE-LEG UTILITY DEPT DENIM",
+      "price": 90,
+      "category": "Jeans",
+      "department": "Women",
+      "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=600",
+      "description": "High-waisted wide-leg denim in vintage washed blue. Fitted with hammer loop carpenter detailing, reinforced pockets, and a signature heavy leather patch.",
+      "sizes": [
+        "26",
+        "28",
+        "30",
+        "32"
+      ],
+      "badge": "",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "26-Black": 10,
+        "26-Charcoal": 10,
+        "26-Grey": 10,
+        "28-Black": 10,
+        "28-Charcoal": 10,
+        "28-Grey": 10,
+        "30-Black": 10,
+        "30-Charcoal": 10,
+        "30-Grey": 10,
+        "32-Black": 10,
+        "32-Charcoal": 10,
+        "32-Grey": 10
+      }
+    },
+    {
+      "id": 8,
+      "name": "WOMEN'S SUEDE RUNNER SHADOW",
+      "price": 150,
+      "category": "Footwear",
+      "department": "Women",
+      "image": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600",
+      "description": "Premium low-top runners constructed with buttery soft calf suede and nylon underlays. Lightweight EVA midsole and a textured rubber tread grip make this the ultimate hybrid of style and athletic performance.",
+      "sizes": [
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "badge": "RESTOCKED",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "36-Black": 10,
+        "36-Charcoal": 10,
+        "36-Grey": 10,
+        "37-Black": 10,
+        "37-Charcoal": 10,
+        "37-Grey": 10,
+        "38-Black": 10,
+        "38-Charcoal": 10,
+        "38-Grey": 10,
+        "39-Black": 10,
+        "39-Charcoal": 10,
+        "39-Grey": 10,
+        "40-Black": 10,
+        "40-Charcoal": 10,
+        "40-Grey": 10
+      }
+    },
+    {
+      "id": 9,
+      "name": "KIDS MINI STYLUXE HOODIE",
+      "price": 45,
+      "category": "Hoodies",
+      "department": "Kids",
+      "image": "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=600",
+      "description": "Junior edition of our signature oversized hoodie. Crafted from organic Egyptian cotton fleece to provide lightweight warmth and exceptional softness.",
+      "sizes": [
+        "4Y",
+        "6Y",
+        "8Y",
+        "10Y",
+        "12Y"
+      ],
+      "badge": "MINI-ME",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "4Y-Black": 10,
+        "4Y-Charcoal": 10,
+        "4Y-Grey": 10,
+        "6Y-Black": 10,
+        "6Y-Charcoal": 10,
+        "6Y-Grey": 10,
+        "8Y-Black": 10,
+        "8Y-Charcoal": 10,
+        "8Y-Grey": 10,
+        "10Y-Black": 10,
+        "10Y-Charcoal": 10,
+        "10Y-Grey": 10,
+        "12Y-Black": 10,
+        "12Y-Charcoal": 10,
+        "12Y-Grey": 10
+      }
+    },
+    {
+      "id": 10,
+      "name": "KIDS DENIM TRUCKER JACKET",
+      "price": 55,
+      "category": "Jackets",
+      "department": "Kids",
+      "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&q=80&w=600",
+      "description": "Classic denim trucker jacket scaled down for kids. Durable 12oz denim fabric with easy-to-use snap buttons and adjustable waist tabs.",
+      "sizes": [
+        "6Y",
+        "8Y",
+        "10Y",
+        "12Y"
+      ],
+      "badge": "BESTSELLER",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "6Y-Black": 10,
+        "6Y-Charcoal": 10,
+        "6Y-Grey": 10,
+        "8Y-Black": 10,
+        "8Y-Charcoal": 10,
+        "8Y-Grey": 10,
+        "10Y-Black": 10,
+        "10Y-Charcoal": 10,
+        "10Y-Grey": 10,
+        "12Y-Black": 10,
+        "12Y-Charcoal": 10,
+        "12Y-Grey": 10
+      }
+    },
+    {
+      "id": 11,
+      "name": "KIDS SLIM UTILITY JOGGER",
+      "price": 50,
+      "category": "Jeans",
+      "department": "Kids",
+      "image": "https://images.unsplash.com/photo-1514989940723-e8e5163ccbe8?auto=format&fit=crop&q=80&w=600",
+      "description": "Soft cotton cargo joggers with elastic drawstring waist and ankle cuffs. Features two utility flap pockets and a comfortable loose thigh block for play.",
+      "sizes": [
+        "4Y",
+        "6Y",
+        "8Y",
+        "10Y"
+      ],
+      "badge": "",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "4Y-Black": 10,
+        "4Y-Charcoal": 10,
+        "4Y-Grey": 10,
+        "6Y-Black": 10,
+        "6Y-Charcoal": 10,
+        "6Y-Grey": 10,
+        "8Y-Black": 10,
+        "8Y-Charcoal": 10,
+        "8Y-Grey": 10,
+        "10Y-Black": 10,
+        "10Y-Charcoal": 10,
+        "10Y-Grey": 10
+      }
+    },
+    {
+      "id": 12,
+      "name": "KIDS ACTIVE SHIELD RUNNERS",
+      "price": 65,
+      "category": "Footwear",
+      "department": "Kids",
+      "image": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600",
+      "description": "Ultra-lightweight kids running sneakers with breathable mesh upper, memory foam footbed, and quick-lace bungee toggle systems.",
+      "sizes": [
+        "28",
+        "30",
+        "32",
+        "34",
+        "35"
+      ],
+      "badge": "NEW",
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "inventory": {
+        "28-Black": 10,
+        "28-Charcoal": 10,
+        "28-Grey": 10,
+        "30-Black": 10,
+        "30-Charcoal": 10,
+        "30-Grey": 10,
+        "32-Black": 10,
+        "32-Charcoal": 10,
+        "32-Grey": 10,
+        "34-Black": 10,
+        "34-Charcoal": 10,
+        "34-Grey": 10,
+        "35-Black": 10,
+        "35-Charcoal": 10,
+        "35-Grey": 10
+      }
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Lina Khoury",
+      "email": "lina@example.com",
+      "password": "user123",
+      "phone": "+961 71 987 654",
+      "address": "Achrafieh, Beirut",
+      "dateJoined": "2026-06-12"
+    },
+    {
+      "id": 2,
+      "name": "Samir Ghanem",
+      "email": "samir@example.com",
+      "password": "user123",
+      "phone": "+961 03 456 789",
+      "address": "Hamra Street, Beirut",
+      "dateJoined": "2026-06-10"
+    },
+    {
+      "id": 3,
+      "name": "Hussein",
+      "email": "hussein.massara@gmail.com",
+      "password": "social-auth-disabled-password",
+      "phone": "N/A",
+      "address": "N/A",
+      "dateJoined": "2026-07-06"
+    },
+    {
+      "id": 4,
+      "name": "Sarah",
+      "email": "sarah.k@gmail.com",
+      "password": "social-auth-disabled-password",
+      "phone": "N/A",
+      "address": "N/A",
+      "dateJoined": "2026-07-06"
+    }
+  ],
+  "orders": [
+    {
+      "id": "STX-84920",
+      "date": "2026-06-13",
+      "customerEmail": "samir@example.com",
+      "customerName": "Samir Ghanem",
+      "customerPhone": "+961 03 456 789",
+      "customerAddress": "Hamra Street, Beirut",
+      "items": [
+        {
+          "id": 1,
+          "name": "STYLUXE OVERSIZED COTTON HOODIE",
+          "price": 85,
+          "size": "L",
+          "quantity": 1
+        }
+      ],
+      "total": 95,
+      "status": "DELIVERED",
+      "department": "Men"
+    },
+    {
+      "id": "STX-73910",
+      "date": "2026-06-14",
+      "customerEmail": "lina@example.com",
+      "customerName": "Lina Khoury",
+      "customerPhone": "+961 71 987 654",
+      "customerAddress": "Achrafieh, Beirut",
+      "items": [
+        {
+          "id": 5,
+          "name": "WOMEN'S GLOSSY DOWN PUFFER",
+          "price": 160,
+          "size": "M",
+          "quantity": 1
+        }
+      ],
+      "total": 160,
+      "status": "PAID",
+      "department": "Women"
+    }
+  ],
+  "staff": [
+    {
+      "id": 1,
+      "name": "Global Manager",
+      "email": "manager@example.com",
+      "password": "staff123",
+      "role": "Manager",
+      "permissions": [
+        "manage_products",
+        "manage_orders",
+        "pos_access",
+        "manage_staff"
+      ],
+      "status": "Active"
+    }
+  ]
+}

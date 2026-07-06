@@ -1,0 +1,10 @@
+{
+  "name": "styluxe-premium-store",
+  "version": "1.0.0",
+  "description": "STYLUXE Premium Luxury Streetwear Store",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STYLUXE | Redefining Modern Streetwear & Luxury</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Discover STYLUXE, a premium luxury streetwear brand featuring high-quality oversized hoodies, leather jackets, cargo pants, and footwear. Inspired by minimalist aesthetics.">
+    <meta property="og:title" content="STYLUXE | Redefining Modern Streetwear & Luxury">
+    <meta property="og:description" content="Shop the new luxury collection at STYLUXE. Worldwide shipping.">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google & Apple Social Authentication SDKs -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+</head>
+<body style="overflow: hidden;">
+
+    <!-- Promo Announcement Bar -->
+    <div class="promo-bar" id="promoBar">
+        <div class="promo-text-container">
+            <span class="promo-text">FREE EXPRESS SHIPPING ON ALL ORDERS OVER $150 USD</span>
+            <span class="promo-text">●</span>
+            <span class="promo-text">STYLUXE ARCHIVE COLLECTION OUT NOW</span>
+            <span class="promo-text">●</span>
+            <span class="promo-text">DELIVERIES NATIONWIDE IN 2-4 BUSINESS DAYS</span>
+            <span class="promo-text">●</span>
+            <span class="promo-text">FREE EXPRESS SHIPPING ON ALL ORDERS OVER $150 USD</span>
+        </div>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <!-- Mobile Menu Toggle -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+
+            <!-- Navigation Links (Left) -->
+            <nav class="nav-links" id="navLinks">
+                <a href="#home" class="active">HOME</a>
+                <a href="#shop-section" onclick="filterByDepartment('Men')">MEN</a>
+                <a href="#shop-section" onclick="filterByDepartment('Women')">WOMEN</a>
+                <a href="#shop-section" onclick="filterByDepartment('Kids')">KIDS</a>
+                <a href="#about">ABOUT US</a>
+            </nav>
+
+            <!-- Brand Logo (Center) -->
+            <div class="brand-logo">
+                <a href="#home">STYLUXE</a>
+            </div>
+
+            <!-- Header Utilities (Right) -->
+            <div class="nav-utilities">
+                <!-- Search Collapsible Box -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="SEARCH PRODUCTS..." aria-label="Search">
+                    <button id="searchBtn" aria-label="Search Button">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <!-- Currency Picker -->
+                <div class="currency-picker">
+                    <button class="currency-btn" id="currencyBtn">USD ($)</button>
+                    <div class="currency-dropdown" id="currencyDropdown">
+                        <button onclick="changeCurrency('USD')">USD ($)</button>
+                        <button onclick="changeCurrency('LBP')">LBP (ل.ل)</button>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle Button -->
+                <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+                <!-- User Account Utilities -->
+                <div class="currency-picker" style="position: relative;">
+                    <button class="theme-toggle-btn" id="userMenuBtn" aria-label="User Account" onclick="toggleUserMenu(event)">
+                        <i class="fa-solid fa-user"></i>
+                        <span id="navUserGreeting" style="font-size: 1rem; font-weight: 700; letter-spacing: 0.05em; margin-left: 0.8rem; display: none;">HI, GUEST</span>
+                    </button>
+                    <div class="currency-dropdown" id="userMenuDropdown" style="width: 160px; right: 0;">
+                        <!-- Logged Out -->
+                        <div id="userMenuLoggedOut">
+                            <button onclick="openAuthModal('login')">LOGIN</button>
+                            <button onclick="openAuthModal('register')">REGISTER</button>
+                        </div>
+                        <!-- Logged In -->
+                        <div id="userMenuLoggedIn" style="display: none;">
+                            <button onclick="openMyOrdersModal()">MY ORDERS</button>
+                            <button onclick="handleUserLogout()">LOGOUT</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Button -->
+                <button class="cart-toggle-btn" id="cartToggleBtn" aria-label="View Cart">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <div class="drawer-header">
+            <div class="drawer-title">MENU</div>
+            <button class="close-drawer-btn" id="closeDrawerBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="drawer-links">
+            <a href="#home" onclick="toggleMobileDrawer()">HOME</a>
+            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Men')">MEN</a>
+            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Women')">WOMEN</a>
+            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Kids')">KIDS</a>
+            <a href="#about" onclick="toggleMobileDrawer()">ABOUT US</a>
+        </nav>
+    </div>
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <!-- Main Content Area -->
+    <main>
+        
+        <!-- Hero Section -->
+        <section id="home" class="hero-section">
+            <div class="hero-background" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('assets/hero_bg.png');"></div>
+            <div class="hero-content">
+                <span class="hero-subtitle">NEW ARRIVALS / COLLECTION 2026</span>
+                <h1 class="hero-title">REDEFINING LUXURY</h1>
+                <p class="hero-description">Clean silhouettes, oversized fits, and premium fabrications designed to elevate your daily archives.</p>
+                <a href="#shop-section" class="cta-button">DISCOVER THE SHOP</a>
+            </div>
+        </section>
+
+        <!-- Brand Values strip -->
+        <section class="values-bar">
+            <div class="value-item">
+                <i class="fa-solid fa-truck-fast"></i>
+                <div>
+                    <h3>FREE SHIPPING</h3>
+                    <p>On orders above $150</p>
+                </div>
+            </div>
+            <div class="value-item">
+                <i class="fa-solid fa-gem"></i>
+                <div>
+                    <h3>PREMIUM QUALITY</h3>
+                    <p>Egyptian Cotton & Luxury Denim</p>
+                </div>
+            </div>
+            <div class="value-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <div>
+                    <h3>SECURE PAYMENTS</h3>
+                    <p>Cash on Delivery & Card Encryption</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Collections / Categories Section -->
+        <section id="collections" class="section-container collections-section">
+            <div class="section-header">
+                <h2 class="section-title">THE COLLECTIONS</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="collections-grid">
+                <!-- Men Department Card -->
+                <div class="collection-card" onclick="filterByDepartment('Men')">
+                    <img src="assets/hoodie_black.png" alt="Shop Men">
+                    <div class="collection-overlay">
+                        <h3>MEN</h3>
+                        <span>DISCOVER COLLECTION <i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                </div>
+                <!-- Women Department Card -->
+                <div class="collection-card" onclick="filterByDepartment('Women')">
+                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=600" alt="Shop Women">
+                    <div class="collection-overlay">
+                        <h3>WOMEN</h3>
+                        <span>DISCOVER COLLECTION <i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                </div>
+                <!-- Kids Department Card -->
+                <div class="collection-card" onclick="filterByDepartment('Kids')">
+                    <img src="https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=600" alt="Shop Kids">
+                    <div class="collection-overlay">
+                        <h3>KIDS</h3>
+                        <span>DISCOVER COLLECTION <i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         <!-- Shop & Catalog Section -->
+        <section id="shop-section" class="section-container catalog-section" style="display: none;">
+            <!-- Back to Collections Button -->
+            <div class="back-to-collections-container" style="margin-bottom: 2.5rem; text-align: left; display: none;" id="backToCollectionsContainer">
+                <button class="back-to-collections-btn" onclick="showCollectionsGrid()" style="background: none; border: 1px solid var(--color-border); padding: 1rem 2rem; color: var(--color-text); font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600; letter-spacing: 0.1em; cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast);">
+                    <i class="fa-solid fa-arrow-left-long" style="margin-right: 1rem;"></i> BACK TO COLLECTIONS
+                </button>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">SHOP ALL</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <!-- Circular Brand Slider -->
+            <div class="brand-slider-container">
+                <div class="brand-slider" id="brandSlider">
+                    <!-- Brands dynamically rendered by app.js as circular badges -->
+                </div>
+            </div>
+
+            <!-- Departments Filter Controls -->
+            <div class="department-controls" id="departmentControls">
+                <button class="dept-tag active" onclick="filterByDepartment('All')">ALL DEPARTMENTS</button>
+                <button class="dept-tag" onclick="filterByDepartment('Men')">MEN</button>
+                <button class="dept-tag" onclick="filterByDepartment('Women')">WOMEN</button>
+                <button class="dept-tag" onclick="filterByDepartment('Kids')">KIDS</button>
+            </div>
+
+            <!-- Categories and Search Filter Controls -->
+            <div class="filter-controls">
+                <div class="filter-tags" id="filterTags">
+                    <button class="filter-tag active" onclick="filterByCategory('All')">ALL PRODUCTS</button>
+                    <button class="filter-tag" onclick="filterByCategory('Hoodies')">HOODIES</button>
+                    <button class="filter-tag" onclick="filterByCategory('Jackets')">JACKETS</button>
+                    <button class="filter-tag" onclick="filterByCategory('Jeans')">JEANS</button>
+                    <button class="filter-tag" onclick="filterByCategory('Footwear')">FOOTWEAR</button>
+                </div>
+                <div class="sort-selector">
+                    <label for="sortSelect" class="sr-only">Sort By</label>
+                    <select id="sortSelect" onchange="sortProducts()" aria-label="Sort products">
+                        <option value="default">SORT BY: FEATURED</option>
+                        <option value="price-low">PRICE: LOW TO HIGH</option>
+                        <option value="price-high">PRICE: HIGH TO LOW</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="product-grid" id="productGrid">
+                <!-- Products dynamically rendered by app.js -->
+            </div>
+        </section>
+
+        <!-- Brand About / Story Section -->
+        <section id="about" class="about-section">
+            <div class="about-content">
+                <h2>OUR PHILOSOPHY</h2>
+                <p>Styluxe represents the intersection of luxury craftsmanship and raw streetwear culture. Born out of a desire for premium garments that transcend seasonal trends, each piece is engineered with meticulous attention to detail, fabric weight, and silhouette integrity.</p>
+                <p>Designed locally and manufactured using the finest raw materials, Styluxe promises durable luxury that tells a story of modern sophistication.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Product Detail Modal Overlay -->
+    <div class="modal-backdrop" id="productModalBackdrop">
+        <div class="product-modal" id="productModal">
+            <button class="close-modal-btn" onclick="closeProductModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-grid">
+                <div class="modal-gallery">
+                    <div class="main-image-container" id="mainImageContainer">
+                        <img id="modalProductImg" src="" alt="Product Image">
+                    </div>
+                    <div class="thumbnail-grid" id="thumbnailGrid">
+                        <!-- Dynamic thumbnails will go here -->
+                    </div>
+                </div>
+                <div class="modal-info">
+                    <span id="modalProductCategory" class="modal-category">CATEGORY</span>
+                    <h2 id="modalProductName" class="modal-title">PRODUCT NAME</h2>
+                    <div id="modalProductPrice" class="modal-price">$0.00</div>
+                    <p id="modalProductDesc" class="modal-description">Product description text goes here.</p>
+                    <div class="modal-options" style="margin-bottom: 2rem;">
+                        <!-- Color selection -->
+                        <div class="option-title" style="margin-bottom: 1rem;">SELECT COLOR:</div>
+                        <div class="color-selector-grid" id="colorSelectorGrid" style="display: flex; gap: 1.2rem; margin-bottom: 2.5rem;">
+                            <!-- Colors dynamically populated by app.js -->
+                        </div>
+                    </div>
+
+                    <div class="modal-options">
+                        <!-- Size selection -->
+                        <div class="option-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <div class="option-title" style="margin-bottom: 0;">SELECT SIZE:</div>
+                            <button class="size-guide-link-btn" onclick="openSizeGuide()" style="background: none; border: none; color: var(--color-accent); font-weight: 600; font-size: 1.15rem; cursor: pointer; text-decoration: underline; letter-spacing: 0.05em; padding: 0;">SIZE GUIDE</button>
+                        </div>
+                        <div class="size-selector-grid" id="sizeSelectorGrid">
+                            <button class="size-btn" onclick="selectSize('S')">S</button>
+                            <button class="size-btn" onclick="selectSize('M')">M</button>
+                            <button class="size-btn" onclick="selectSize('L')">L</button>
+                            <button class="size-btn" onclick="selectSize('XL')">XL</button>
+                            <button class="size-btn" onclick="selectSize('XXL')">XXL</button>
+                        </div>
+                    </div>
+
+                    <button class="add-to-cart-btn" id="modalAddToCartBtn" onclick="addProductFromModalToCart()">ADD TO CART</button>
+                </div>
+            </div>
+
+            <!-- Customer Reviews & Ratings Section -->
+            <div class="product-reviews-section">
+                <div class="reviews-header">
+                    <h3 class="reviews-heading">CUSTOMER REVIEWS</h3>
+                    <div class="reviews-stats-summary">
+                        <div class="rating-aggregate">
+                            <span class="avg-score" id="reviewsAvgScore">0.0</span>
+                            <div class="stars-outer">
+                                <div class="stars-inner" id="reviewsAvgStars"></div>
+                            </div>
+                            <span class="total-count" id="reviewsTotalCount">(0 reviews)</span>
+                        </div>
+                        <button class="write-review-toggle-btn" id="writeReviewToggleBtn" onclick="toggleReviewForm()">WRITE A REVIEW</button>
+                    </div>
+                </div>
+
+                <!-- Write a review form (collapsible) -->
+                <div class="write-review-form-container" id="writeReviewFormContainer">
+                    <h4 class="form-title">SHARE YOUR EXPERIENCE</h4>
+                    <form id="productReviewForm" onsubmit="submitProductReview(event)">
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="reviewName">YOUR NAME *</label>
+                                <input type="text" id="reviewName" required placeholder="Enter your name">
+                            </div>
+                            <div class="form-group">
+                                <label>YOUR RATING *</label>
+                                <div class="star-rating-selector" id="starRatingSelector">
+                                    <span class="star-rating-btn" data-value="1" onclick="setFormRating(1)"><i class="fa-regular fa-star"></i></span>
+                                    <span class="star-rating-btn" data-value="2" onclick="setFormRating(2)"><i class="fa-regular fa-star"></i></span>
+                                    <span class="star-rating-btn" data-value="3" onclick="setFormRating(3)"><i class="fa-regular fa-star"></i></span>
+                                    <span class="star-rating-btn" data-value="4" onclick="setFormRating(4)"><i class="fa-regular fa-star"></i></span>
+                                    <span class="star-rating-btn" data-value="5" onclick="setFormRating(5)"><i class="fa-regular fa-star"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewTitle">REVIEW TITLE *</label>
+                            <input type="text" id="reviewTitle" required placeholder="Summarize your experience (e.g. Fit & Fabric quality)">
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewComment">REVIEW DETAILS *</label>
+                            <textarea id="reviewComment" required placeholder="Write your detailed review here..." rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="submit-review-btn">SUBMIT REVIEW</button>
+                    </form>
+                </div>
+
+                <!-- Reviews list -->
+                <div class="reviews-list-container" id="reviewsListContainer">
+                    <!-- Reviews rendered dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar Drawer -->
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-drawer-header">
+            <h2 class="cart-drawer-title">SHOPPING CART (<span id="cartHeaderCount">0</span>)</h2>
+            <button class="close-cart-btn" id="closeCartBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="cart-items-container" id="cartItemsContainer">
+            <!-- Items rendered dynamically by app.js -->
+            <!-- If empty, shows: -->
+            <div class="empty-cart-message">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <p>YOUR CART IS EMPTY</p>
+                <a href="#shop-section" onclick="toggleCartDrawer(false)" class="continue-shopping-btn">CONTINUE SHOPPING</a>
+            </div>
+        </div>
+
+        <div class="cart-drawer-footer" id="cartDrawerFooter">
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>SUBTOTAL</span>
+                    <span id="cartSubtotal">$0.00</span>
+                </div>
+                <p class="cart-disclaimer">Shipping, taxes, and discounts calculated at checkout.</p>
+            </div>
+            <button class="checkout-btn" onclick="openCheckoutModal()">PROCEED TO CHECKOUT</button>
+        </div>
+    </div>
+    <div class="cart-backdrop" id="cartBackdrop"></div>
+
+    <!-- Checkout Modal Simulation -->
+    <div class="modal-backdrop" id="checkoutModalBackdrop">
+        <div class="checkout-modal" id="checkoutModal">
+            <button class="close-modal-btn" onclick="closeCheckoutModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="checkout-title">STYLUXE CHECKOUT</h2>
+            
+            <div class="checkout-body">
+                <!-- Shipping Form -->
+                <form id="checkoutForm" onsubmit="handleCheckoutSubmit(event)">
+                    <div class="checkout-section">
+                        <h3>1. SHIPPING DETAILS</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullName">Full Name *</label>
+                                <input type="text" id="fullName" required placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" required placeholder="john@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="phoneNumber">Phone Number *</label>
+                                <input type="tel" id="phoneNumber" required placeholder="+961 70 123 456">
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City / Region *</label>
+                                <input type="text" id="city" required placeholder="Beirut">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="address">Full Address *</label>
+                                <input type="text" id="address" required placeholder="Street, Building, Floor">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-section">
+                        <h3>2. PAYMENT METHOD</h3>
+                        <div class="payment-methods">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="cod" checked>
+                                <span class="custom-radio"></span>
+                                <div>
+                                    <strong>Cash on Delivery (COD)</strong>
+                                    <p>Pay with cash upon delivery of your items.</p>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="card">
+                                <span class="custom-radio"></span>
+                                <div>
+                                    <strong>Credit / Debit Card</strong>
+                                    <p>Online payment via secure processing.</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="order-summary-box">
+                        <h3>ORDER SUMMARY</h3>
+                        <div class="summary-details" id="checkoutOrderSummary">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="place-order-btn">PLACE ORDER</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen Modal -->
+    <div class="modal-backdrop" id="successModalBackdrop">
+        <div class="success-modal">
+            <div class="success-icon-wrapper">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2>ORDER PLACED SUCCESSFULLY</h2>
+            <p>Thank you for shopping with STYLUXE. Your order <span id="orderNumber" class="order-num">#STX-92849</span> has been processed.</p>
+            <p class="success-subtext">A confirmation email has been sent to your address. Our team will contact you shortly to confirm shipment.</p>
+            <button class="continue-shopping-btn" onclick="closeSuccessModal()">CONTINUE SHOPPING</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col brand-col">
+                <h2 class="footer-logo">STYLUXE</h2>
+                <p>Elevating streetwear and modern minimalism. Crafted for the detail-oriented individual.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h3>HELP</h3>
+                <ul>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Shipping & Returns</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3>POLICIES</h3>
+                <ul>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Refund Policy</a></li>
+                    <li><a href="#" onclick="event.preventDefault(); openAdminLoginModal();" style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-lock"></i> ADMIN PORTAL</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col newsletter-col">
+                <h3>NEWSLETTER</h3>
+                <p>Subscribe to receive early access to archives, restocks, and exclusive promotions.</p>
+                <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed successfully!'); this.reset();">
+                    <input type="email" placeholder="ENTER YOUR EMAIL..." required aria-label="Newsletter email">
+                    <button type="submit">JOIN</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 STYLUXE ARCHIVE. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <!-- Dedicated Customer Authentication Page -->
+    <div class="auth-page-overlay active" id="authPageOverlay" style="display: block;">
+        <div class="auth-page-container">
+            <!-- Left Side: Brand Visual (Desktop only) -->
+            <div class="auth-page-visual">
+                <div class="auth-page-visual-overlay"></div>
+                <div class="auth-page-visual-content">
+                    <h1 class="auth-page-brand">STYLUXE</h1>
+                    <div class="auth-page-divider"></div>
+                    <p class="auth-page-subtitle">THE ARCHIVE</p>
+                    <p class="auth-page-tagline">CURATED LUXURY STREETWEAR & ARCHIVAL PIECES</p>
+                </div>
+            </div>
+
+            <!-- Right Side: Forms Column -->
+            <div class="auth-page-forms-side">
+                <div class="auth-page-header-mobile">
+                    <h1 class="auth-mobile-brand">STYLUXE</h1>
+                </div>
+                
+                <div class="auth-page-card">
+                    <a href="#" onclick="event.preventDefault(); closeAuthModal();" class="back-to-store-btn">
+                        <i class="fa-solid fa-arrow-left"></i> BACK TO STORE
+                    </a>
+                    
+                    <!-- Login View -->
+                    <div id="authLoginView">
+                        <h2 class="auth-form-title">CUSTOMER SIGN IN</h2>
+                        <p class="auth-form-desc">Sign in to your STYLUXE account to proceed with checkout and track orders.</p>
+                        
+                        <form id="customerLoginForm" onsubmit="handleCustomerLogin(event)">
+                            <div class="form-group">
+                                <label for="custLoginEmail">EMAIL ADDRESS *</label>
+                                <input type="email" id="custLoginEmail" required placeholder="john@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="custLoginPassword">PASSWORD *</label>
+                                <input type="password" id="custLoginPassword" required placeholder="••••••••">
+                            </div>
+                            <div id="authLoginError" class="auth-error-msg">INVALID EMAIL OR PASSWORD.</div>
+                            
+                            <button type="submit" class="auth-submit-btn">SIGN IN</button>
+                            <button type="button" class="auth-guest-btn" onclick="handleGuestEntry()">CONTINUE AS GUEST / دخول زائر</button>
+                        </form>
+
+                        <div class="auth-social-divider">
+                            <span>OR CONTINUE WITH</span>
+                        </div>
+
+                        <div class="auth-social-buttons" id="authSocialButtonsArea">
+                            <!-- Dynamically populated by app.js based on server config -->
+                        </div>
+
+                        <p class="auth-switch-prompt">
+                            Don't have an account? <a href="#" onclick="event.preventDefault(); switchAuthView('register');">Register here</a>
+                        </p>
+                    </div>
+
+                    <!-- Register View -->
+                    <div id="authRegisterView" style="display: none;">
+                        <h2 class="auth-form-title">CREATE ACCOUNT</h2>
+                        <p class="auth-form-desc">Join STYLUXE today to access early releases, tracking, and fast checkouts.</p>
+                        
+                        <form id="customerRegisterForm" onsubmit="handleCustomerRegister(event)">
+                            <div class="form-grid-2col">
+                                <div class="form-group">
+                                    <label for="custRegName">FULL NAME *</label>
+                                    <input type="text" id="custRegName" required placeholder="John Doe">
+                                </div>
+                                <div class="form-group">
+                                    <label for="custRegEmail">EMAIL ADDRESS *</label>
+                                    <input type="email" id="custRegEmail" required placeholder="john@example.com">
+                                </div>
+                            </div>
+                            <div class="form-grid-2col">
+                                <div class="form-group">
+                                    <label for="custRegPhone">PHONE *</label>
+                                    <input type="tel" id="custRegPhone" required placeholder="+961 70 123 456">
+                                </div>
+                                <div class="form-group">
+                                    <label for="custRegPassword">PASSWORD *</label>
+                                    <input type="password" id="custRegPassword" required placeholder="••••••••">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="custRegAddress">SHIPPING ADDRESS *</label>
+                                <input type="text" id="custRegAddress" required placeholder="Street, Building, Floor, Beirut">
+                            </div>
+                            <div id="authRegisterError" class="auth-error-msg">AN ACCOUNT WITH THIS EMAIL ALREADY EXISTS.</div>
+                            
+                            <button type="submit" class="auth-submit-btn">REGISTER</button>
+                            <button type="button" class="auth-guest-btn" onclick="handleGuestEntry()">CONTINUE AS GUEST / دخول زائر</button>
+                        </form>
+
+                        <p class="auth-switch-prompt">
+                            Already have an account? <a href="#" onclick="event.preventDefault(); switchAuthView('login');">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Order History Modal -->
+    <div class="modal-backdrop" id="myOrdersModalBackdrop" style="z-index: 1050;">
+        <div class="checkout-modal" style="max-width: 800px; padding: 5rem 4rem;">
+            <button class="close-modal-btn" onclick="closeMyOrdersModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="checkout-title" style="margin-bottom: 30px;">MY ORDER ARCHIVE</h2>
+            
+            <div class="admin-table-container" style="border: 1px solid var(--color-border); max-height: 400px; overflow-y: auto;">
+                 <table class="admin-table">
+                     <thead>
+                         <tr>
+                             <th>ORDER ID</th>
+                             <th>DATE</th>
+                             <th>ITEMS</th>
+                             <th>TOTAL</th>
+                             <th>STATUS</th>
+                         </tr>
+                     </thead>
+                     <tbody id="myOrdersTableBody">
+                         <!-- Dynamically populated -->
+                     </tbody>
+                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal-backdrop" id="adminLoginModalBackdrop">
+        <div class="success-modal" style="max-width: 450px; padding: 5rem 3rem;">
+            <button class="close-modal-btn" onclick="closeAdminLoginModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; margin-bottom: 2rem; letter-spacing: 0.1em;">STYLUXE ADMIN</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 3rem; color: var(--color-text-muted);">Enter password to access dashboard or POS terminal.</p>
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+                    <label for="adminEmail" style="font-size: 1.1rem; font-weight: 600; color: var(--color-text-muted); display: block; margin-bottom: 0.8rem;">STAFF EMAIL (Leave blank for legacy codes)</label>
+                    <input type="email" id="adminEmail" placeholder="e.g. manager@example.com" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; font-size: 1.3rem;">
+                </div>
+                <div class="form-group" style="text-align: left; margin-bottom: 2.5rem;">
+                    <label for="adminPassword" style="font-size: 1.1rem; font-weight: 600; color: var(--color-text-muted); display: block; margin-bottom: 0.8rem;">PASSWORD OR ACCESS CODE *</label>
+                    <input type="password" id="adminPassword" required placeholder="••••••••" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; font-size: 1.3rem;">
+                </div>
+                <div id="loginError" style="color: var(--color-error); font-size: 1.2rem; margin-bottom: 2rem; display: none; text-align: center;">INCORRECT CREDENTIALS. PLEASE TRY AGAIN.</div>
+                <button type="submit" class="place-order-btn">LOGIN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Fullscreen Dashboard Overlay -->
+    <div class="admin-panel-overlay" id="adminPanelOverlay">
+        <div class="admin-panel-container">
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <span class="admin-logo">STYLUXE</span>
+                    <span class="admin-dept-title" id="adminDeptTitle">MEN ADMIN</span>
+                </div>
+                <nav class="admin-nav">
+                    <button class="admin-nav-btn active" id="btnTabOverview" onclick="switchAdminTab('overview')">
+                        <i class="fa-solid fa-chart-line"></i> OVERVIEW
+                    </button>
+                    <button class="admin-nav-btn" id="btnTabProducts" onclick="switchAdminTab('products')">
+                        <i class="fa-solid fa-box-open"></i> PRODUCTS
+                    </button>
+                    <button class="admin-nav-btn" id="btnTabOrders" onclick="switchAdminTab('orders')">
+                        <i class="fa-solid fa-receipt"></i> ORDERS
+                    </button>
+                    <button class="admin-nav-btn" id="btnTabCustomers" onclick="switchAdminTab('customers')">
+                        <i class="fa-solid fa-users"></i> CUSTOMERS
+                    </button>
+                    <button class="admin-nav-btn" id="btnTabStaff" onclick="switchAdminTab('staff')">
+                        <i class="fa-solid fa-user-shield"></i> STAFF / EMPLOYEES
+                    </button>
+                    <button class="admin-nav-btn" id="adminPosNavBtn" onclick="switchAdminTab('pos')">
+                        <i class="fa-solid fa-cash-register"></i> POS TERMINAL
+                    </button>
+                </nav>
+                <div class="admin-sidebar-footer">
+                    <button class="admin-logout-btn" onclick="logoutAdmin()">
+                        <i class="fa-solid fa-right-from-bracket"></i> LOGOUT
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="admin-main-content">
+                <!-- Tab: Overview -->
+                <div class="admin-tab-content active" id="adminTabOverview">
+                    <h2 class="admin-tab-title">DASHBOARD OVERVIEW</h2>
+                    <div class="admin-stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                         <div class="stat-card">
+                             <h3>GLOBAL SALES</h3>
+                             <div class="stat-value" id="statTotalSales">$0.00</div>
+                         </div>
+                         <div class="stat-card">
+                             <h3>TOTAL ORDERS</h3>
+                             <div class="stat-value" id="statTotalOrders">0</div>
+                         </div>
+                         <div class="stat-card">
+                             <h3>AVG ORDER VALUE</h3>
+                             <div class="stat-value" id="statAvgOrderValue">$0.00</div>
+                         </div>
+                         <div class="stat-card">
+                             <h3>CUSTOMERS</h3>
+                             <div class="stat-value" id="statTotalCustomers">0</div>
+                         </div>
+                    </div>
+                    
+                    <div class="admin-chart-box">
+                         <h3>SALES PERFORMANCE BY CATEGORY</h3>
+                         <div class="category-sales-bars" id="categorySalesBars">
+                             <!-- Dynamically populated -->
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Products -->
+                <div class="admin-tab-content" id="adminTabProducts">
+                    <div class="tab-header-actions">
+                         <h2 class="admin-tab-title">MANAGE PRODUCTS</h2>
+                         <button class="admin-action-btn" onclick="openAddProductModal()">+ ADD NEW PRODUCT</button>
+                    </div>
+                    <div class="admin-table-container">
+                         <table class="admin-table">
+                             <thead>
+                                 <tr>
+                                     <th>IMAGE</th>
+                                     <th>NAME</th>
+                                     <th>CATEGORY</th>
+                                     <th>PRICE</th>
+                                     <th>SIZES</th>
+                                     <th>ACTIONS</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="adminProductsTableBody">
+                                 <!-- Dynamically populated -->
+                             </tbody>
+                         </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Orders -->
+                <div class="admin-tab-content" id="adminTabOrders">
+                    <h2 class="admin-tab-title">CUSTOMER ORDERS</h2>
+                    <div class="admin-table-container">
+                         <table class="admin-table">
+                             <thead>
+                                 <tr>
+                                     <th>ORDER ID</th>
+                                     <th>CUSTOMER</th>
+                                     <th>DATE</th>
+                                     <th>ITEMS</th>
+                                     <th>TOTAL</th>
+                                     <th>STATUS</th>
+                                     <th>ACTIONS</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="adminOrdersTableBody">
+                                 <!-- Dynamically populated -->
+                             </tbody>
+                         </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Customers -->
+                <div class="admin-tab-content" id="adminTabCustomers">
+                    <h2 class="admin-tab-title">REGISTERED CUSTOMERS</h2>
+                    <div class="admin-table-container">
+                         <table class="admin-table">
+                             <thead>
+                                 <tr>
+                                     <th>NAME</th>
+                                     <th>EMAIL</th>
+                                     <th>PHONE</th>
+                                     <th>ADDRESS</th>
+                                     <th>DATE JOINED</th>
+                                     <th>LIFETIME SPENT</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="adminCustomersTableBody">
+                                 <!-- Dynamically populated -->
+                             </tbody>
+                         </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Staff / Employees -->
+                <div class="admin-tab-content" id="adminTabStaff">
+                    <div class="tab-header-actions">
+                         <h2 class="admin-tab-title">STAFF & PERMISSIONS</h2>
+                         <button class="admin-action-btn" onclick="openAddStaffModal()">+ ADD NEW STAFF</button>
+                    </div>
+                    <div class="admin-table-container">
+                         <table class="admin-table">
+                             <thead>
+                                 <tr>
+                                     <th>NAME</th>
+                                     <th>EMAIL</th>
+                                     <th>ROLE</th>
+                                     <th>PERMISSIONS</th>
+                                     <th>STATUS</th>
+                                     <th>ACTIONS</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="adminStaffTableBody">
+                                 <!-- Dynamically populated -->
+                             </tbody>
+                         </table>
+                    </div>
+                </div>
+
+                <!-- Tab: POS -->
+                <div class="admin-tab-content" id="adminTabPos">
+                    <h2 class="admin-tab-title">POINT OF SALE (POS)</h2>
+                    <div class="pos-workspace">
+                         <div class="pos-catalog">
+                             <div class="pos-catalog-header">
+                                 <input type="text" id="posSearchInput" placeholder="SEARCH PRODUCTS..." oninput="filterPosCatalog()">
+                                 <select id="posCategorySelect" onchange="filterPosCatalog()" aria-label="Filter POS catalog">
+                                     <option value="All">ALL CATEGORIES</option>
+                                     <option value="Hoodies">HOODIES</option>
+                                     <option value="Jackets">JACKETS</option>
+                                     <option value="Jeans">JEANS</option>
+                                     <option value="Footwear">FOOTWEAR</option>
+                                 </select>
+                             </div>
+                             <div class="pos-products-grid" id="posProductsGrid">
+                                 <!-- Dynamically populated -->
+                             </div>
+                         </div>
+                         <div class="pos-checkout">
+                             <h3>CHECKOUT TICKET</h3>
+                             <div class="pos-ticket-items" id="posTicketItems">
+                                 <!-- Ticket items -->
+                             </div>
+                             <div class="pos-customer-info">
+                                 <div class="form-group">
+                                     <label for="posCustomerName">Customer Name</label>
+                                     <input type="text" id="posCustomerName" placeholder="WALK-IN CUSTOMER">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="posCustomerPhone">Customer Phone</label>
+                                     <input type="text" id="posCustomerPhone" placeholder="+961 70 123 456">
+                                 </div>
+                             </div>
+                             <div class="pos-discount">
+                                 <label for="posDiscountInput">Discount (%)</label>
+                                 <input type="number" id="posDiscountInput" min="0" max="100" value="0" oninput="updatePosTotals()">
+                             </div>
+                             <div class="pos-totals">
+                                 <div class="pos-total-row">
+                                     <span>SUBTOTAL</span>
+                                     <span id="posSubtotal">$0.00</span>
+                                 </div>
+                                 <div class="pos-total-row">
+                                     <span>DISCOUNT</span>
+                                     <span id="posDiscountAmount">$0.00</span>
+                                 </div>
+                                 <div class="pos-total-row final-row">
+                                     <span>TOTAL</span>
+                                     <span id="posTotal">$0.00</span>
+                                 </div>
+                             </div>
+                             <button class="pos-pay-btn" onclick="processPosSale()">COMPLETE SALE</button>
+                         </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Product Modal Overlay -->
+    <div class="modal-backdrop" id="addProductModalBackdrop" style="z-index: 1100;">
+         <div class="checkout-modal" style="max-width: 600px;">
+             <button class="close-modal-btn" onclick="closeAddProductModal()"><i class="fa-solid fa-xmark"></i></button>
+             <h2 class="checkout-title">ADD NEW PRODUCT</h2>
+             <form id="addProductForm" onsubmit="handleNewProductSubmit(event)">
+                 <div class="form-grid" style="grid-template-columns: 1fr;">
+                     <div class="form-group">
+                         <label for="newProdName">Product Name *</label>
+                         <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE">
+                     </div>
+                     <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                         <div class="form-group">
+                             <label for="newProdCategory">Category *</label>
+                             <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text);">
+                                 <option value="Hoodies">Hoodies</option>
+                                 <option value="Jackets">Jackets</option>
+                                 <option value="Jeans">Jeans</option>
+                                 <option value="Footwear">Footwear</option>
+                             </select>
+                         </div>
+                         <div class="form-group">
+                             <label for="newProdPrice">Price (USD) *</label>
+                             <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="e.g. 85.00">
+                         </div>
+                     </div>
+                     <div class="form-group">
+                         <label for="newProdImg">Image URL *</label>
+                         <input type="text" id="newProdImg" required value="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600" placeholder="https://...">
+                     </div>
+                     <div class="form-group">
+                          <label for="newProdSizes">Sizes (Comma-separated) *</label>
+                          <input type="text" id="newProdSizes" required value="S, M, L, XL" placeholder="S, M, L">
+                      </div>
+                      <div class="form-group">
+                          <label for="newProdColors">Colors (Comma-separated) *</label>
+                          <input type="text" id="newProdColors" required value="Black, Charcoal, Grey" placeholder="Black, Grey">
+                      </div>
+                      <div class="form-group">
+                          <label for="newProdInventory">Initial Quantities (Format: S-Black:10, M-Black:5) *</label>
+                          <input type="text" id="newProdInventory" required value="S-Black:10, M-Black:10, L-Black:10, XL-Black:10, S-Charcoal:10, M-Charcoal:10, L-Charcoal:10, XL-Charcoal:10, S-Grey:10, M-Grey:10, L-Grey:10, XL-Grey:10" placeholder="S-Black:10, M-Black:5">
+                      </div>
+                      <div class="form-group">
+                          <label for="newProdDesc">Description *</label>
+                          <textarea id="newProdDesc" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); height: 80px; resize: none;" placeholder=" Garment details..."></textarea>
+                      </div>
+                 </div>
+                 <button type="submit" class="place-order-btn" style="margin-top: 2rem;">SAVE PRODUCT</button>
+             </form>
+         </div>
+    </div>
+
+    <!-- POS Receipt Modal Overlay -->
+    <div class="modal-backdrop" id="posReceiptModalBackdrop" style="z-index: 1200;">
+         <div class="checkout-modal" style="max-width: 400px; padding: 4rem 3rem; background-color: #ffffff; color: #000000; font-family: monospace;">
+             <div class="receipt-paper" style="font-size: 1.2rem; line-height: 1.5;">
+                 <div style="text-align: center; margin-bottom: 2rem;">
+                     <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading); letter-spacing: 0.1em;">STYLUXE</h2>
+                     <p>Riad Al Solh Street, Beirut, LB</p>
+                     <p>Phone: +961 01 123 456</p>
+                     <p>-----------------------------</p>
+                     <h3 style="font-size: 1.4rem; font-weight: 700; margin: 1rem 0;">SALES RECEIPT</h3>
+                     <p>-----------------------------</p>
+                 </div>
+                 <div style="margin-bottom: 2rem;">
+                     <p>Date: <span id="receiptDate">2026-06-14</span></p>
+                     <p>Cashier: <span id="receiptCashier">SYSTEM ADMIN</span></p>
+                     <p>Customer: <span id="receiptCustomer">WALK-IN CUSTOMER</span></p>
+                     <p>-----------------------------</p>
+                 </div>
+                 <div id="receiptItems" style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                     <!-- Items -->
+                 </div>
+                 <div style="margin-bottom: 2.5rem;">
+                     <p>-----------------------------</p>
+                     <div style="display: flex; justify-content: space-between;">
+                         <span>SUBTOTAL:</span>
+                         <span id="receiptSubtotal">$0.00</span>
+                     </div>
+                     <div style="display: flex; justify-content: space-between;">
+                         <span>DISCOUNT:</span>
+                         <span id="receiptDiscount">-$0.00</span>
+                     </div>
+                     <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.4rem; margin-top: 0.8rem;">
+                         <span>GRAND TOTAL:</span>
+                         <span id="receiptTotal">$0.00</span>
+                     </div>
+                     <p>-----------------------------</p>
+                 </div>
+                 <div style="text-align: center; font-size: 1.1rem; color: #555555;">
+                     <p>THANK YOU FOR SHOPPING WITH US</p>
+                     <p>Exchange policy: 7 Days with receipt</p>
+                 </div>
+             </div>
+             <button class="checkout-btn" style="margin-top: 3rem; background-color: #000000; color: #ffffff; width: 100%; border: 1px solid #000000;" onclick="closePosReceipt()">CLOSE RECEIPT</button>
+         </div>
+    </div>
+
+    <!-- Simulated Google Sign-In Overlay -->
+    <div class="mock-auth-overlay" id="googleAuthOverlay" style="display: none;">
+        <div class="mock-google-card">
+            <div class="mock-google-header">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" class="google-logo-img">
+                <h3>Sign in with Google</h3>
+                <p>to continue to <span class="brand-name">styluxe.com</span></p>
+            </div>
+            
+            <div class="mock-google-body">
+                <!-- Select Profile View -->
+                <div id="googleSelectAccountView">
+                    <div class="google-account-list">
+                        <div class="google-account-item" onclick="selectMockGoogleAccount('Hussein', 'hussein@gmail.com')">
+                            <div class="google-avatar" style="background-color: #3f51b5; color: #fff;">H</div>
+                            <div class="google-acc-info">
+                                <span class="acc-name">Hussein</span>
+                                <span class="acc-email">hussein@gmail.com</span>
+                            </div>
+                        </div>
+                        <div class="google-account-item" onclick="selectMockGoogleAccount('Lina', 'lina@example.com')">
+                            <div class="google-avatar" style="background-color: #e91e63; color: #fff;">L</div>
+                            <div class="google-acc-info">
+                                <span class="acc-name">Lina</span>
+                                <span class="acc-email">lina@example.com</span>
+                            </div>
+                        </div>
+                        <div class="google-account-item" onclick="selectMockGoogleAccount('Samir', 'samir@example.com')">
+                            <div class="google-avatar" style="background-color: #4caf50; color: #fff;">S</div>
+                            <div class="google-acc-info">
+                                <span class="acc-name">Samir</span>
+                                <span class="acc-email">samir@example.com</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mock-google-footer-text">
+                        To continue, Google will share your name, email address, language preference, and profile picture with Styluxe. See Styluxe's Privacy Policy.
+                    </div>
+                </div>
+
+                <!-- Loading State View -->
+                <div id="googleLoadingView" style="display: none; text-align: center; padding: 4rem 0;">
+                    <div class="google-loading-spinner"></div>
+                    <p style="margin-top: 2rem; font-size: 1.3rem; color: var(--color-text-muted);">Signing in with Google...</p>
+                </div>
+            </div>
+            
+            <button class="mock-google-cancel" onclick="closeMockSocialAuth()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Simulated Apple Sign-In Overlay -->
+    <div class="mock-auth-overlay" id="appleAuthOverlay" style="display: none;">
+        <div class="mock-apple-card">
+            <div class="mock-apple-header">
+                <i class="fa-brands fa-apple apple-logo-icon"></i>
+                <h3>Sign in with Apple ID</h3>
+                <p>Use your Apple ID to sign in to <strong>Styluxe</strong>.</p>
+            </div>
+            
+            <div class="mock-apple-body">
+                <!-- Setup/Continue View -->
+                <div id="appleSetupView">
+                    <div class="apple-id-box">
+                        <span class="apple-id-label">APPLE ID</span>
+                        <span class="apple-id-value">styluxe.user@icloud.com</span>
+                    </div>
+                    
+                    <div class="apple-options-box">
+                        <div class="apple-option-row">
+                            <i class="fa-solid fa-envelope"></i>
+                            <div class="apple-option-text">
+                                <span class="title">Share My Email</span>
+                                <span class="desc">styluxe.user@icloud.com</span>
+                            </div>
+                            <i class="fa-solid fa-circle-check option-check active"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Biometrics Authentication View -->
+                <div class="apple-biometric-section" id="appleBiometricPrompt" style="display: none;">
+                    <div class="biometric-fingerprint">
+                        <div class="fingerprint-pulse-ring"></div>
+                        <i class="fa-solid fa-fingerprint biometric-icon"></i>
+                    </div>
+                    <p class="biometric-prompt-text" id="appleBiometricText">Confirm with Touch ID</p>
+                    <p class="biometric-sub-text" id="appleBiometricSubText">Place finger on sensor to authorize</p>
+                </div>
+                
+                <!-- Success State View -->
+                <div class="apple-loading-section" id="appleSuccessSection" style="display: none; text-align: center; padding: 3rem 0;">
+                    <i class="fa-solid fa-circle-check" style="color: var(--color-success); font-size: 5rem; margin-bottom: 2rem;"></i>
+                    <p style="font-size: 1.4rem; font-weight: 600;">Authorized Successfully</p>
+                </div>
+            </div>
+            
+            <div class="mock-apple-footer-buttons" id="appleFooterButtons">
+                <button class="mock-apple-btn cancel" onclick="closeMockSocialAuth()">Cancel</button>
+                <button class="mock-apple-btn confirm" id="appleConfirmBtn" onclick="triggerAppleBiometrics()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Size Guide Modal -->
+    <div class="modal-backdrop" id="sizeGuideModalBackdrop" style="z-index: 1100;">
+        <div class="size-guide-modal" id="sizeGuideModal">
+            <button class="close-modal-btn" onclick="closeSizeGuide()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="size-guide-title">SIZE GUIDE & FIT RECOMMENDATIONS</h2>
+            
+            <div class="size-guide-tabs">
+                <button class="sg-tab-btn active" id="sgTabCalculator" onclick="switchSgTab('calculator')">SIZE CALCULATOR</button>
+                <button class="sg-tab-btn" id="sgTabChart" onclick="switchSgTab('chart')">SIZE CHART</button>
+            </div>
+            
+            <div class="size-guide-content">
+                <!-- Size Calculator Tab -->
+                <div class="sg-tab-content" id="sgContentCalculator">
+                    <p class="sg-instructions">Enter your height and weight to find your custom size recommendation.</p>
+                    <div class="calculator-form">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="sgHeight">HEIGHT (CM) *</label>
+                                <input type="number" id="sgHeight" required placeholder="e.g. 180" min="100" max="230">
+                            </div>
+                            <div class="form-group">
+                                <label for="sgWeight">WEIGHT (KG) *</label>
+                                <input type="number" id="sgWeight" required placeholder="e.g. 75" min="30" max="180">
+                            </div>
+                        </div>
+                        <button class="calculate-size-btn" onclick="calculateRecommendedSize()">CALCULATE MY SIZE</button>
+                    </div>
+                    
+                    <div class="calculator-result" id="calculatorResult" style="display: none;">
+                        <div class="result-box">
+                            <span class="result-label">SUGGESTED FIT:</span>
+                            <span class="result-value" id="recommendedSizeValue">-</span>
+                            <p class="result-text" id="recommendedSizeText">Based on your measurements, we suggest this size for a premium fit.</p>
+                        </div>
+                        <button class="apply-size-btn" id="applySizeBtn" onclick="applyRecommendedSize()">APPLY THIS SIZE</button>
+                    </div>
+                </div>
+                
+                <!-- Size Chart Tab -->
+                <div class="sg-tab-content" id="sgContentChart" style="display: none;">
+                    <div class="size-chart-table-container" id="sizeChartTableContainer">
+                        <!-- Dynamic sizing tables rendered by app.js based on product category -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Staff Modal Overlay -->
+    <div class="modal-backdrop" id="addStaffModalBackdrop" style="z-index: 1100;">
+         <div class="checkout-modal" style="max-width: 500px;">
+             <button class="close-modal-btn" onclick="closeAddStaffModal()"><i class="fa-solid fa-xmark"></i></button>
+             <h2 class="checkout-title">ADD NEW STAFF MEMBER</h2>
+             <form id="addStaffForm" onsubmit="handleNewStaffSubmit(event)">
+                 <div class="form-grid" style="grid-template-columns: 1fr;">
+                     <div class="form-group">
+                         <label for="staffName">Full Name *</label>
+                         <input type="text" id="staffName" required placeholder="e.g. Jean Khoury">
+                     </div>
+                     <div class="form-group">
+                         <label for="staffEmail">Email Address *</label>
+                         <input type="email" id="staffEmail" required placeholder="e.g. jean@styluxe.com">
+                     </div>
+                     <div class="form-group">
+                         <label for="staffPassword">Password *</label>
+                         <input type="password" id="staffPassword" required placeholder="Min 6 characters">
+                     </div>
+                     <div class="form-group">
+                         <label for="staffRole">Role Title *</label>
+                         <input type="text" id="staffRole" required placeholder="e.g. Store Supervisor">
+                     </div>
+                     <div class="form-group">
+                         <label style="margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.05em;">ASSIGN PERMISSIONS *</label>
+                         <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; background-color: var(--color-surface); padding: 1.5rem; border: 1px solid var(--color-border); border-radius: 4px;">
+                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text);">
+                                 <input type="checkbox" name="permissions" value="manage_products" checked style="width: auto; height: auto;">
+                                 <span>Manage Products (Edit, Add, Delete)</span>
+                             </label>
+                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text);">
+                                 <input type="checkbox" name="permissions" value="manage_orders" checked style="width: auto; height: auto;">
+                                 <span>Manage Orders (View, Ship, Cancel)</span>
+                             </label>
+                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text);">
+                                 <input type="checkbox" name="permissions" value="pos_access" checked style="width: auto; height: auto;">
+                                 <span>POS Terminal (Make Walk-in Sales)</span>
+                             </label>
+                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text);">
+                                 <input type="checkbox" name="permissions" value="manage_staff" style="width: auto; height: auto;">
+                                 <span>Manage Staff (View, Add, Remove Staff)</span>
+                             </label>
+                         </div>
+                     </div>
+                 </div>
+                 <button type="submit" class="place-order-btn" style="margin-top: 2rem;">SAVE STAFF PROFILE</button>
+             </form>
+         </div>
+    </div>
+
+    <!-- Floating WhatsApp Contact Pill -->
+    <a href="https://wa.me/96171987654" target="_blank" class="floating-whatsapp-btn" id="floatingWhatsappBtn">
+        <i class="fa-brands fa-whatsapp"></i>
+        <div class="whatsapp-btn-text">
+            <span class="whatsapp-label">CONTACT US</span>
+            <span class="whatsapp-dept-tag" id="whatsappDeptTag">MEN'S SUPPORT</span>
+        </div>
+    </a>
+
+    <!-- Custom JS App logic -->
+    <script src="app.js"></script>
+</body>
+</html>
