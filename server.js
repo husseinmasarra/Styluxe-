@@ -250,49 +250,274 @@ function ensureProductInventory(product) {
   return product;
 }
 
-// Helper to initialize and read/write the JSON DB
-function readDb() {
-  let db;
-  if (!fs.existsSync(DB_FILE)) {
-    db = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
-    db.products = db.products.map(p => ensureProductInventory(p));
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
-    return db;
-  }
-  try {
-    const data = fs.readFileSync(DB_FILE, 'utf-8');
-    db = JSON.parse(data);
-    
-    // Migration: ensure staff exists
-    if (!db.staff) {
-      db.staff = initialStaff;
+// Global in-memory cache for ultra-fast, zero-latency synchronous reads
+let dbMemory = { products: [], users: [], orders: [], staff: [] };
+let pool = null;
+
+// Initialize PostgreSQL connection pool if configured in config.json
+function initPgPool() {
+  const CONFIG_FILE = path.join(__dirname, 'config.json');
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+      if (cfg.DATABASE_URL) {
+        const { Pool } = require('pg');
+        pool = new Pool({
+          connectionString: cfg.DATABASE_URL,
+          ssl: { rejectUnauthorized: false } // Required for cloud databases like Supabase/Neon/Render
+        });
+        console.log("Connected to PostgreSQL Database Pool successfully!");
+      }
+    } catch (e) {
+      console.error("Failed to initialize PostgreSQL pool:", e);
     }
-    // Migration: ensure all products have colors and inventory
-    let migrated = false;
-    db.products = db.products.map(p => {
-      const updated = ensureProductInventory(p);
-      if (!p.colors || !p.inventory) migrated = true;
-      return updated;
-    });
-    
-    if (migrated || !db.staff) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
-    }
-    return db;
-  } catch (err) {
-    console.error("Error reading database file, using fallback mock data:", err);
-    return { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
   }
 }
 
-function writeDb(data) {
+// Create SQL Tables and populate seed data if empty
+async function initPgDatabase() {
+  if (!pool) return;
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    return true;
+    // Create users table
+    await pool.query(`CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      address TEXT,
+      date_joined VARCHAR(50)
+    )`);
+
+    // Create products table
+    await pool.query(`CREATE TABLE IF NOT EXISTS products (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      price DOUBLE PRECISION NOT NULL,
+      category VARCHAR(100) NOT NULL,
+      department VARCHAR(50) NOT NULL,
+      image TEXT NOT NULL,
+      description TEXT,
+      sizes TEXT,
+      colors TEXT,
+      inventory TEXT,
+      badge VARCHAR(50)
+    )`);
+
+    // Create orders table
+    await pool.query(`CREATE TABLE IF NOT EXISTS orders (
+      id SERIAL PRIMARY KEY,
+      user_email VARCHAR(255) NOT NULL,
+      items TEXT NOT NULL,
+      total DOUBLE PRECISION NOT NULL,
+      payment_method VARCHAR(50) NOT NULL,
+      status VARCHAR(50) NOT NULL,
+      date VARCHAR(50)
+    )`);
+
+    // Create staff table
+    await pool.query(`CREATE TABLE IF NOT EXISTS staff (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(100) NOT NULL,
+      permissions TEXT NOT NULL
+    )`);
+
+    // Seed defaults if tables are empty
+    const prodCount = await pool.query("SELECT COUNT(*) FROM products");
+    if (parseInt(prodCount.rows[0].count) === 0) {
+      console.log("Seeding products into PostgreSQL database...");
+      for (const p of initialProducts) {
+        const pFull = ensureProductInventory(p);
+        await pool.query(
+          `INSERT INTO products (name, price, category, department, image, description, sizes, colors, inventory, badge) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            pFull.name, pFull.price, pFull.category, pFull.department, pFull.image, pFull.description || "",
+            JSON.stringify(pFull.sizes || []), JSON.stringify(pFull.colors || []), JSON.stringify(pFull.inventory || {}), pFull.badge || ""
+          ]
+        );
+      }
+    }
+
+    const userCount = await pool.query("SELECT COUNT(*) FROM users");
+    if (parseInt(userCount.rows[0].count) === 0) {
+      console.log("Seeding users into PostgreSQL database...");
+      for (const u of initialUsers) {
+        await pool.query(
+          `INSERT INTO users (name, email, password, phone, address, date_joined) VALUES ($1, $2, $3, $4, $5, $6)`,
+          [u.name, u.email, u.password, u.phone || "N/A", u.address || "N/A", u.dateJoined || new Date().toISOString().split('T')[0]]
+        );
+      }
+    }
+
+    const staffCount = await pool.query("SELECT COUNT(*) FROM staff");
+    if (parseInt(staffCount.rows[0].count) === 0) {
+      console.log("Seeding staff into PostgreSQL database...");
+      for (const s of initialStaff) {
+        await pool.query(
+          `INSERT INTO staff (name, email, password, role, permissions) VALUES ($1, $2, $3, $4, $5)`,
+          [s.name, s.email, s.password, s.role, JSON.stringify(s.permissions || [])]
+        );
+      }
+    }
   } catch (err) {
-    console.error("Error writing database file:", err);
-    return false;
+    console.error("Failed to initialize or seed PostgreSQL database tables:", err);
   }
+}
+
+// Load data from SQL or JSON into local memory cache
+async function loadDatabaseIntoMemory() {
+  initPgPool();
+  if (pool) {
+    await initPgDatabase();
+    try {
+      console.log("Loading database from PostgreSQL into RAM cache...");
+      const usersRes = await pool.query('SELECT * FROM users ORDER BY id ASC');
+      const productsRes = await pool.query('SELECT * FROM products ORDER BY id ASC');
+      const ordersRes = await pool.query('SELECT * FROM orders ORDER BY id ASC');
+      const staffRes = await pool.query('SELECT * FROM staff ORDER BY id ASC');
+
+      dbMemory.users = usersRes.rows.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        password: u.password,
+        phone: u.phone,
+        address: u.address,
+        dateJoined: u.date_joined
+      }));
+
+      dbMemory.products = productsRes.rows.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        department: p.department,
+        image: p.image,
+        description: p.description,
+        sizes: JSON.parse(p.sizes || '[]'),
+        colors: JSON.parse(p.colors || '[]'),
+        inventory: JSON.parse(p.inventory || '{}'),
+        badge: p.badge
+      }));
+
+      dbMemory.orders = ordersRes.rows.map(o => ({
+        id: o.id,
+        userEmail: o.user_email,
+        items: JSON.parse(o.items || '[]'),
+        total: o.total,
+        paymentMethod: o.payment_method,
+        status: o.status,
+        date: o.date
+      }));
+
+      dbMemory.staff = staffRes.rows.map(s => ({
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        password: s.password,
+        role: s.role,
+        permissions: JSON.parse(s.permissions || '[]')
+      }));
+
+      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.users.length} users, ${dbMemory.staff.length} staff members.`);
+      return;
+    } catch (err) {
+      console.error("Failed to load PostgreSQL data, falling back to local JSON:", err);
+    }
+  }
+
+  // Local JSON file fallback
+  console.log("Loading database from local JSON file...");
+  if (!fs.existsSync(DB_FILE)) {
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
+    dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
+    fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), 'utf-8');
+    return;
+  }
+  try {
+    const data = fs.readFileSync(DB_FILE, 'utf-8');
+    dbMemory = JSON.parse(data);
+    
+    // Migrations
+    if (!dbMemory.staff) dbMemory.staff = initialStaff;
+    dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
+  } catch (err) {
+    console.error("Error reading JSON file database, using mock memory fallbacks:", err);
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
+  }
+}
+
+// Synchronous wrapper to read database from local RAM cache
+function readDb() {
+  return dbMemory;
+}
+
+// Synchronous update to RAM & local file, with background asynchronous Postgres sync task
+function writeDb(data) {
+  dbMemory = data;
+  try {
+    // 1. Write synchronously to local JSON file for instant local persistence
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error("Error writing JSON file database:", err);
+  }
+
+  // 2. Perform background asynchronous SQL sync if using PostgreSQL pool
+  if (pool) {
+    (async () => {
+      try {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+
+          // Sync users
+          await client.query('DELETE FROM users');
+          const userStmt = 'INSERT INTO users (id, name, email, password, phone, address, date_joined) VALUES ($1, $2, $3, $4, $5, $6, $7)';
+          for (const u of data.users) {
+            await client.query(userStmt, [u.id, u.name, u.email, u.password, u.phone || 'N/A', u.address || 'N/A', u.dateJoined || '']);
+          }
+
+          // Sync products
+          await client.query('DELETE FROM products');
+          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
+          for (const p of data.products) {
+            await client.query(prodStmt, [
+              p.id, p.name, p.price, p.category, p.department, p.image, p.description || '',
+              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || ''
+            ]);
+          }
+
+          // Sync orders
+          await client.query('DELETE FROM orders');
+          const orderStmt = 'INSERT INTO orders (id, user_email, items, total, payment_method, status, date) VALUES ($1, $2, $3, $4, $5, $6, $7)';
+          for (const o of data.orders) {
+            await client.query(orderStmt, [o.id, o.userEmail, JSON.stringify(o.items || []), o.total, o.paymentMethod, o.status, o.date]);
+          }
+
+          // Sync staff
+          await client.query('DELETE FROM staff');
+          const staffStmt = 'INSERT INTO staff (id, name, email, password, role, permissions) VALUES ($1, $2, $3, $4, $5, $6)';
+          for (const s of data.staff) {
+            await client.query(staffStmt, [s.id, s.name, s.email, s.password, s.role, JSON.stringify(s.permissions || [])]);
+          }
+
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      } catch (err) {
+        console.error("Background PostgreSQL sync task failed:", err);
+      }
+    })();
+  }
+  return true;
 }
 
 // Serve JSON Response helper
@@ -843,9 +1068,14 @@ function verifyGoogleToken(token, clientId) {
   }
 }
 
-server.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`  STYLUXE Premium Store Server running at:`);
-  console.log(`  👉  http://localhost:${PORT}/`);
-  console.log(`======================================================\n`);
-});
+(async () => {
+  // Load database from SQL or JSON into local memory cache
+  await loadDatabaseIntoMemory();
+
+  server.listen(PORT, () => {
+    console.log(`\n======================================================`);
+    console.log(`  STYLUXE Premium Store Server running at:`);
+    console.log(`  👉  http://localhost:${PORT}/`);
+    console.log(`======================================================\n`);
+  });
+})();
