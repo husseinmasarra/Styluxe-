@@ -2,6 +2,8 @@
 let PRODUCTS = [];
 let ordersList = [];
 let usersList = [];
+let CATEGORIES = [];
+let BRANDS = [];
 let cart = [];
 
 // Admin Panel State
@@ -68,12 +70,35 @@ const drawerBackdrop = document.getElementById("drawerBackdrop");
 // DATABASE SYNC ACTIONS
 async function loadProductsFromServer() {
     try {
-        const response = await fetch('/api/products');
-        PRODUCTS = await response.json();
+        const [resProd, resCat, resBrand] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/categories'),
+            fetch('/api/brands')
+        ]);
+        
+        if (resProd.ok) PRODUCTS = await resProd.json();
+        if (resCat.ok) CATEGORIES = await resCat.json();
+        if (resBrand.ok) BRANDS = await resBrand.json();
+
+        updateCategoriesDatalist();
+        
         renderProducts();
+        renderBrandSlider();
+        renderCategoryTags();
     } catch (err) {
-        console.error("Failed to load products from server:", err);
+        console.error("Failed to load store data from server:", err);
     }
+}
+
+function updateCategoriesDatalist() {
+    const datalist = document.getElementById("categoriesDatalist");
+    if (!datalist) return;
+    datalist.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        datalist.appendChild(opt);
+    });
 }
 
 async function loadOrdersFromServer() {
@@ -1037,6 +1062,7 @@ function switchAdminTab(tab) {
             orders: "btnTabOrders",
             customers: "btnTabCustomers",
             staff: "btnTabStaff",
+            taxonomy: "btnTabTaxonomy",
             pos: "adminPosNavBtn"
         };
         if (btn.id === idMap[tab]) {
@@ -1055,6 +1081,7 @@ function switchAdminTab(tab) {
             orders: "adminTabOrders",
             customers: "adminTabCustomers",
             staff: "adminTabStaff",
+            taxonomy: "adminTabTaxonomy",
             pos: "adminTabPos"
         };
         if (content.id === idMap[tab]) {
@@ -1075,6 +1102,8 @@ function switchAdminTab(tab) {
         renderAdminCustomers();
     } else if (tab === "staff") {
         renderStaffList();
+    } else if (tab === "taxonomy") {
+        renderAdminTaxonomy();
     } else if (tab === "pos") {
         renderAdminPos();
     }
@@ -2062,6 +2091,144 @@ function renderAdminCustomers() {
     });
 }
 
+// Dynamic Category & Brand Manager Render
+function renderAdminTaxonomy() {
+    const catBody = document.getElementById("adminCategoriesTableBody");
+    const brandBody = document.getElementById("adminBrandsTableBody");
+    if (!catBody || !brandBody) return;
+
+    // Render Categories Table
+    catBody.innerHTML = "";
+    if (CATEGORIES.length === 0) {
+        catBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
+    } else {
+        CATEGORIES.forEach(cat => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${cat.toUpperCase()}</strong></td>
+                <td style="text-align: center;">
+                    <button class="delete-btn" onclick="deleteCategory('${cat}')" aria-label="Delete category">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            catBody.appendChild(tr);
+        });
+    }
+
+    // Render Brands Table
+    brandBody.innerHTML = "";
+    if (BRANDS.length === 0) {
+        brandBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO BRANDS FOUND.</td></tr>`;
+    } else {
+        BRANDS.forEach(b => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="width: 50px;">
+                    <img src="${b.img}" alt="${b.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 1px solid var(--color-border);">
+                </td>
+                <td><strong>${b.name.toUpperCase()}</strong></td>
+                <td style="text-align: center;">
+                    <button class="delete-btn" onclick="deleteBrand('${b.name}')" aria-label="Delete brand">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            brandBody.appendChild(tr);
+        });
+    }
+}
+
+// Add/Delete Actions
+function handleAddCategory(event) {
+    event.preventDefault();
+    const input = document.getElementById("newCategoryInput");
+    const name = input.value.trim();
+    if (!name) return;
+
+    fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name })
+    })
+    .then(async res => {
+        if (res.ok) {
+            CATEGORIES = await res.json();
+            input.value = "";
+            updateCategoriesDatalist();
+            renderCategoryTags();
+            renderAdminTaxonomy();
+        } else {
+            alert("FAILED TO ADD CATEGORY.");
+        }
+    })
+    .catch(err => console.error("Error adding category:", err));
+}
+
+function deleteCategory(name) {
+    if (!confirm(`ARE YOU SURE YOU WANT TO DELETE THE CATEGORY "${name.toUpperCase()}"?`)) return;
+
+    fetch(`/api/categories?name=${encodeURIComponent(name)}`, {
+        method: 'DELETE'
+    })
+    .then(async res => {
+        if (res.ok) {
+            CATEGORIES = await res.json();
+            updateCategoriesDatalist();
+            renderCategoryTags();
+            renderAdminTaxonomy();
+        } else {
+            alert("FAILED TO DELETE CATEGORY.");
+        }
+    })
+    .catch(err => console.error("Error deleting category:", err));
+}
+
+function handleAddBrand(event) {
+    event.preventDefault();
+    const nameInput = document.getElementById("newBrandNameInput");
+    const imgInput = document.getElementById("newBrandImgInput");
+    const name = nameInput.value.trim();
+    const img = imgInput.value.trim();
+    if (!name || !img) return;
+
+    fetch('/api/brands', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, img: img })
+    })
+    .then(async res => {
+        if (res.ok) {
+            BRANDS = await res.json();
+            nameInput.value = "";
+            imgInput.value = "";
+            renderBrandSlider();
+            renderAdminTaxonomy();
+        } else {
+            alert("FAILED TO ADD BRAND.");
+        }
+    })
+    .catch(err => console.error("Error adding brand:", err));
+}
+
+function deleteBrand(name) {
+    if (!confirm(`ARE YOU SURE YOU WANT TO DELETE THE BRAND "${name.toUpperCase()}"?`)) return;
+
+    fetch(`/api/brands?name=${encodeURIComponent(name)}`, {
+        method: 'DELETE'
+    })
+    .then(async res => {
+        if (res.ok) {
+            BRANDS = await res.json();
+            renderBrandSlider();
+            renderAdminTaxonomy();
+        } else {
+            alert("FAILED TO DELETE BRAND.");
+        }
+    })
+    .catch(err => console.error("Error deleting brand:", err));
+}
+
 // 3. Render Upgraded Orders Tab with status edit controls
 function renderAdminOrders() {
     const tableBody = document.getElementById("adminOrdersTableBody");
@@ -2632,21 +2799,6 @@ function submitProductReview(event) {
 // 12. COLLECTIONS, WHATSAPP CHANNELS & BRANDS FILTER
 // ==========================================================================
 
-const BRAND_DATA = [
-    { name: "All", img: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=200" },
-    { name: "Styluxe", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=200" },
-    { name: "Essentials", img: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=200" },
-    { name: "Supreme", img: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&q=80&w=200" },
-    { name: "Stussy", img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=200" },
-    { name: "Balenciaga", img: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&q=80&w=200" },
-    { name: "Off-White", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200" },
-    { name: "Nike", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=200" },
-    { name: "Adidas", img: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&q=80&w=200" },
-    { name: "Jordan", img: "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?auto=format&fit=crop&q=80&w=200" },
-    { name: "Vans", img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&q=80&w=200" },
-    { name: "Champion", img: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&q=80&w=200" },
-    { name: "Puma", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&q=80&w=200" }
-];
 let activeBrand = "All";
 
 const DEPT_WHATSAPP = {
@@ -2659,22 +2811,16 @@ const DEPT_WHATSAPP = {
 // Extract brand names dynamically from product details
 function getProductBrand(product) {
     const name = product.name.toUpperCase();
-    if (name.includes("STYLUXE")) return "Styluxe";
-    if (name.includes("ESSENTIALS")) return "Essentials";
-    if (name.includes("SUPREME")) return "Supreme";
-    if (name.includes("STUSSY")) return "Stussy";
-    if (name.includes("BALENCIAGA")) return "Balenciaga";
-    if (name.includes("OFF-WHITE")) return "Off-White";
-    if (name.includes("NIKE")) return "Nike";
-    if (name.includes("ADIDAS")) return "Adidas";
-    if (name.includes("JORDAN")) return "Jordan";
-    if (name.includes("VANS")) return "Vans";
-    if (name.includes("CHAMPION")) return "Champion";
-    if (name.includes("PUMA")) return "Puma";
-    
-    // Distribute based on ID to make mock brands complete
-    const mockBrands = ["Styluxe", "Essentials", "Supreme", "Stussy", "Balenciaga", "Off-White", "Nike", "Adidas", "Jordan", "Vans", "Champion", "Puma"];
-    return mockBrands[product.id % mockBrands.length];
+    for (const b of BRANDS) {
+        if (name.includes(b.name.toUpperCase())) {
+            return b.name;
+        }
+    }
+    const standardBrands = BRANDS.map(b => b.name);
+    if (standardBrands.length > 0) {
+        return standardBrands[product.id % standardBrands.length];
+    }
+    return "Styluxe";
 }
 
 // Renders the circular brand tags
@@ -2693,8 +2839,8 @@ function renderBrandSlider() {
     // Set of brands present in current products
     const activeDeptBrands = ["All", ...new Set(availableProducts.map(p => getProductBrand(p)))];
 
-    // Filter BRAND_DATA to show only active brands in the selected department
-    const filteredBrandData = BRAND_DATA.filter(b => activeDeptBrands.includes(b.name));
+    const displayBrands = [{ name: "All", img: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=200" }, ...BRANDS];
+    const filteredBrandData = displayBrands.filter(b => activeDeptBrands.includes(b.name));
 
     filteredBrandData.forEach(b => {
         const card = document.createElement("div");
