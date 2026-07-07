@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.0.2">
 
     <!-- Google & Apple Social Authentication SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1088,17 +1088,9 @@
                           </div>
                           <div class="form-group">
                               <label for="newProdCategory">Category *</label>
-                              <input type="text" id="newProdCategory" list="categoriesDatalist" required placeholder="e.g. Hoodies, T-Shirts" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
-                              <datalist id="categoriesDatalist">
-                                  <option value="Hoodies">
-                                  <option value="Jackets">
-                                  <option value="Jeans">
-                                  <option value="Footwear">
-                                  <option value="T-Shirts">
-                                  <option value="Caps">
-                                  <option value="Accessories">
-                                  <option value="Pants">
-                              </datalist>
+                              <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                                  <option value="" disabled selected>Select Category</option>
+                              </select>
                           </div>
                           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                               <div class="form-group">
@@ -1401,6 +1393,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js"></script>
+    <script src="app.js?v=1.0.2"></script>
 </body>
 </html>
