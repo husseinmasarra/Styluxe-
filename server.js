@@ -254,10 +254,15 @@ function ensureProductInventory(product) {
 }
 
 const initialCategories = [
-  { name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200" },
-  { name: "Jackets", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200" },
-  { name: "Jeans", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200" },
-  { name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200" }
+  { id: 1, name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200", department: "Men" },
+  { id: 2, name: "Jackets", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200", department: "Men" },
+  { id: 3, name: "Jeans", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200", department: "Men" },
+  { id: 4, name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200", department: "Men" },
+  { id: 5, name: "Dresses", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200", department: "Women" },
+  { id: 6, name: "Tops", img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=200", department: "Women" },
+  { id: 7, name: "Activewear", img: "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=200", department: "Women" },
+  { id: 8, name: "T-Shirts", img: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=200", department: "Kids" },
+  { id: 9, name: "Pants", img: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=200", department: "Kids" }
 ];
 
 const initialBrands = [
@@ -353,10 +358,15 @@ async function initPgDatabase() {
     // Create categories table
     await pool.query(`CREATE TABLE IF NOT EXISTS categories (
       id SERIAL PRIMARY KEY,
-      name VARCHAR(255) UNIQUE NOT NULL,
-      img TEXT
+      name VARCHAR(255) NOT NULL,
+      img TEXT,
+      department VARCHAR(50) NOT NULL DEFAULT 'Men'
     )`);
     await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS img TEXT`);
+    await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS department VARCHAR(50) NOT NULL DEFAULT 'Men'`);
+    try {
+      await pool.query(`ALTER TABLE categories DROP CONSTRAINT IF EXISTS categories_name_key`);
+    } catch (e) {}
 
     // Create brands table
     await pool.query(`CREATE TABLE IF NOT EXISTS brands (
@@ -432,7 +442,7 @@ async function initPgDatabase() {
     if (parseInt(catCount.rows[0].count) === 0) {
       console.log("Seeding categories into PostgreSQL database...");
       for (const c of initialCategories) {
-        await pool.query("INSERT INTO categories (name, img) VALUES ($1, $2)", [c.name, c.img]);
+        await pool.query("INSERT INTO categories (id, name, img, department) VALUES ($1, $2, $3, $4)", [c.id, c.name, c.img, c.department]);
       }
     }
 
@@ -508,7 +518,7 @@ async function loadDatabaseIntoMemory() {
         permissions: JSON.parse(s.permissions || '[]')
       }));
 
-      dbMemory.categories = categoriesRes.rows.map(c => ({ id: c.id, name: c.name, img: c.img || '' }));
+      dbMemory.categories = categoriesRes.rows.map(c => ({ id: c.id, name: c.name, img: c.img || '', department: c.department || 'Men' }));
       dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
       
       dbMemory.suppliers = suppliersRes.rows.map(s => ({
@@ -552,6 +562,12 @@ async function loadDatabaseIntoMemory() {
     if (!dbMemory.staff) dbMemory.staff = initialStaff;
     if (!dbMemory.categories || dbMemory.categories.length === 0 || typeof dbMemory.categories[0] === 'string') {
         dbMemory.categories = initialCategories;
+    } else {
+        dbMemory.categories = dbMemory.categories.map((c, idx) => {
+            if (!c.id) c.id = idx + 1;
+            if (!c.department) c.department = "Men";
+            return c;
+        });
     }
     if (!dbMemory.brands) dbMemory.brands = initialBrands;
     if (!dbMemory.suppliers) dbMemory.suppliers = [];
@@ -965,17 +981,18 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/categories') {
-        const { name, img } = body;
-        if (!name || !img) {
-          sendJsonResponse(res, { error: "Missing category name or image" }, 400);
+        const { name, img, department } = body;
+        if (!name || !img || !department) {
+          sendJsonResponse(res, { error: "Missing category name, image or department" }, 400);
           return;
         }
         if (!db.categories) db.categories = [];
-        if (!db.categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+        if (!db.categories.find(c => c.name.toLowerCase() === name.toLowerCase() && c.department.toLowerCase() === department.toLowerCase())) {
           db.categories.push({
             id: db.categories.length > 0 ? Math.max(...db.categories.map(c => c.id)) + 1 : 1,
             name,
-            img
+            img,
+            department
           });
           writeDb(db);
         }
