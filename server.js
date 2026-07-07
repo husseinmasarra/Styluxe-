@@ -247,6 +247,9 @@ function ensureProductInventory(product) {
       });
     });
   }
+  if (product.costPrice === undefined || product.costPrice === null) {
+    product.costPrice = parseFloat((product.price * 0.6).toFixed(2));
+  }
   return product;
 }
 
@@ -362,6 +365,29 @@ async function initPgDatabase() {
       img TEXT NOT NULL
     )`);
 
+    // Create suppliers table
+    await pool.query(`CREATE TABLE IF NOT EXISTS suppliers (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      company VARCHAR(255),
+      phone VARCHAR(100),
+      address TEXT
+    )`);
+
+    // Create invoices table
+    await pool.query(`CREATE TABLE IF NOT EXISTS invoices (
+      id SERIAL PRIMARY KEY,
+      invoice_number VARCHAR(100) UNIQUE NOT NULL,
+      supplier VARCHAR(255) NOT NULL,
+      date VARCHAR(100) NOT NULL,
+      total NUMERIC(10, 2) NOT NULL,
+      status VARCHAR(100) NOT NULL,
+      notes TEXT
+    )`);
+
+    // Migration: Add cost_price column to products table
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10, 2) DEFAULT 0`);
+
     // Seed defaults if tables are empty
     const prodCount = await pool.query("SELECT COUNT(*) FROM products");
     if (parseInt(prodCount.rows[0].count) === 0) {
@@ -369,11 +395,12 @@ async function initPgDatabase() {
       for (const p of initialProducts) {
         const pFull = ensureProductInventory(p);
         await pool.query(
-          `INSERT INTO products (name, price, category, department, image, description, sizes, colors, inventory, badge) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          `INSERT INTO products (name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
           [
             pFull.name, pFull.price, pFull.category, pFull.department, pFull.image, pFull.description || "",
-            JSON.stringify(pFull.sizes || []), JSON.stringify(pFull.colors || []), JSON.stringify(pFull.inventory || {}), pFull.badge || ""
+            JSON.stringify(pFull.sizes || []), JSON.stringify(pFull.colors || []), JSON.stringify(pFull.inventory || {}), pFull.badge || "",
+            pFull.costPrice || 0
           ]
         );
       }
@@ -434,6 +461,8 @@ async function loadDatabaseIntoMemory() {
       const staffRes = await pool.query('SELECT * FROM staff ORDER BY id ASC');
       const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY id ASC');
       const brandsRes = await pool.query('SELECT * FROM brands ORDER BY id ASC');
+      const suppliersRes = await pool.query('SELECT * FROM suppliers ORDER BY id ASC');
+      const invoicesRes = await pool.query('SELECT * FROM invoices ORDER BY id ASC');
 
       dbMemory.users = usersRes.rows.map(u => ({
         id: u.id,
@@ -456,7 +485,8 @@ async function loadDatabaseIntoMemory() {
         sizes: JSON.parse(p.sizes || '[]'),
         colors: JSON.parse(p.colors || '[]'),
         inventory: JSON.parse(p.inventory || '{}'),
-        badge: p.badge
+        badge: p.badge,
+        costPrice: p.cost_price ? parseFloat(p.cost_price) : 0
       }));
 
       dbMemory.orders = ordersRes.rows.map(o => ({
@@ -480,8 +510,26 @@ async function loadDatabaseIntoMemory() {
 
       dbMemory.categories = categoriesRes.rows.map(c => ({ name: c.name, img: c.img || '' }));
       dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
+      
+      dbMemory.suppliers = suppliersRes.rows.map(s => ({
+        id: s.id,
+        name: s.name,
+        company: s.company || '',
+        phone: s.phone || '',
+        address: s.address || ''
+      }));
 
-      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands.`);
+      dbMemory.invoices = invoicesRes.rows.map(inv => ({
+        id: inv.id,
+        invoiceNumber: inv.invoice_number,
+        supplier: inv.supplier,
+        date: inv.date,
+        total: parseFloat(inv.total),
+        status: inv.status,
+        notes: inv.notes || ''
+      }));
+
+      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands, ${dbMemory.suppliers.length} suppliers, ${dbMemory.invoices.length} invoices.`);
       return;
     } catch (err) {
       console.error("Failed to load PostgreSQL data, falling back to local JSON:", err);
@@ -506,10 +554,12 @@ async function loadDatabaseIntoMemory() {
         dbMemory.categories = initialCategories;
     }
     if (!dbMemory.brands) dbMemory.brands = initialBrands;
+    if (!dbMemory.suppliers) dbMemory.suppliers = [];
+    if (!dbMemory.invoices) dbMemory.invoices = [];
     dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
   } catch (err) {
     console.error("Error reading JSON file database, using mock memory fallbacks:", err);
-    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands };
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands, suppliers: [], invoices: [] };
   }
 }
 
@@ -545,11 +595,11 @@ function writeDb(data) {
 
           // Sync products
           await client.query('DELETE FROM products');
-          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
+          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
           for (const p of data.products) {
             await client.query(prodStmt, [
               p.id, p.name, p.price, p.category, p.department, p.image, p.description || '',
-              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || ''
+              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || '', p.costPrice || 0
             ]);
           }
 
@@ -579,6 +629,20 @@ function writeDb(data) {
           const brandStmt = 'INSERT INTO brands (name, img) VALUES ($1, $2)';
           for (const b of (data.brands || [])) {
             await client.query(brandStmt, [b.name, b.img]);
+          }
+
+          // Sync suppliers
+          await client.query('DELETE FROM suppliers');
+          const supplierStmt = 'INSERT INTO suppliers (name, company, phone, address) VALUES ($1, $2, $3, $4)';
+          for (const s of (data.suppliers || [])) {
+            await client.query(supplierStmt, [s.name, s.company, s.phone, s.address]);
+          }
+
+          // Sync invoices
+          await client.query('DELETE FROM invoices');
+          const invoiceStmt = 'INSERT INTO invoices (invoice_number, supplier, date, total, status, notes) VALUES ($1, $2, $3, $4, $5, $6)';
+          for (const inv of (data.invoices || [])) {
+            await client.query(invoiceStmt, [inv.invoiceNumber, inv.supplier, inv.date, inv.total, inv.status, inv.notes]);
           }
 
           await client.query('COMMIT');
@@ -684,6 +748,14 @@ const server = http.createServer(async (req, res) => {
       }
       if (pathname === '/api/brands') {
         sendJsonResponse(res, db.brands || []);
+        return;
+      }
+      if (pathname === '/api/suppliers') {
+        sendJsonResponse(res, db.suppliers || []);
+        return;
+      }
+      if (pathname === '/api/invoices') {
+        sendJsonResponse(res, db.invoices || []);
         return;
       }
       if (pathname === '/api/users') {
@@ -922,8 +994,52 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/suppliers') {
+        const { name, company, phone, address } = body;
+        if (!name) {
+          sendJsonResponse(res, { error: "Missing supplier name" }, 400);
+          return;
+        }
+        if (!db.suppliers) db.suppliers = [];
+        if (!db.suppliers.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+          db.suppliers.push({
+            id: db.suppliers.length > 0 ? Math.max(...db.suppliers.map(s => s.id)) + 1 : 1,
+            name,
+            company: company || '',
+            phone: phone || '',
+            address: address || ''
+          });
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.suppliers);
+        return;
+      }
+
+      if (pathname === '/api/invoices') {
+        const { invoiceNumber, supplier, date, total, status, notes } = body;
+        if (!invoiceNumber || !supplier || !total || !status) {
+          sendJsonResponse(res, { error: "Missing required invoice fields" }, 400);
+          return;
+        }
+        if (!db.invoices) db.invoices = [];
+        if (!db.invoices.find(inv => inv.invoiceNumber.toLowerCase() === invoiceNumber.toLowerCase())) {
+          db.invoices.push({
+            id: db.invoices.length > 0 ? Math.max(...db.invoices.map(inv => inv.id)) + 1 : 1,
+            invoiceNumber,
+            supplier,
+            date: date || new Date().toISOString().split('T')[0],
+            total: parseFloat(total),
+            status,
+            notes: notes || ''
+          });
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.invoices);
+        return;
+      }
+
       if (pathname === '/api/products') {
-        const { name, price, category, department, image, description, sizes, badge, colors, inventory } = body;
+        const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice } = body;
 
         if (!name || !price || !category || !department || !image) {
           sendJsonResponse(res, { error: "Missing required fields" }, 400);
@@ -970,7 +1086,8 @@ const server = http.createServer(async (req, res) => {
           sizes: sizeArray,
           colors: colorArray,
           inventory: inventoryObj,
-          badge: badge || ''
+          badge: badge || '',
+          costPrice: costPrice !== undefined ? parseFloat(costPrice) : parseFloat((price * 0.6).toFixed(2))
         };
 
         db.products.push(newProduct);
@@ -1062,7 +1179,7 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         if (db.categories) {
-          db.categories = db.categories.filter(c => c.toLowerCase() !== name.toLowerCase());
+          db.categories = db.categories.filter(c => c.name.toLowerCase() !== name.toLowerCase());
           writeDb(db);
         }
         sendJsonResponse(res, db.categories || []);
@@ -1080,6 +1197,34 @@ const server = http.createServer(async (req, res) => {
           writeDb(db);
         }
         sendJsonResponse(res, db.brands || []);
+        return;
+      }
+
+      if (pathname === '/api/suppliers') {
+        const id = parseInt(parsedUrl.query.id);
+        if (isNaN(id)) {
+          sendJsonResponse(res, { error: "Missing or invalid supplier id" }, 400);
+          return;
+        }
+        if (db.suppliers) {
+          db.suppliers = db.suppliers.filter(s => s.id !== id);
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.suppliers || []);
+        return;
+      }
+
+      if (pathname === '/api/invoices') {
+        const id = parseInt(parsedUrl.query.id);
+        if (isNaN(id)) {
+          sendJsonResponse(res, { error: "Missing or invalid invoice id" }, 400);
+          return;
+        }
+        if (db.invoices) {
+          db.invoices = db.invoices.filter(inv => inv.id !== id);
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.invoices || []);
         return;
       }
 
