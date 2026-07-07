@@ -241,12 +241,12 @@
                     <path d="M46.12 1.3v14.53H44.4V1.3h1.72" fill="#34A853"/>
                     <path d="M52.01 16.13c-1.92 0-3.41-1.05-3.82-2.1l-.11-.27 5.92-2.45-.16-.38c-.37-.99-1.46-2.93-3.93-2.93-2.27 0-3.9 1.64-3.9 3.93s1.61 3.93 3.9 3.93c1.83 0 2.87-1.12 3.31-1.79l-1.39-.93c-.46.69-1.09 1.19-1.92 1.19m-.14-4.87c.88 0 1.6.46 1.84 1.1l-4.14 1.72c-.1-.75.68-2.82 2.3-2.82" fill="#EA4335"/>
                 </svg>
-                <div class="title" id="cardTitle">Choose an account</div>
-                <div class="subtitle" id="cardSubtitle">to continue to styluxe.com</div>
+                <div class="title" id="cardTitle">Sign in</div>
+                <div class="subtitle" id="cardSubtitle">Use your Google Account</div>
             </div>
 
-            <!-- View 1: Select Account Profile -->
-            <div id="selectAccountView">
+            <!-- View 1: Select Account Profile (Hidden) -->
+            <div id="selectAccountView" style="display: none;">
                 <div class="accounts-list">
                     <div class="account-item" onclick="selectAccount('Hussein', 'hussein.massara@gmail.com')">
                         <div class="avatar" style="background-color: #3f51b5;">H</div>
@@ -262,18 +262,11 @@
                             <span class="account-email">sarah.k@gmail.com</span>
                         </div>
                     </div>
-                    <div class="account-item" onclick="showEmailInputView()">
-                        <div class="avatar" style="background-color: #757575; font-size: 18px;">+</div>
-                        <div class="account-details">
-                            <span class="account-name" style="color: #0b57d0;">Use another account</span>
-                            <span class="account-email">Sign in with a different Google account</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- View 2: Custom Email Form Input -->
-            <div id="emailInputView" style="display: none;">
+            <!-- View 2: Custom Email Form Input (Default Visible) -->
+            <div id="emailInputView" style="display: block;">
                 <form id="emailForm" onsubmit="handleEmailFormSubmit(event)">
                     <div class="form-group">
                         <input type="text" class="text-input" id="emailField" placeholder=" " required autocomplete="off">
@@ -286,8 +279,8 @@
                         Not your computer? Use Guest mode to sign in privately. <a href="#" style="color: #0b57d0; text-decoration: none;" onclick="event.preventDefault()">Learn more</a>
                     </p>
 
-                    <div class="bottom-actions">
-                        <button type="button" class="create-account-btn" onclick="showAccountSelectView()">Back</button>
+                    <div class="bottom-actions" style="justify-content: flex-end;">
+                        <button type="button" class="create-account-btn" onclick="showAccountSelectView()" style="display: none;">Back</button>
                         <button type="submit" class="next-btn">Next</button>
                     </div>
                 </form>
