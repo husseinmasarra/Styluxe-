@@ -1571,6 +1571,20 @@ function openAuthModal(view) {
         authPageOverlay.classList.add("active");
     }, 10);
     document.body.style.overflow = "hidden";
+    
+    // Auto-fetch saved email & password from browser credentials manager/keychain
+    if (view === 'login' && navigator.credentials) {
+        navigator.credentials.get({ password: true, mediation: 'optional' })
+        .then(cred => {
+            if (cred && cred.id) {
+                const emailInput = document.getElementById("custLoginEmail");
+                const passInput = document.getElementById("custLoginPassword");
+                if (emailInput) emailInput.value = cred.id;
+                if (passInput && cred.password) passInput.value = cred.password;
+            }
+        })
+        .catch(err => console.warn("Failed to fetch saved credentials:", err));
+    }
 }
 
 function closeAuthModal() {
@@ -1616,6 +1630,20 @@ function handleCustomerLogin(event) {
             updateUserSessionUI();
             closeAuthModal();
             event.target.reset();
+
+            // Store credentials in browser keychain if supported
+            if (window.PasswordCredential && navigator.credentials) {
+                try {
+                    const cred = new PasswordCredential({
+                        id: email,
+                        password: pass,
+                        name: currentUser.name
+                    });
+                    navigator.credentials.store(cred);
+                } catch (e) {
+                    console.warn("Failed to store credentials:", e);
+                }
+            }
             
             if (cart.length > 0) {
                 openCheckoutModal();
@@ -1665,6 +1693,20 @@ function handleCustomerRegister(event) {
             updateUserSessionUI();
             closeAuthModal();
             event.target.reset();
+
+            // Store credentials in browser keychain if supported
+            if (window.PasswordCredential && navigator.credentials) {
+                try {
+                    const cred = new PasswordCredential({
+                        id: email,
+                        password: pass,
+                        name: currentUser.name
+                    });
+                    navigator.credentials.store(cred);
+                } catch (e) {
+                    console.warn("Failed to store credentials:", e);
+                }
+            }
             
             if (cart.length > 0) {
                 openCheckoutModal();
