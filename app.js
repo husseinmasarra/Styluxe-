@@ -4,6 +4,8 @@ let ordersList = [];
 let usersList = [];
 let CATEGORIES = [];
 let BRANDS = [];
+let SUPPLIERS = [];
+let INVOICES = [];
 let cart = [];
 
 // Admin Panel State
@@ -70,15 +72,19 @@ const drawerBackdrop = document.getElementById("drawerBackdrop");
 // DATABASE SYNC ACTIONS
 async function loadProductsFromServer() {
     try {
-        const [resProd, resCat, resBrand] = await Promise.all([
+        const [resProd, resCat, resBrand, resSupp, resInv] = await Promise.all([
             fetch('/api/products'),
             fetch('/api/categories'),
-            fetch('/api/brands')
+            fetch('/api/brands'),
+            fetch('/api/suppliers'),
+            fetch('/api/invoices')
         ]);
         
         if (resProd.ok) PRODUCTS = await resProd.json();
         if (resCat.ok) CATEGORIES = await resCat.json();
         if (resBrand.ok) BRANDS = await resBrand.json();
+        if (resSupp.ok) SUPPLIERS = await resSupp.json();
+        if (resInv.ok) INVOICES = await resInv.json();
 
         updateCategoriesDatalist();
         
@@ -1109,6 +1115,7 @@ function switchAdminTab(tab) {
             customers: "btnTabCustomers",
             staff: "btnTabStaff",
             taxonomy: "btnTabTaxonomy",
+            suppliers: "btnTabSuppliers",
             pos: "adminPosNavBtn"
         };
         if (btn.id === idMap[tab]) {
@@ -1128,6 +1135,7 @@ function switchAdminTab(tab) {
             customers: "adminTabCustomers",
             staff: "adminTabStaff",
             taxonomy: "adminTabTaxonomy",
+            suppliers: "adminTabSuppliers",
             pos: "adminTabPos"
         };
         if (content.id === idMap[tab]) {
@@ -1150,6 +1158,8 @@ function switchAdminTab(tab) {
         renderStaffList();
     } else if (tab === "taxonomy") {
         renderAdminTaxonomy();
+    } else if (tab === "suppliers") {
+        renderAdminSuppliers();
     } else if (tab === "pos") {
         renderAdminPos();
     }
@@ -1268,6 +1278,7 @@ async function handleNewProductSubmit(event) {
     const name = document.getElementById("newProdName").value;
     const category = document.getElementById("newProdCategory").value;
     const price = parseFloat(document.getElementById("newProdPrice").value);
+    const costPrice = parseFloat(document.getElementById("newProdCostPrice").value) || 0;
     const sizes = document.getElementById("newProdSizes").value;
     const colors = document.getElementById("newProdColors").value;
     const inventory = document.getElementById("newProdInventory").value;
@@ -1299,6 +1310,7 @@ async function handleNewProductSubmit(event) {
         category: category,
         department: department,
         price: price,
+        costPrice: costPrice,
         image: img,
         description: desc,
         sizes: sizes,
@@ -2077,7 +2089,19 @@ function renderAdminOverview() {
     // Active Customers count
     const totalCustCount = usersList.length;
 
+    // Calculate total net profit
+    let totalCost = 0;
+    ordersList.forEach(order => {
+        (order.items || []).forEach(item => {
+            const prod = PRODUCTS.find(p => p.id === item.id);
+            const cost = prod && prod.costPrice !== undefined ? prod.costPrice : (item.price * 0.6);
+            totalCost += cost * item.quantity;
+        });
+    });
+    const totalProfit = totalSales - totalCost;
+
     document.getElementById("statTotalSales").textContent = formatPrice(totalSales);
+    document.getElementById("statTotalProfit").textContent = formatPrice(totalProfit);
     document.getElementById("statTotalOrders").textContent = totalOrdersCount;
     document.getElementById("statAvgOrderValue").textContent = formatPrice(avgOrderValue);
     document.getElementById("statTotalCustomers").textContent = totalCustCount;
@@ -2333,6 +2357,167 @@ function deleteBrand(name) {
         }
     })
     .catch(err => console.error("Error deleting brand:", err));
+}
+
+// Render Suppliers & Invoices Dashboard
+function renderAdminSuppliers() {
+    const suppBody = document.getElementById("adminSuppliersTableBody");
+    const invBody = document.getElementById("adminInvoicesTableBody");
+    const selectSupplier = document.getElementById("newInvoiceSupplier");
+    
+    if (!suppBody || !invBody) return;
+
+    // Populate dynamic select dropdown for invoices
+    if (selectSupplier) {
+        selectSupplier.innerHTML = `<option value="" disabled selected>Select Supplier / Merchant *</option>`;
+        SUPPLIERS.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s.name;
+            opt.textContent = s.name;
+            selectSupplier.appendChild(opt);
+        });
+    }
+
+    // Render Suppliers Table
+    suppBody.innerHTML = "";
+    if (SUPPLIERS.length === 0) {
+        suppBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO SUPPLIERS RECORDED.</td></tr>`;
+    } else {
+        SUPPLIERS.forEach(s => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${s.name.toUpperCase()}</strong></td>
+                <td>
+                    <div>${s.phone || 'N/A'}</div>
+                    <div style="font-size: 1.1rem; color: var(--color-text-muted);">${s.company || 'N/A'}</div>
+                </td>
+                <td style="text-align: center;">
+                    <button class="delete-btn" onclick="deleteSupplier(${s.id})" aria-label="Delete supplier">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            suppBody.appendChild(tr);
+        });
+    }
+
+    // Render Invoices Table
+    invBody.innerHTML = "";
+    if (INVOICES.length === 0) {
+        invBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO INVOICES RECORDED.</td></tr>`;
+    } else {
+        INVOICES.forEach(inv => {
+            const statusColor = inv.status === "Paid" ? "#25d366" : "#ff3b30";
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <div><strong>${inv.invoiceNumber}</strong></div>
+                    <div style="font-size: 1rem; color: var(--color-text-muted);">${inv.date}</div>
+                </td>
+                <td><strong>${inv.supplier.toUpperCase()}</strong></td>
+                <td><strong>${formatPrice(inv.total)}</strong></td>
+                <td><span class="product-badge" style="background-color: ${statusColor}15; color: ${statusColor}; border: 1px solid ${statusColor}30; font-size: 1rem; padding: 0.2rem 0.6rem;">${inv.status.toUpperCase()}</span></td>
+                <td style="text-align: center;">
+                    <button class="delete-btn" onclick="deleteInvoice(${inv.id})" aria-label="Delete invoice">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            invBody.appendChild(tr);
+        });
+    }
+}
+
+// Supplier CRUD actions
+function handleAddSupplier(event) {
+    event.preventDefault();
+    const name = document.getElementById("newSupplierName").value.trim();
+    const company = document.getElementById("newSupplierCompany").value.trim();
+    const phone = document.getElementById("newSupplierPhone").value.trim();
+    const address = document.getElementById("newSupplierAddress").value.trim();
+
+    if (!name) return;
+
+    fetch('/api/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, company, phone, address })
+    })
+    .then(async res => {
+        if (res.ok) {
+            SUPPLIERS = await res.json();
+            event.target.reset();
+            renderAdminSuppliers();
+        } else {
+            alert("FAILED TO ADD SUPPLIER.");
+        }
+    })
+    .catch(err => console.error("Error adding supplier:", err));
+}
+
+function deleteSupplier(id) {
+    if (!confirm("ARE YOU SURE YOU WANT TO DELETE THIS SUPPLIER?")) return;
+
+    fetch(`/api/suppliers?id=${id}`, {
+        method: 'DELETE'
+    })
+    .then(async res => {
+        if (res.ok) {
+            SUPPLIERS = await res.json();
+            renderAdminSuppliers();
+        } else {
+            alert("FAILED TO DELETE SUPPLIER.");
+        }
+    })
+    .catch(err => console.error("Error deleting supplier:", err));
+}
+
+// Invoice CRUD actions
+function handleAddInvoice(event) {
+    event.preventDefault();
+    const invoiceNumber = document.getElementById("newInvoiceNum").value.trim();
+    const supplier = document.getElementById("newInvoiceSupplier").value;
+    const total = parseFloat(document.getElementById("newInvoiceTotal").value);
+    const status = document.getElementById("newInvoiceStatus").value;
+    const notes = document.getElementById("newInvoiceNotes").value.trim();
+
+    if (!invoiceNumber || !supplier || isNaN(total) || !status) {
+        alert("PLEASE FILL IN ALL REQUIRED INVOICE FIELDS.");
+        return;
+    }
+
+    fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceNumber, supplier, total, status, notes })
+    })
+    .then(async res => {
+        if (res.ok) {
+            INVOICES = await res.json();
+            event.target.reset();
+            renderAdminSuppliers();
+        } else {
+            alert("FAILED TO RECORD INVOICE.");
+        }
+    })
+    .catch(err => console.error("Error recording invoice:", err));
+}
+
+function deleteInvoice(id) {
+    if (!confirm("ARE YOU SURE YOU WANT TO DELETE THIS INVOICE?")) return;
+
+    fetch(`/api/invoices?id=${id}`, {
+        method: 'DELETE'
+    })
+    .then(async res => {
+        if (res.ok) {
+            INVOICES = await res.json();
+            renderAdminSuppliers();
+        } else {
+            alert("FAILED TO DELETE INVOICE.");
+        }
+    })
+    .catch(err => console.error("Error deleting invoice:", err));
 }
 
 // 3. Render Upgraded Orders Tab with status edit controls
@@ -3037,12 +3222,16 @@ function applyStaffPermissions() {
     const btnPos = document.getElementById("adminPosNavBtn");
     
     const btnTaxonomy = document.getElementById("btnTabTaxonomy");
+    const btnSuppliers = document.getElementById("btnTabSuppliers");
     
     if (btnProducts) {
         btnProducts.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
     if (btnTaxonomy) {
         btnTaxonomy.style.display = perms.includes("manage_products") ? "flex" : "none";
+    }
+    if (btnSuppliers) {
+        btnSuppliers.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
     if (btnOrders) {
         btnOrders.style.display = perms.includes("manage_orders") ? "flex" : "none";
