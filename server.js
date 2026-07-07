@@ -250,8 +250,25 @@ function ensureProductInventory(product) {
   return product;
 }
 
+const initialCategories = ["Hoodies", "Jackets", "Jeans", "Footwear"];
+
+const initialBrands = [
+  { name: "Styluxe", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=200" },
+  { name: "Essentials", img: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=200" },
+  { name: "Supreme", img: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&q=80&w=200" },
+  { name: "Stussy", img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=200" },
+  { name: "Balenciaga", img: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&q=80&w=200" },
+  { name: "Off-White", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200" },
+  { name: "Nike", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=200" },
+  { name: "Adidas", img: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&q=80&w=200" },
+  { name: "Jordan", img: "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?auto=format&fit=crop&q=80&w=200" },
+  { name: "Vans", img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&q=80&w=200" },
+  { name: "Champion", img: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&q=80&w=200" },
+  { name: "Puma", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&q=80&w=200" }
+];
+
 // Global in-memory cache for ultra-fast, zero-latency synchronous reads
-let dbMemory = { products: [], users: [], orders: [], staff: [] };
+let dbMemory = { products: [], users: [], orders: [], staff: [], categories: [], brands: [] };
 let pool = null;
 
 // Initialize PostgreSQL connection pool if configured in config.json
@@ -325,6 +342,19 @@ async function initPgDatabase() {
       permissions TEXT NOT NULL
     )`);
 
+    // Create categories table
+    await pool.query(`CREATE TABLE IF NOT EXISTS categories (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL
+    )`);
+
+    // Create brands table
+    await pool.query(`CREATE TABLE IF NOT EXISTS brands (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      img TEXT NOT NULL
+    )`);
+
     // Seed defaults if tables are empty
     const prodCount = await pool.query("SELECT COUNT(*) FROM products");
     if (parseInt(prodCount.rows[0].count) === 0) {
@@ -363,6 +393,22 @@ async function initPgDatabase() {
         );
       }
     }
+
+    const catCount = await pool.query("SELECT COUNT(*) FROM categories");
+    if (parseInt(catCount.rows[0].count) === 0) {
+      console.log("Seeding categories into PostgreSQL database...");
+      for (const c of initialCategories) {
+        await pool.query("INSERT INTO categories (name) VALUES ($1)", [c]);
+      }
+    }
+
+    const brandCount = await pool.query("SELECT COUNT(*) FROM brands");
+    if (parseInt(brandCount.rows[0].count) === 0) {
+      console.log("Seeding brands into PostgreSQL database...");
+      for (const b of initialBrands) {
+        await pool.query("INSERT INTO brands (name, img) VALUES ($1, $2)", [b.name, b.img]);
+      }
+    }
   } catch (err) {
     console.error("Failed to initialize or seed PostgreSQL database tables:", err);
   }
@@ -379,6 +425,8 @@ async function loadDatabaseIntoMemory() {
       const productsRes = await pool.query('SELECT * FROM products ORDER BY id ASC');
       const ordersRes = await pool.query('SELECT * FROM orders ORDER BY id ASC');
       const staffRes = await pool.query('SELECT * FROM staff ORDER BY id ASC');
+      const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY id ASC');
+      const brandsRes = await pool.query('SELECT * FROM brands ORDER BY id ASC');
 
       dbMemory.users = usersRes.rows.map(u => ({
         id: u.id,
@@ -423,7 +471,10 @@ async function loadDatabaseIntoMemory() {
         permissions: JSON.parse(s.permissions || '[]')
       }));
 
-      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.users.length} users, ${dbMemory.staff.length} staff members.`);
+      dbMemory.categories = categoriesRes.rows.map(c => c.name);
+      dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
+
+      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands.`);
       return;
     } catch (err) {
       console.error("Failed to load PostgreSQL data, falling back to local JSON:", err);
@@ -433,7 +484,7 @@ async function loadDatabaseIntoMemory() {
   // Local JSON file fallback
   console.log("Loading database from local JSON file...");
   if (!fs.existsSync(DB_FILE)) {
-    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands };
     dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
     fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), 'utf-8');
     return;
@@ -444,10 +495,12 @@ async function loadDatabaseIntoMemory() {
     
     // Migrations
     if (!dbMemory.staff) dbMemory.staff = initialStaff;
+    if (!dbMemory.categories) dbMemory.categories = initialCategories;
+    if (!dbMemory.brands) dbMemory.brands = initialBrands;
     dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
   } catch (err) {
     console.error("Error reading JSON file database, using mock memory fallbacks:", err);
-    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff };
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands };
   }
 }
 
@@ -503,6 +556,20 @@ function writeDb(data) {
           const staffStmt = 'INSERT INTO staff (id, name, email, password, role, permissions) VALUES ($1, $2, $3, $4, $5, $6)';
           for (const s of data.staff) {
             await client.query(staffStmt, [s.id, s.name, s.email, s.password, s.role, JSON.stringify(s.permissions || [])]);
+          }
+
+          // Sync categories
+          await client.query('DELETE FROM categories');
+          const catStmt = 'INSERT INTO categories (name) VALUES ($1)';
+          for (const c of (data.categories || [])) {
+            await client.query(catStmt, [c]);
+          }
+
+          // Sync brands
+          await client.query('DELETE FROM brands');
+          const brandStmt = 'INSERT INTO brands (name, img) VALUES ($1, $2)';
+          for (const b of (data.brands || [])) {
+            await client.query(brandStmt, [b.name, b.img]);
           }
 
           await client.query('COMMIT');
@@ -600,6 +667,14 @@ const server = http.createServer(async (req, res) => {
       }
       if (pathname === '/api/products') {
         sendJsonResponse(res, db.products);
+        return;
+      }
+      if (pathname === '/api/categories') {
+        sendJsonResponse(res, db.categories || []);
+        return;
+      }
+      if (pathname === '/api/brands') {
+        sendJsonResponse(res, db.brands || []);
         return;
       }
       if (pathname === '/api/users') {
@@ -808,6 +883,36 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/categories') {
+        const { name } = body;
+        if (!name) {
+          sendJsonResponse(res, { error: "Missing category name" }, 400);
+          return;
+        }
+        if (!db.categories) db.categories = [];
+        if (!db.categories.includes(name)) {
+          db.categories.push(name);
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.categories);
+        return;
+      }
+
+      if (pathname === '/api/brands') {
+        const { name, img } = body;
+        if (!name || !img) {
+          sendJsonResponse(res, { error: "Missing brand name or image" }, 400);
+          return;
+        }
+        if (!db.brands) db.brands = [];
+        if (!db.brands.find(b => b.name.toLowerCase() === name.toLowerCase())) {
+          db.brands.push({ name, img });
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.brands);
+        return;
+      }
+
       if (pathname === '/api/products') {
         const { name, price, category, department, image, description, sizes, badge, colors, inventory } = body;
 
@@ -941,6 +1046,34 @@ const server = http.createServer(async (req, res) => {
 
     // 4. DELETE Requests
     if (req.method === 'DELETE') {
+      if (pathname === '/api/categories') {
+        const name = parsedUrl.query.name;
+        if (!name) {
+          sendJsonResponse(res, { error: "Missing category name" }, 400);
+          return;
+        }
+        if (db.categories) {
+          db.categories = db.categories.filter(c => c.toLowerCase() !== name.toLowerCase());
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.categories || []);
+        return;
+      }
+
+      if (pathname === '/api/brands') {
+        const name = parsedUrl.query.name;
+        if (!name) {
+          sendJsonResponse(res, { error: "Missing brand name" }, 400);
+          return;
+        }
+        if (db.brands) {
+          db.brands = db.brands.filter(b => b.name.toLowerCase() !== name.toLowerCase());
+          writeDb(db);
+        }
+        sendJsonResponse(res, db.brands || []);
+        return;
+      }
+
       if (pathname === '/api/products') {
         const id = parseInt(parsedUrl.query.id);
         if (isNaN(id)) {
