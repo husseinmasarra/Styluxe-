@@ -306,16 +306,21 @@
 
     <script>
         function selectAccount(name, email) {
-            // Send message back to parent window
-            window.opener.postMessage({
-                type: 'oauth-success',
-                provider: 'Google',
-                name: name,
-                email: email
-            }, window.location.origin);
-            
-            // Close popup
-            window.close();
+            if (window.opener) {
+                // Send message back to parent window (popup style)
+                window.opener.postMessage({
+                    type: 'oauth-success',
+                    provider: 'Google',
+                    name: name,
+                    email: email
+                }, window.location.origin);
+                window.close();
+            } else {
+                // Redirect style (mobile/in-app browser fallback)
+                const mainPageUrl = window.location.origin + window.location.pathname.replace('mock-google-login.html', 'index.html');
+                const redirectUrl = `${mainPageUrl}?social_login=google&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+                window.location.href = redirectUrl;
+            }
         }
 
         function showEmailInputView() {
