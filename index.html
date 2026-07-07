@@ -912,12 +912,17 @@
                      <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                          <div class="form-group">
                              <label for="newProdCategory">Category *</label>
-                             <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text);">
-                                 <option value="Hoodies">Hoodies</option>
-                                 <option value="Jackets">Jackets</option>
-                                 <option value="Jeans">Jeans</option>
-                                 <option value="Footwear">Footwear</option>
-                             </select>
+                             <input type="text" id="newProdCategory" list="categoriesDatalist" required placeholder="e.g. Hoodies, T-Shirts, Caps" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%;">
+                             <datalist id="categoriesDatalist">
+                                 <option value="Hoodies">
+                                 <option value="Jackets">
+                                 <option value="Jeans">
+                                 <option value="Footwear">
+                                 <option value="T-Shirts">
+                                 <option value="Caps">
+                                 <option value="Accessories">
+                                 <option value="Pants">
+                             </datalist>
                          </div>
                          <div class="form-group">
                              <label for="newProdPrice">Price (USD) *</label>
