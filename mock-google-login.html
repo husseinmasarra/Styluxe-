@@ -299,6 +299,12 @@
 
     <script>
         function selectAccount(name, email) {
+            // Save to localStorage to remember for future automatic logins
+            try {
+                localStorage.setItem("last_google_email", email);
+                localStorage.setItem("last_google_name", name);
+            } catch (e) {}
+
             if (window.opener) {
                 // Send message back to parent window (popup style)
                 window.opener.postMessage({
@@ -315,8 +321,38 @@
                 window.location.href = redirectUrl;
             }
         }
+
         document.addEventListener("DOMContentLoaded", () => {
-            if (navigator.credentials) {
+            // Try loading cached email from localStorage first for instant autofill experience
+            let savedEmail = null;
+            let savedName = null;
+            try {
+                savedEmail = localStorage.getItem("last_google_email");
+                savedName = localStorage.getItem("last_google_name");
+            } catch (e) {}
+
+            if (savedEmail) {
+                const list = document.querySelector(".accounts-list");
+                const formattedName = savedName || savedEmail.split('@')[0];
+                list.innerHTML = `
+                    <div class="account-item" onclick="selectAccount('${formattedName}', '${savedEmail}')">
+                        <div class="avatar" style="background-color: #3f51b5;">${formattedName.charAt(0).toUpperCase()}</div>
+                        <div class="account-details">
+                            <span class="account-name">${formattedName}</span>
+                            <span class="account-email">${savedEmail}</span>
+                        </div>
+                    </div>
+                    <div class="account-item" onclick="showEmailInputView()">
+                        <div class="avatar" style="background-color: #757575; font-size: 18px;">+</div>
+                        <div class="account-details">
+                            <span class="account-name" style="color: #0b57d0;">Use another account</span>
+                            <span class="account-email">Sign in with a different Google account</span>
+                        </div>
+                    </div>
+                `;
+                showAccountSelectView();
+            } else if (navigator.credentials) {
+                // Fallback to query browser credentials manager
                 navigator.credentials.get({ password: true, mediation: 'optional' })
                 .then(cred => {
                     if (cred && cred.id) {
