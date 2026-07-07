@@ -853,7 +853,7 @@ function closeSuccessModal() {
 
 // THEME TOGGLE (DAY/NIGHT MODE)
 function toggleTheme() {
-    const currentTheme = document.body.getAttribute("data-theme") || "dark";
+    const currentTheme = document.body.getAttribute("data-theme") || "light";
     const newTheme = currentTheme === "light" ? "dark" : "light";
     
     document.body.setAttribute("data-theme", newTheme);
@@ -863,7 +863,7 @@ function toggleTheme() {
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem("styluxe_theme") || "dark";
+    const savedTheme = localStorage.getItem("styluxe_theme") || "light";
     document.body.setAttribute("data-theme", savedTheme);
     updateThemeIcon(savedTheme);
 }
