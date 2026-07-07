@@ -1304,8 +1304,36 @@ function renderAdminPos() {
     posCustomerPhone.value = "";
     posDiscountInput.value = "0";
 
+    updatePosCategorySelect();
+
     filterPosCatalog();
     updatePosTotals();
+}
+
+function updatePosCategorySelect() {
+    const select = document.getElementById("posCategorySelect");
+    if (!select) return;
+    
+    // Save current selected value
+    const currentVal = select.value;
+    
+    // Get unique categories from products list
+    const uniqueCats = ["All", ...new Set(PRODUCTS.map(p => p.category))];
+    
+    select.innerHTML = "";
+    uniqueCats.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat === "All" ? "ALL CATEGORIES" : cat.toUpperCase();
+        select.appendChild(opt);
+    });
+    
+    // Restore previous selection if it still exists
+    if (uniqueCats.includes(currentVal)) {
+        select.value = currentVal;
+    } else {
+        select.value = "All";
+    }
 }
 
 function filterPosCatalog() {
@@ -2258,24 +2286,20 @@ function calculateRecommendedSize() {
 
     let recommendedSize = "M"; // Default fallback
     const category = activeModalProduct.category;
+    const catUpper = category.toUpperCase();
 
-    if (category === "Hoodies") {
+    if (category === "Hoodies" || category === "Jackets" || catUpper.includes("SHIRT") || catUpper.includes("TOP") || catUpper.includes("SWEATER") || catUpper.includes("JACKET") || catUpper.includes("HOOD")) {
         if (weight < 62) recommendedSize = "S";
         else if (weight < 72) recommendedSize = "M";
         else if (weight < 82) recommendedSize = "L";
         else if (weight < 92) recommendedSize = "XL";
         else recommendedSize = "XXL";
-    } else if (category === "Jackets") {
-        if (weight < 60) recommendedSize = "S";
-        else if (weight < 70) recommendedSize = "M";
-        else if (weight < 80) recommendedSize = "L";
-        else recommendedSize = "XL";
-    } else if (category === "Jeans") {
+    } else if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
         if (weight < 60) recommendedSize = "30";
         else if (weight < 72) recommendedSize = "32";
         else if (weight < 85) recommendedSize = "34";
         else recommendedSize = "36";
-    } else if (category === "Footwear") {
+    } else { // Footwear/shoes
         if (activeModalProduct.department === "Women") {
             if (height < 160) recommendedSize = "37";
             else if (height < 170) recommendedSize = "38";
@@ -2339,9 +2363,10 @@ function renderSizeChartTable() {
     if (!container || !activeModalProduct) return;
 
     const category = activeModalProduct.category;
+    const catUpper = category.toUpperCase();
     let html = "";
 
-    if (category === "Hoodies") {
+    if (category === "Hoodies" || category === "Jackets" || catUpper.includes("SHIRT") || catUpper.includes("TOP") || catUpper.includes("SWEATER") || catUpper.includes("JACKET") || catUpper.includes("HOOD")) {
         html = `
             <table class="size-chart-table">
                 <thead>
@@ -2361,26 +2386,7 @@ function renderSizeChartTable() {
                 </tbody>
             </table>
         `;
-    } else if (category === "Jackets") {
-        html = `
-            <table class="size-chart-table">
-                <thead>
-                    <tr>
-                        <th>SIZE</th>
-                        <th>CHEST (CM)</th>
-                        <th>SHOULDER (CM)</th>
-                        <th>LENGTH (CM)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>S</td><td>110</td><td>46</td><td>65</td></tr>
-                    <tr><td>M</td><td>115</td><td>48</td><td>67</td></tr>
-                    <tr><td>L</td><td>120</td><td>50</td><td>69</td></tr>
-                    <tr><td>XL</td><td>125</td><td>52</td><td>71</td></tr>
-                </tbody>
-            </table>
-        `;
-    } else if (category === "Jeans") {
+    } else if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
         html = `
             <table class="size-chart-table">
                 <thead>
@@ -2399,7 +2405,7 @@ function renderSizeChartTable() {
                 </tbody>
             </table>
         `;
-    } else { // Footwear
+    } else { // Default to Footwear/Shoes size chart
         html = `
             <table class="size-chart-table">
                 <thead>
