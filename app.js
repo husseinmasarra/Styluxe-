@@ -267,6 +267,37 @@ function setupEventListeners() {
     menuToggle.addEventListener("click", toggleMobileDrawer);
     closeDrawerBtn.addEventListener("click", toggleMobileDrawer);
     drawerBackdrop.addEventListener("click", toggleMobileDrawer);
+
+    // Live Image Upload Previews for Admin Panel
+    const prodImgFile = document.getElementById("newProdImgFile");
+    if (prodImgFile) {
+        prodImgFile.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                getFileBase64(file).then(base64 => {
+                    const previewDiv = document.getElementById("newProdImgPreview");
+                    const previewImg = previewDiv.querySelector("img");
+                    previewImg.src = base64;
+                    previewDiv.style.display = "block";
+                });
+            }
+        });
+    }
+
+    const brandImgFile = document.getElementById("newBrandImgFileInput");
+    if (brandImgFile) {
+        brandImgFile.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                getFileBase64(file).then(base64 => {
+                    const previewDiv = document.getElementById("newBrandImgPreview");
+                    const previewImg = previewDiv.querySelector("img");
+                    previewImg.src = base64;
+                    previewDiv.style.display = "block";
+                });
+            }
+        });
+    }
 }
 
 // FORMAT PRICE ACCORDING TO ACTIVE CURRENCY (Always USD)
@@ -1216,17 +1247,31 @@ function closeAddProductModal() {
     addProductModalBackdrop.classList.remove("active");
 }
 
-function handleNewProductSubmit(event) {
+async function handleNewProductSubmit(event) {
     event.preventDefault();
 
     const name = document.getElementById("newProdName").value;
     const category = document.getElementById("newProdCategory").value;
     const price = parseFloat(document.getElementById("newProdPrice").value);
-    const img = document.getElementById("newProdImg").value;
     const sizes = document.getElementById("newProdSizes").value;
     const colors = document.getElementById("newProdColors").value;
     const inventory = document.getElementById("newProdInventory").value;
     const desc = document.getElementById("newProdDesc").value;
+
+    const fileInput = document.getElementById("newProdImgFile");
+    let img = "";
+
+    if (fileInput.files && fileInput.files[0]) {
+        try {
+            img = await getFileBase64(fileInput.files[0]);
+        } catch (e) {
+            alert("Error reading product image file.");
+            return;
+        }
+    } else {
+        alert("PLEASE SELECT A PRODUCT IMAGE FILE.");
+        return;
+    }
 
     // Determine department
     let department = currentAdminDept;
@@ -1257,6 +1302,9 @@ function handleNewProductSubmit(event) {
             closeAddProductModal();
             await loadProductsFromServer(); // reload & sync
             renderAdminProducts(); // Refresh admin table
+            event.target.reset();
+            const previewDiv = document.getElementById("newProdImgPreview");
+            if (previewDiv) previewDiv.style.display = "none";
         } else {
             const err = await res.json();
             alert("Error creating product: " + err.error);
@@ -2184,13 +2232,34 @@ function deleteCategory(name) {
     .catch(err => console.error("Error deleting category:", err));
 }
 
-function handleAddBrand(event) {
+function getFileBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
+async function handleAddBrand(event) {
     event.preventDefault();
     const nameInput = document.getElementById("newBrandNameInput");
-    const imgInput = document.getElementById("newBrandImgInput");
+    const fileInput = document.getElementById("newBrandImgFileInput");
     const name = nameInput.value.trim();
-    const img = imgInput.value.trim();
-    if (!name || !img) return;
+    if (!name) return;
+
+    let img = "";
+    if (fileInput.files && fileInput.files[0]) {
+        try {
+            img = await getFileBase64(fileInput.files[0]);
+        } catch (e) {
+            alert("Error reading image file.");
+            return;
+        }
+    } else {
+        alert("PLEASE SELECT A BRAND LOGO FILE.");
+        return;
+    }
 
     fetch('/api/brands', {
         method: 'POST',
@@ -2201,7 +2270,9 @@ function handleAddBrand(event) {
         if (res.ok) {
             BRANDS = await res.json();
             nameInput.value = "";
-            imgInput.value = "";
+            fileInput.value = "";
+            const previewDiv = document.getElementById("newBrandImgPreview");
+            if (previewDiv) previewDiv.style.display = "none";
             renderBrandSlider();
             renderAdminTaxonomy();
         } else {
