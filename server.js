@@ -508,7 +508,7 @@ async function loadDatabaseIntoMemory() {
         permissions: JSON.parse(s.permissions || '[]')
       }));
 
-      dbMemory.categories = categoriesRes.rows.map(c => ({ name: c.name, img: c.img || '' }));
+      dbMemory.categories = categoriesRes.rows.map(c => ({ id: c.id, name: c.name, img: c.img || '' }));
       dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
       
       dbMemory.suppliers = suppliersRes.rows.map(s => ({
@@ -619,9 +619,9 @@ function writeDb(data) {
 
           // Sync categories
           await client.query('DELETE FROM categories');
-          const catStmt = 'INSERT INTO categories (name, img) VALUES ($1, $2)';
+          const catStmt = 'INSERT INTO categories (id, name, img) VALUES ($1, $2, $3)';
           for (const c of (data.categories || [])) {
-            await client.query(catStmt, [c.name, c.img || '']);
+            await client.query(catStmt, [c.id, c.name, c.img || '']);
           }
 
           // Sync brands
@@ -972,7 +972,11 @@ const server = http.createServer(async (req, res) => {
         }
         if (!db.categories) db.categories = [];
         if (!db.categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-          db.categories.push({ name, img });
+          db.categories.push({
+            id: db.categories.length > 0 ? Math.max(...db.categories.map(c => c.id)) + 1 : 1,
+            name,
+            img
+          });
           writeDb(db);
         }
         sendJsonResponse(res, db.categories);
@@ -1173,13 +1177,13 @@ const server = http.createServer(async (req, res) => {
     // 4. DELETE Requests
     if (req.method === 'DELETE') {
       if (pathname === '/api/categories') {
-        const name = parsedUrl.query.name;
-        if (!name) {
-          sendJsonResponse(res, { error: "Missing category name" }, 400);
+        const id = parseInt(parsedUrl.query.id);
+        if (isNaN(id)) {
+          sendJsonResponse(res, { error: "Missing or invalid category id" }, 400);
           return;
         }
         if (db.categories) {
-          db.categories = db.categories.filter(c => c.name.toLowerCase() !== name.toLowerCase());
+          db.categories = db.categories.filter(c => c.id !== id);
           writeDb(db);
         }
         sendJsonResponse(res, db.categories || []);
