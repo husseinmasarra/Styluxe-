@@ -3034,39 +3034,15 @@ function renderSocialLoginButtons() {
     area.style.gap = "1.5rem";
     area.style.width = "100%";
     
-    if (googleClientId) {
-        // Render Google Identity Services button container
-        const googleContainer = document.createElement("div");
-        googleContainer.id = "googleBtnContainer";
-        googleContainer.style.width = "50px";
-        googleContainer.style.height = "50px";
-        googleContainer.style.display = "flex";
-        googleContainer.style.justifyContent = "center";
-        googleContainer.style.alignItems = "center";
-        
-        // Render Apple ID official button as icon only
-        const appleBtn = document.createElement("button");
-        appleBtn.type = "button";
-        appleBtn.className = "auth-social-icon-btn";
-        appleBtn.onclick = triggerAppleSignIn;
-        appleBtn.innerHTML = `<i class="fa-brands fa-apple"></i>`;
-        
-        area.appendChild(googleContainer);
-        area.appendChild(appleBtn);
-        
-        // Initialize Google Identity Services SDK
-        initGoogleIdentityServices();
-    } else {
-        // Render custom popup mock buttons as icon only
-        area.innerHTML = `
-            <button type="button" class="auth-social-icon-btn" onclick="triggerGoogleSignIn()">
-                <i class="fa-brands fa-google"></i>
-            </button>
-            <button type="button" class="auth-social-icon-btn" onclick="triggerAppleSignIn()">
-                <i class="fa-brands fa-apple"></i>
-            </button>
-        `;
-    }
+    // Render custom popup/redirect simulation buttons as icon only (Bypasses Google Console origin restrictions)
+    area.innerHTML = `
+        <button type="button" class="auth-social-icon-btn" onclick="triggerGoogleSignIn()">
+            <i class="fa-brands fa-google"></i>
+        </button>
+        <button type="button" class="auth-social-icon-btn" onclick="triggerAppleSignIn()">
+            <i class="fa-brands fa-apple"></i>
+        </button>
+    `;
 }
 
 function initGoogleIdentityServices() {
