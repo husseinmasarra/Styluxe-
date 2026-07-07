@@ -1807,7 +1807,38 @@ img {
 
 @media screen and (max-width: 480px) {
     .product-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+
+    .product-img-wrapper {
+        height: 200px; /* Symmetrical height for 2-column mobile layout */
+    }
+
+    .product-info {
+        padding: 1.2rem 1rem;
+        gap: 0.4rem;
+    }
+
+    .product-category {
+        font-size: 0.8rem;
+    }
+
+    .product-name {
+        font-size: 1.2rem;
+        line-height: 1.3;
+    }
+
+    .product-price {
+        font-size: 1.1rem;
+    }
+
+    .product-badge {
+        top: 0.8rem;
+        left: 0.8rem;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
     }
     
     .hero-title {
