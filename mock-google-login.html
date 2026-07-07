@@ -315,6 +315,44 @@
                 window.location.href = redirectUrl;
             }
         }
+        document.addEventListener("DOMContentLoaded", () => {
+            if (navigator.credentials) {
+                navigator.credentials.get({ password: true, mediation: 'optional' })
+                .then(cred => {
+                    if (cred && cred.id) {
+                        const list = document.querySelector(".accounts-list");
+                        const namePart = cred.id.split('@')[0];
+                        const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                        
+                        list.innerHTML = `
+                            <div class="account-item" onclick="selectAccount('${formattedName}', '${cred.id}')">
+                                <div class="avatar" style="background-color: #3f51b5;">${formattedName.charAt(0).toUpperCase()}</div>
+                                <div class="account-details">
+                                    <span class="account-name">${formattedName}</span>
+                                    <span class="account-email">${cred.id}</span>
+                                </div>
+                            </div>
+                            <div class="account-item" onclick="showEmailInputView()">
+                                <div class="avatar" style="background-color: #757575; font-size: 18px;">+</div>
+                                <div class="account-details">
+                                    <span class="account-name" style="color: #0b57d0;">Use another account</span>
+                                    <span class="account-email">Sign in with a different Google account</span>
+                                </div>
+                            </div>
+                        `;
+                        showAccountSelectView();
+                    } else {
+                        showEmailInputView();
+                    }
+                })
+                .catch(err => {
+                    console.warn("Failed to retrieve credentials:", err);
+                    showEmailInputView();
+                });
+            } else {
+                showEmailInputView();
+            }
+        });
 
         function showEmailInputView() {
             document.getElementById("selectAccountView").style.display = "none";
