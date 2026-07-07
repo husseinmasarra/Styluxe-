@@ -935,10 +935,15 @@
                         <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px;">
                             <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">MANAGE CATEGORIES</h3>
                             
-                            <form id="addCategoryForm" onsubmit="handleAddCategory(event)" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                                <input type="text" id="newCategoryInput" required placeholder="New category name (e.g. Socks)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
-                                <button type="submit" class="admin-action-btn" style="white-space: nowrap;">+ ADD</button>
-                            </form>
+                            <form id="addCategoryForm" onsubmit="handleAddCategory(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem;">
+                                 <input type="text" id="newCategoryInput" required placeholder="New category name (e.g. Socks)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                 <label for="newCategoryImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Category Image *</label>
+                                 <input type="file" id="newCategoryImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                                 <div id="newCategoryImgPreview" style="display: none; margin-top: 1rem;">
+                                     <img src="" alt="Preview" style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover; border: 1px solid var(--color-border);">
+                                 </div>
+                                 <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD CATEGORY</button>
+                             </form>
                             
                             <div style="max-height: 400px; overflow-y: auto;">
                                 <table class="admin-table">
