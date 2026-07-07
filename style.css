@@ -8,7 +8,7 @@
     --color-border: #262626;
     --color-border-light: #404040;
     --color-text: #ffffff;
-    --color-text-muted: #8e8e93;
+    --color-text-muted: #ffffff; /* All text white in dark mode */
     --color-accent: #c5a880; /* Warm Luxury Gold */
     --color-accent-hover: #dfc59f;
     --color-success: #30d158;
@@ -39,8 +39,8 @@ body[data-theme="light"] {
     --color-surface-hover: #f0f0f2;
     --color-border: #e2e2e7;
     --color-border-light: #c7c7cc;
-    --color-text: #1c1c1e;
-    --color-text-muted: #636366;
+    --color-text: #000000; /* All text black in light mode */
+    --color-text-muted: #000000; /* All muted text black in light mode */
     --color-overlay: rgba(0, 0, 0, 0.4);
     --color-navbar-bg: rgba(245, 245, 247, 0.7);
     --color-navbar-bg-scrolled: rgba(245, 245, 247, 0.95);
