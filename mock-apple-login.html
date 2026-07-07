@@ -174,16 +174,21 @@
             const namePart = email.split('@')[0];
             const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
             
-            // Send back to parent window
-            window.opener.postMessage({
-                type: 'oauth-success',
-                provider: 'Apple',
-                name: formattedName + " (Apple)",
-                email: email
-            }, window.location.origin);
-            
-            // Close popup
-            window.close();
+            if (window.opener) {
+                // Send back to parent window
+                window.opener.postMessage({
+                    type: 'oauth-success',
+                    provider: 'Apple',
+                    name: formattedName + " (Apple)",
+                    email: email
+                }, window.location.origin);
+                window.close();
+            } else {
+                // Redirect style (mobile/in-app browser fallback)
+                const mainPageUrl = window.location.origin + window.location.pathname.replace('mock-apple-login.html', 'index.html');
+                const redirectUrl = `${mainPageUrl}?social_login=apple&email=${encodeURIComponent(email)}&name=${encodeURIComponent(formattedName + " (Apple)")}`;
+                window.location.href = redirectUrl;
+            }
         }
 
         function handleAppleSubmit(event) {
