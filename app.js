@@ -111,6 +111,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupEventListeners();
     loadCartFromLocalStorage();
     updateCartUI();
+
+    // Handle redirect-based social login (for mobile/in-app browsers)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('social_login')) {
+        const email = urlParams.get('email');
+        const name = urlParams.get('name');
+        if (email && name) {
+            handleSocialLoginSuccess({ name, email });
+            // Clean URL query parameters
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
+    }
     
     // Auto-resume customer session from localStorage
     const savedUser = localStorage.getItem("styluxe_user");
@@ -2889,16 +2902,20 @@ function triggerGoogleSignIn() {
 }
 
 function openGooglePopup() {
-    const width = 500;
-    const height = 620;
-    const left = (screen.width - width) / 2;
-    const top = (screen.height - height) / 2;
-    
-    window.open(
-        'mock-google-login.html', 
-        'GoogleSignIn', 
-        `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`
-    );
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        window.location.href = 'mock-google-login.html?redirect=true';
+    } else {
+        const width = 500;
+        const height = 620;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        window.open(
+            'mock-google-login.html', 
+            'GoogleSignIn', 
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`
+        );
+    }
 }
 
 // Trigger Apple Sign-In (First tries browser-native keychain, then falls back to popup)
@@ -2931,16 +2948,20 @@ function triggerAppleSignIn() {
 }
 
 function openApplePopup() {
-    const width = 580;
-    const height = 580;
-    const left = (screen.width - width) / 2;
-    const top = (screen.height - height) / 2;
-    
-    window.open(
-        'mock-apple-login.html', 
-        'AppleSignIn', 
-        `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`
-    );
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        window.location.href = 'mock-apple-login.html?redirect=true';
+    } else {
+        const width = 580;
+        const height = 580;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        window.open(
+            'mock-apple-login.html', 
+            'AppleSignIn', 
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`
+        );
+    }
 }
 
 // Common backend session success route
