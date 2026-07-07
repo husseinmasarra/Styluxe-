@@ -700,8 +700,11 @@
                     <button class="admin-nav-btn" id="btnTabStaff" onclick="switchAdminTab('staff')">
                         <i class="fa-solid fa-user-shield"></i> STAFF / EMPLOYEES
                     </button>
-                    <button class="admin-nav-btn" id="btnTabTaxonomy" onclick="switchAdminTab('taxonomy')">
-                        <i class="fa-solid fa-tags"></i> CATEGORIES & BRANDS
+                    <button class="admin-nav-btn" id="btnTabCategories" onclick="switchAdminTab('categories')">
+                        <i class="fa-solid fa-tags"></i> CATEGORIES
+                    </button>
+                    <button class="admin-nav-btn" id="btnTabBrands" onclick="switchAdminTab('brands')">
+                        <i class="fa-solid fa-copyright"></i> BRANDS
                     </button>
                     <button class="admin-nav-btn" id="btnTabSuppliers" onclick="switchAdminTab('suppliers')">
                         <i class="fa-solid fa-truck-field"></i> SUPPLIERS & INVOICES
@@ -926,71 +929,78 @@
                     </div>
                 </div>
 
-                <!-- Tab: Categories & Brands -->
-                <div class="admin-tab-content" id="adminTabTaxonomy">
-                    <h2 class="admin-tab-title">CATEGORIES & BRANDS MANAGEMENT</h2>
+                <!-- Tab: Categories -->
+                <div class="admin-tab-content" id="adminTabCategories">
+                    <h2 class="admin-tab-title">MANAGE CATEGORIES</h2>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem;">
-                        <!-- Categories Card -->
-                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px;">
-                            <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">MANAGE CATEGORIES</h3>
-                            
-                            <form id="addCategoryForm" onsubmit="handleAddCategory(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem;">
-                                 <input type="text" id="newCategoryInput" required placeholder="New category name (e.g. Socks)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
-                                 <label for="newCategoryImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Category Image *</label>
-                                 <input type="file" id="newCategoryImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                                 <div id="newCategoryImgPreview" style="display: none; margin-top: 1rem;">
-                                     <img src="" alt="Preview" style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover; border: 1px solid var(--color-border);">
-                                 </div>
-                                 <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD CATEGORY</button>
-                             </form>
-                            
-                            <div style="max-height: 400px; overflow-y: auto;">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>IMAGE</th>
-                                            <th>CATEGORY NAME</th>
-                                            <th style="width: 80px; text-align: center;">ACTIONS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="adminCategoriesTableBody">
-                                        <!-- Dynamically populated -->
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; margin-top: 2rem;">
+                        <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">ADD NEW CATEGORY</h3>
+                        
+                        <form id="addCategoryForm" onsubmit="handleAddCategory(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem; max-width: 600px;">
+                             <input type="text" id="newCategoryInput" required placeholder="New category name (e.g. Socks)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                             <select id="newCategoryDept" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                 <option value="" disabled selected>Select Department *</option>
+                                 <option value="Men">Men</option>
+                                 <option value="Women">Women</option>
+                                 <option value="Kids">Kids</option>
+                             </select>
+                             <label for="newCategoryImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Category Image *</label>
+                             <input type="file" id="newCategoryImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                             <div id="newCategoryImgPreview" style="display: none; margin-top: 1rem;">
+                                 <img src="" alt="Preview" style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover; border: 1px solid var(--color-border);">
+                             </div>
+                             <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD CATEGORY</button>
+                         </form>
+                        
+                        <div style="max-height: 500px; overflow-y: auto; margin-top: 3rem;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>IMAGE</th>
+                                        <th>CATEGORY NAME</th>
+                                        <th style="width: 80px; text-align: center;">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminCategoriesTableBody">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Brands Card -->
-                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px;">
-                            <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">MANAGE BRANDS</h3>
-                            
-                            <form id="addBrandForm" onsubmit="handleAddBrand(event)" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
-                                <input type="text" id="newBrandNameInput" required placeholder="Brand name (e.g. Nike)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
-                                <label for="newBrandImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Brand Logo *</label>
-                                <input type="file" id="newBrandImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                                <input type="text" id="newBrandImgInput" style="display: none;">
-                                <div id="newBrandImgPreview" style="display: none; margin-top: 1rem;">
-                                    <img src="" alt="Preview" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border);">
-                                </div>
-                                <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD BRAND</button>
-                            </form>
-                            
-                            <div style="max-height: 400px; overflow-y: auto;">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>LOGO</th>
-                                            <th>BRAND NAME</th>
-                                            <th style="width: 80px; text-align: center;">ACTIONS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="adminBrandsTableBody">
-                                        <!-- Dynamically populated -->
-                                    </tbody>
-                                </table>
+                <!-- Tab: Brands -->
+                <div class="admin-tab-content" id="adminTabBrands">
+                    <h2 class="admin-tab-title">MANAGE BRANDS</h2>
+                    
+                    <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; margin-top: 2rem;">
+                        <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">ADD NEW BRAND</h3>
+                        
+                        <form id="addBrandForm" onsubmit="handleAddBrand(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem; max-width: 600px;">
+                            <input type="text" id="newBrandNameInput" required placeholder="Brand name (e.g. Nike)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                            <label for="newBrandImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Brand Logo *</label>
+                            <input type="file" id="newBrandImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            <input type="text" id="newBrandImgInput" style="display: none;">
+                            <div id="newBrandImgPreview" style="display: none; margin-top: 1rem;">
+                                <img src="" alt="Preview" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border);">
                             </div>
+                            <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD BRAND</button>
+                        </form>
+                        
+                        <div style="max-height: 500px; overflow-y: auto; margin-top: 3rem;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>LOGO</th>
+                                        <th>BRAND NAME</th>
+                                        <th style="width: 80px; text-align: center;">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBrandsTableBody">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1066,29 +1076,38 @@
                          <label for="newProdName">Product Name *</label>
                          <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE">
                      </div>
-                     <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                         <div class="form-group">
-                             <label for="newProdCategory">Category *</label>
-                             <input type="text" id="newProdCategory" list="categoriesDatalist" required placeholder="e.g. Hoodies, T-Shirts, Caps" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%;">
-                             <datalist id="categoriesDatalist">
-                                 <option value="Hoodies">
-                                 <option value="Jackets">
-                                 <option value="Jeans">
-                                 <option value="Footwear">
-                                 <option value="T-Shirts">
-                                 <option value="Caps">
-                                 <option value="Accessories">
-                                 <option value="Pants">
-                             </datalist>
-                         </div>
-                                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                     <div class="form-grid" style="grid-template-columns: 1fr 1fr 1.5fr; gap: 1.5rem;">
+                          <div class="form-group">
+                              <label for="newProdDept">Department *</label>
+                              <select id="newProdDept" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                                  <option value="" disabled selected>Select Department</option>
+                                  <option value="Men">Men</option>
+                                  <option value="Women">Women</option>
+                                  <option value="Kids">Kids</option>
+                              </select>
+                          </div>
+                          <div class="form-group">
+                              <label for="newProdCategory">Category *</label>
+                              <input type="text" id="newProdCategory" list="categoriesDatalist" required placeholder="e.g. Hoodies, T-Shirts" style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                              <datalist id="categoriesDatalist">
+                                  <option value="Hoodies">
+                                  <option value="Jackets">
+                                  <option value="Jeans">
+                                  <option value="Footwear">
+                                  <option value="T-Shirts">
+                                  <option value="Caps">
+                                  <option value="Accessories">
+                                  <option value="Pants">
+                              </datalist>
+                          </div>
+                          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                               <div class="form-group">
-                                  <label for="newProdPrice">Selling Price (USD) *</label>
-                                  <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="e.g. 85.00">
+                                  <label for="newProdPrice">Selling Price *</label>
+                                  <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="Price" style="height: 50px;">
                               </div>
                               <div class="form-group">
-                                  <label for="newProdCostPrice">Cost Price (Supplier Price) *</label>
-                                  <input type="number" id="newProdCostPrice" min="0" step="0.01" required placeholder="e.g. 45.00">
+                                  <label for="newProdCostPrice">Cost Price *</label>
+                                  <input type="number" id="newProdCostPrice" min="0" step="0.01" required placeholder="Cost" style="height: 50px;">
                               </div>
                           </div>
                      </div>
