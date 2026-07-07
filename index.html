@@ -703,6 +703,9 @@
                     <button class="admin-nav-btn" id="btnTabTaxonomy" onclick="switchAdminTab('taxonomy')">
                         <i class="fa-solid fa-tags"></i> CATEGORIES & BRANDS
                     </button>
+                    <button class="admin-nav-btn" id="btnTabSuppliers" onclick="switchAdminTab('suppliers')">
+                        <i class="fa-solid fa-truck-field"></i> SUPPLIERS & INVOICES
+                    </button>
                     <button class="admin-nav-btn" id="adminPosNavBtn" onclick="switchAdminTab('pos')">
                         <i class="fa-solid fa-cash-register"></i> POS TERMINAL
                     </button>
@@ -719,10 +722,14 @@
                 <!-- Tab: Overview -->
                 <div class="admin-tab-content active" id="adminTabOverview">
                     <h2 class="admin-tab-title">DASHBOARD OVERVIEW</h2>
-                    <div class="admin-stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="admin-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                          <div class="stat-card">
                              <h3>GLOBAL SALES</h3>
                              <div class="stat-value" id="statTotalSales">$0.00</div>
+                         </div>
+                         <div class="stat-card" style="border-left: 4px solid #25d366;">
+                             <h3 style="color: #25d366;">NET PROFIT</h3>
+                             <div class="stat-value" id="statTotalProfit" style="color: #25d366;">$0.00</div>
                          </div>
                          <div class="stat-card">
                              <h3>TOTAL ORDERS</h3>
@@ -743,6 +750,83 @@
                          <div class="category-sales-bars" id="categorySalesBars">
                              <!-- Dynamically populated -->
                          </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Suppliers & Invoices -->
+                <div class="admin-tab-content" id="adminTabSuppliers">
+                    <h2 class="admin-tab-title">SUPPLIERS & INVOICES</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
+                        <!-- Suppliers Card -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px;">
+                            <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">ADD NEW SUPPLIER</h3>
+                            
+                            <form id="addSupplierForm" onsubmit="handleAddSupplier(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem;">
+                                <input type="text" id="newSupplierName" required placeholder="Supplier / Merchant Name * (e.g. Hassan Fabrics)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                <input type="text" id="newSupplierCompany" placeholder="Company Name (e.g. Hassan Trading Co.)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                <input type="text" id="newSupplierPhone" placeholder="Phone Number (e.g. +961 71 222 333)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                <textarea id="newSupplierAddress" placeholder="Address (e.g. Beirut, Lebanon)" rows="2" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; font-family: inherit; resize: vertical;"></textarea>
+                                <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD SUPPLIER</button>
+                            </form>
+                            
+                            <div style="max-height: 350px; overflow-y: auto;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SUPPLIER NAME</th>
+                                            <th>PHONE & COMPANY</th>
+                                            <th style="width: 80px; text-align: center;">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminSuppliersTableBody">
+                                        <!-- Dynamically populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Invoices Card -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px;">
+                            <h3 style="color: var(--color-accent); font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">RECORD SUPPLIER INVOICE</h3>
+                            
+                            <form id="addInvoiceForm" onsubmit="handleAddInvoice(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem;">
+                                <input type="text" id="newInvoiceNum" required placeholder="Invoice Number * (e.g. INV-2026-001)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                
+                                <select id="newInvoiceSupplier" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                    <option value="" disabled selected>Select Supplier / Merchant *</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <input type="number" id="newInvoiceTotal" min="0.01" step="0.01" required placeholder="Total Amount (USD) *" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                    <select id="newInvoiceStatus" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
+                                        <option value="Paid">Paid</option>
+                                        <option value="Unpaid">Unpaid</option>
+                                    </select>
+                                </div>
+                                
+                                <textarea id="newInvoiceNotes" placeholder="Invoice details, product quantities, or notes..." rows="2" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; font-family: inherit; resize: vertical;"></textarea>
+                                <button type="submit" class="admin-action-btn" style="width: 100%;">+ RECORD INVOICE</button>
+                            </form>
+                            
+                            <div style="max-height: 350px; overflow-y: auto;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>INVOICE #</th>
+                                            <th>SUPPLIER</th>
+                                            <th>TOTAL</th>
+                                            <th>STATUS</th>
+                                            <th style="width: 80px; text-align: center;">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminInvoicesTableBody">
+                                        <!-- Dynamically populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -989,10 +1073,16 @@
                                  <option value="Pants">
                              </datalist>
                          </div>
-                         <div class="form-group">
-                             <label for="newProdPrice">Price (USD) *</label>
-                             <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="e.g. 85.00">
-                         </div>
+                                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                              <div class="form-group">
+                                  <label for="newProdPrice">Selling Price (USD) *</label>
+                                  <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="e.g. 85.00">
+                              </div>
+                              <div class="form-group">
+                                  <label for="newProdCostPrice">Cost Price (Supplier Price) *</label>
+                                  <input type="number" id="newProdCostPrice" min="0" step="0.01" required placeholder="e.g. 45.00">
+                              </div>
+                          </div>
                      </div>
                       <div class="form-group">
                           <label for="newProdImgFile">Upload Product Image *</label>
