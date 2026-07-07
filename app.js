@@ -96,7 +96,7 @@ function updateCategoriesDatalist() {
     datalist.innerHTML = "";
     CATEGORIES.forEach(cat => {
         const opt = document.createElement("option");
-        opt.value = cat;
+        opt.value = cat.name;
         datalist.appendChild(opt);
     });
 }
@@ -291,6 +291,21 @@ function setupEventListeners() {
             if (file) {
                 getFileBase64(file).then(base64 => {
                     const previewDiv = document.getElementById("newBrandImgPreview");
+                    const previewImg = previewDiv.querySelector("img");
+                    previewImg.src = base64;
+                    previewDiv.style.display = "block";
+                });
+            }
+        });
+    }
+
+    const catImgFile = document.getElementById("newCategoryImgFileInput");
+    if (catImgFile) {
+        catImgFile.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                getFileBase64(file).then(base64 => {
+                    const previewDiv = document.getElementById("newCategoryImgPreview");
                     const previewImg = previewDiv.querySelector("img");
                     previewImg.src = base64;
                     previewDiv.style.display = "block";
@@ -2148,14 +2163,17 @@ function renderAdminTaxonomy() {
     // Render Categories Table
     catBody.innerHTML = "";
     if (CATEGORIES.length === 0) {
-        catBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
+        catBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
     } else {
         CATEGORIES.forEach(cat => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><strong>${cat.toUpperCase()}</strong></td>
+                <td style="width: 50px;">
+                    <img src="${cat.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200'}" alt="${cat.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+                </td>
+                <td><strong>${cat.name.toUpperCase()}</strong></td>
                 <td style="text-align: center;">
-                    <button class="delete-btn" onclick="deleteCategory('${cat}')" aria-label="Delete category">
+                    <button class="delete-btn" onclick="deleteCategory('${cat.name}')" aria-label="Delete category">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -2188,21 +2206,38 @@ function renderAdminTaxonomy() {
 }
 
 // Add/Delete Actions
-function handleAddCategory(event) {
+async function handleAddCategory(event) {
     event.preventDefault();
     const input = document.getElementById("newCategoryInput");
+    const fileInput = document.getElementById("newCategoryImgFileInput");
     const name = input.value.trim();
     if (!name) return;
+
+    let img = "";
+    if (fileInput.files && fileInput.files[0]) {
+        try {
+            img = await getFileBase64(fileInput.files[0]);
+        } catch (e) {
+            alert("Error reading category image file.");
+            return;
+        }
+    } else {
+        alert("PLEASE SELECT A CATEGORY IMAGE FILE.");
+        return;
+    }
 
     fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name })
+        body: JSON.stringify({ name: name, img: img })
     })
     .then(async res => {
         if (res.ok) {
             CATEGORIES = await res.json();
             input.value = "";
+            fileInput.value = "";
+            const previewDiv = document.getElementById("newCategoryImgPreview");
+            if (previewDiv) previewDiv.style.display = "none";
             updateCategoriesDatalist();
             renderCategoryTags();
             renderAdminTaxonomy();
