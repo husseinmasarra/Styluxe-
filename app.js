@@ -100,7 +100,16 @@ function updateCategoriesDatalist() {
     const datalist = document.getElementById("categoriesDatalist");
     if (!datalist) return;
     datalist.innerHTML = "";
-    CATEGORIES.forEach(cat => {
+    
+    const deptSelect = document.getElementById("newProdDept");
+    const activeDept = deptSelect ? deptSelect.value : "";
+    
+    let filteredCats = CATEGORIES || [];
+    if (activeDept) {
+        filteredCats = filteredCats.filter(c => c.department && c.department.toLowerCase() === activeDept.toLowerCase());
+    }
+    
+    filteredCats.forEach(cat => {
         const opt = document.createElement("option");
         opt.value = cat.name;
         datalist.appendChild(opt);
@@ -317,6 +326,13 @@ function setupEventListeners() {
                     previewDiv.style.display = "block";
                 });
             }
+        });
+    }
+
+    const prodDeptSelect = document.getElementById("newProdDept");
+    if (prodDeptSelect) {
+        prodDeptSelect.addEventListener("change", () => {
+            updateCategoriesDatalist();
         });
     }
 }
@@ -1114,10 +1130,11 @@ function switchAdminTab(tab) {
         const idMap = {
             overview: "btnTabOverview",
             products: "btnTabProducts",
+            categories: "btnTabCategories",
+            brands: "btnTabBrands",
             orders: "btnTabOrders",
             customers: "btnTabCustomers",
             staff: "btnTabStaff",
-            taxonomy: "btnTabTaxonomy",
             suppliers: "btnTabSuppliers",
             pos: "adminPosNavBtn"
         };
@@ -1134,10 +1151,11 @@ function switchAdminTab(tab) {
         const idMap = {
             overview: "adminTabOverview",
             products: "adminTabProducts",
+            categories: "adminTabCategories",
+            brands: "adminTabBrands",
             orders: "adminTabOrders",
             customers: "adminTabCustomers",
             staff: "adminTabStaff",
-            taxonomy: "adminTabTaxonomy",
             suppliers: "adminTabSuppliers",
             pos: "adminTabPos"
         };
@@ -1153,14 +1171,16 @@ function switchAdminTab(tab) {
         renderAdminOverview();
     } else if (tab === "products") {
         renderAdminProducts();
+    } else if (tab === "categories") {
+        renderAdminCategories();
+    } else if (tab === "brands") {
+        renderAdminBrands();
     } else if (tab === "orders") {
         renderAdminOrders();
     } else if (tab === "customers") {
         renderAdminCustomers();
     } else if (tab === "staff") {
         renderStaffList();
-    } else if (tab === "taxonomy") {
-        renderAdminTaxonomy();
     } else if (tab === "suppliers") {
         renderAdminSuppliers();
     } else if (tab === "pos") {
@@ -1304,10 +1324,8 @@ async function handleNewProductSubmit(event) {
     }
 
     // Determine department
-    let department = currentAdminDept;
-    if (currentAdminDept === "Global") {
-        department = "Men";
-    }
+    const deptSelect = document.getElementById("newProdDept");
+    const department = deptSelect ? deptSelect.value : (currentAdminDept === "Global" ? "Men" : currentAdminDept);
 
     const newProductData = {
         name: name.toUpperCase(),
@@ -2183,15 +2201,15 @@ function renderAdminCustomers() {
 }
 
 // Dynamic Category & Brand Manager Render
-function renderAdminTaxonomy() {
+// Render Categories Table
+function renderAdminCategories() {
     const catBody = document.getElementById("adminCategoriesTableBody");
-    const brandBody = document.getElementById("adminBrandsTableBody");
-    if (!catBody || !brandBody) return;
+    if (!catBody) return;
 
     // Render Categories Table
     catBody.innerHTML = "";
     if (CATEGORIES.length === 0) {
-        catBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
+        catBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
     } else {
         CATEGORIES.forEach(cat => {
             const tr = document.createElement("tr");
@@ -2200,7 +2218,10 @@ function renderAdminTaxonomy() {
                 <td style="width: 50px;">
                     <img src="${cat.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200'}" alt="${cat.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
                 </td>
-                <td><strong>${cat.name.toUpperCase()}</strong></td>
+                <td>
+                    <div><strong>${cat.name.toUpperCase()}</strong></div>
+                    <div style="font-size: 1.1rem; color: var(--color-text-muted);">${cat.department ? cat.department.toUpperCase() : 'MEN'}</div>
+                </td>
                 <td style="text-align: center;">
                     <button class="delete-btn" onclick="deleteCategory(${cat.id})" aria-label="Delete category">
                         <i class="fa-solid fa-trash"></i>
@@ -2210,6 +2231,12 @@ function renderAdminTaxonomy() {
             catBody.appendChild(tr);
         });
     }
+}
+
+// Render Brands Table
+function renderAdminBrands() {
+    const brandBody = document.getElementById("adminBrandsTableBody");
+    if (!brandBody) return;
 
     // Render Brands Table
     brandBody.innerHTML = "";
@@ -2238,9 +2265,11 @@ function renderAdminTaxonomy() {
 async function handleAddCategory(event) {
     event.preventDefault();
     const input = document.getElementById("newCategoryInput");
+    const deptSelect = document.getElementById("newCategoryDept");
     const fileInput = document.getElementById("newCategoryImgFileInput");
     const name = input.value.trim();
-    if (!name) return;
+    const department = deptSelect.value;
+    if (!name || !department) return;
 
     let img = "";
     if (fileInput.files && fileInput.files[0]) {
@@ -2258,18 +2287,19 @@ async function handleAddCategory(event) {
     fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, img: img })
+        body: JSON.stringify({ name: name, img: img, department: department })
     })
     .then(async res => {
         if (res.ok) {
             CATEGORIES = await res.json();
             input.value = "";
+            deptSelect.value = "";
             fileInput.value = "";
             const previewDiv = document.getElementById("newCategoryImgPreview");
             if (previewDiv) previewDiv.style.display = "none";
             updateCategoriesDatalist();
             renderCategoryTags();
-            renderAdminTaxonomy();
+            renderAdminCategories();
         } else {
             alert("FAILED TO ADD CATEGORY.");
         }
@@ -2290,7 +2320,7 @@ function deleteCategory(id) {
             CATEGORIES = await res.json();
             updateCategoriesDatalist();
             renderCategoryTags();
-            renderAdminTaxonomy();
+            renderAdminCategories();
         } else {
             alert("FAILED TO DELETE CATEGORY.");
         }
@@ -2340,7 +2370,7 @@ async function handleAddBrand(event) {
             const previewDiv = document.getElementById("newBrandImgPreview");
             if (previewDiv) previewDiv.style.display = "none";
             renderBrandSlider();
-            renderAdminTaxonomy();
+            renderAdminBrands();
         } else {
             alert("FAILED TO ADD BRAND.");
         }
@@ -2358,7 +2388,7 @@ function deleteBrand(name) {
         if (res.ok) {
             BRANDS = await res.json();
             renderBrandSlider();
-            renderAdminTaxonomy();
+            renderAdminBrands();
         } else {
             alert("FAILED TO DELETE BRAND.");
         }
@@ -3171,13 +3201,25 @@ function renderCategoryTags() {
     const filterTags = document.getElementById("filterTags");
     if (!filterTags) return;
 
-    // Filter products by department to find unique categories
-    let availableProducts = [...PRODUCTS];
-    if (activeDepartment !== "All") {
-        availableProducts = availableProducts.filter(p => p.department.toLowerCase() === activeDepartment.toLowerCase());
+    let deptCategories = [];
+    if (CATEGORIES && CATEGORIES.length > 0) {
+        if (activeDepartment === "All") {
+            deptCategories = CATEGORIES.map(c => c.name);
+        } else {
+            deptCategories = CATEGORIES
+                .filter(c => c.department && c.department.toLowerCase() === activeDepartment.toLowerCase())
+                .map(c => c.name);
+        }
+    } else {
+        // Fallback to product categories
+        let availableProducts = [...PRODUCTS];
+        if (activeDepartment !== "All") {
+            availableProducts = availableProducts.filter(p => p.department.toLowerCase() === activeDepartment.toLowerCase());
+        }
+        deptCategories = availableProducts.map(p => p.category);
     }
 
-    const uniqueCategories = ["All", ...new Set(availableProducts.map(p => p.category))];
+    const uniqueCategories = ["All", ...new Set(deptCategories)];
 
     filterTags.innerHTML = "";
     uniqueCategories.forEach(cat => {
@@ -3228,14 +3270,18 @@ function applyStaffPermissions() {
     const btnStaff = document.getElementById("btnTabStaff");
     const btnPos = document.getElementById("adminPosNavBtn");
     
-    const btnTaxonomy = document.getElementById("btnTabTaxonomy");
+    const btnCategories = document.getElementById("btnTabCategories");
+    const btnBrands = document.getElementById("btnTabBrands");
     const btnSuppliers = document.getElementById("btnTabSuppliers");
     
     if (btnProducts) {
         btnProducts.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
-    if (btnTaxonomy) {
-        btnTaxonomy.style.display = perms.includes("manage_products") ? "flex" : "none";
+    if (btnCategories) {
+        btnCategories.style.display = perms.includes("manage_products") ? "flex" : "none";
+    }
+    if (btnBrands) {
+        btnBrands.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
     if (btnSuppliers) {
         btnSuppliers.style.display = perms.includes("manage_products") ? "flex" : "none";
