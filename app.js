@@ -2930,8 +2930,13 @@ function applyStaffPermissions() {
     const btnStaff = document.getElementById("btnTabStaff");
     const btnPos = document.getElementById("adminPosNavBtn");
     
+    const btnTaxonomy = document.getElementById("btnTabTaxonomy");
+    
     if (btnProducts) {
         btnProducts.style.display = perms.includes("manage_products") ? "flex" : "none";
+    }
+    if (btnTaxonomy) {
+        btnTaxonomy.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
     if (btnOrders) {
         btnOrders.style.display = perms.includes("manage_orders") ? "flex" : "none";
