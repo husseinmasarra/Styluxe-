@@ -97,9 +97,9 @@ async function loadProductsFromServer() {
 }
 
 function updateCategoriesDatalist() {
-    const datalist = document.getElementById("categoriesDatalist");
-    if (!datalist) return;
-    datalist.innerHTML = "";
+    const select = document.getElementById("newProdCategory");
+    if (!select) return;
+    select.innerHTML = '<option value="" disabled selected>Select Category</option>';
     
     const deptSelect = document.getElementById("newProdDept");
     const activeDept = deptSelect ? deptSelect.value : "";
@@ -112,7 +112,8 @@ function updateCategoriesDatalist() {
     filteredCats.forEach(cat => {
         const opt = document.createElement("option");
         opt.value = cat.name;
-        datalist.appendChild(opt);
+        opt.textContent = cat.name.toUpperCase();
+        select.appendChild(opt);
     });
 }
 
