@@ -460,11 +460,14 @@ function getFilteredAndSortedProducts() {
 
     // Search Query Filter
     if (searchQuery.trim() !== "") {
+        const query = searchQuery.trim().toLowerCase();
         result = result.filter(p => 
-            p.name.toLowerCase().includes(searchQuery) || 
-            p.category.toLowerCase().includes(searchQuery) ||
-            p.department.toLowerCase().includes(searchQuery) ||
-            p.description.toLowerCase().includes(searchQuery)
+            p.name.toLowerCase().includes(query) || 
+            p.category.toLowerCase().includes(query) ||
+            p.department.toLowerCase().includes(query) ||
+            p.description.toLowerCase().includes(query) ||
+            p.id.toString() === query ||
+            (`#${p.id}`) === query
         );
     }
 
@@ -1243,6 +1246,7 @@ function renderAdminProducts() {
             .join(" | ");
 
         tr.innerHTML = `
+            <td><strong>#${p.id}</strong></td>
             <td><img src="${p.image}" alt="${p.name}"></td>
             <td><strong>${p.name}</strong></td>
             <td>${p.department.toUpperCase()} / ${p.category.toUpperCase()}</td>
@@ -2192,12 +2196,13 @@ function renderAdminTaxonomy() {
         CATEGORIES.forEach(cat => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td><strong>#${cat.id}</strong></td>
                 <td style="width: 50px;">
                     <img src="${cat.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200'}" alt="${cat.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
                 </td>
                 <td><strong>${cat.name.toUpperCase()}</strong></td>
                 <td style="text-align: center;">
-                    <button class="delete-btn" onclick="deleteCategory('${cat.name}')" aria-label="Delete category">
+                    <button class="delete-btn" onclick="deleteCategory(${cat.id})" aria-label="Delete category">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -2272,10 +2277,12 @@ async function handleAddCategory(event) {
     .catch(err => console.error("Error adding category:", err));
 }
 
-function deleteCategory(name) {
-    if (!confirm(`ARE YOU SURE YOU WANT TO DELETE THE CATEGORY "${name.toUpperCase()}"?`)) return;
+function deleteCategory(id) {
+    const cat = CATEGORIES.find(c => c.id === id);
+    if (!cat) return;
+    if (!confirm(`ARE YOU SURE YOU WANT TO DELETE THE CATEGORY "${cat.name.toUpperCase()}"?`)) return;
 
-    fetch(`/api/categories?name=${encodeURIComponent(name)}`, {
+    fetch(`/api/categories?id=${id}`, {
         method: 'DELETE'
     })
     .then(async res => {
