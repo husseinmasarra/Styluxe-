@@ -250,7 +250,12 @@ function ensureProductInventory(product) {
   return product;
 }
 
-const initialCategories = ["Hoodies", "Jackets", "Jeans", "Footwear"];
+const initialCategories = [
+  { name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200" },
+  { name: "Jackets", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200" },
+  { name: "Jeans", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200" },
+  { name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200" }
+];
 
 const initialBrands = [
   { name: "Styluxe", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=200" },
@@ -345,8 +350,10 @@ async function initPgDatabase() {
     // Create categories table
     await pool.query(`CREATE TABLE IF NOT EXISTS categories (
       id SERIAL PRIMARY KEY,
-      name VARCHAR(255) UNIQUE NOT NULL
+      name VARCHAR(255) UNIQUE NOT NULL,
+      img TEXT
     )`);
+    await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS img TEXT`);
 
     // Create brands table
     await pool.query(`CREATE TABLE IF NOT EXISTS brands (
@@ -398,7 +405,7 @@ async function initPgDatabase() {
     if (parseInt(catCount.rows[0].count) === 0) {
       console.log("Seeding categories into PostgreSQL database...");
       for (const c of initialCategories) {
-        await pool.query("INSERT INTO categories (name) VALUES ($1)", [c]);
+        await pool.query("INSERT INTO categories (name, img) VALUES ($1, $2)", [c.name, c.img]);
       }
     }
 
@@ -471,7 +478,7 @@ async function loadDatabaseIntoMemory() {
         permissions: JSON.parse(s.permissions || '[]')
       }));
 
-      dbMemory.categories = categoriesRes.rows.map(c => c.name);
+      dbMemory.categories = categoriesRes.rows.map(c => ({ name: c.name, img: c.img || '' }));
       dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
 
       console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands.`);
@@ -495,7 +502,9 @@ async function loadDatabaseIntoMemory() {
     
     // Migrations
     if (!dbMemory.staff) dbMemory.staff = initialStaff;
-    if (!dbMemory.categories) dbMemory.categories = initialCategories;
+    if (!dbMemory.categories || dbMemory.categories.length === 0 || typeof dbMemory.categories[0] === 'string') {
+        dbMemory.categories = initialCategories;
+    }
     if (!dbMemory.brands) dbMemory.brands = initialBrands;
     dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
   } catch (err) {
@@ -560,9 +569,9 @@ function writeDb(data) {
 
           // Sync categories
           await client.query('DELETE FROM categories');
-          const catStmt = 'INSERT INTO categories (name) VALUES ($1)';
+          const catStmt = 'INSERT INTO categories (name, img) VALUES ($1, $2)';
           for (const c of (data.categories || [])) {
-            await client.query(catStmt, [c]);
+            await client.query(catStmt, [c.name, c.img || '']);
           }
 
           // Sync brands
@@ -884,14 +893,14 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/categories') {
-        const { name } = body;
-        if (!name) {
-          sendJsonResponse(res, { error: "Missing category name" }, 400);
+        const { name, img } = body;
+        if (!name || !img) {
+          sendJsonResponse(res, { error: "Missing category name or image" }, 400);
           return;
         }
         if (!db.categories) db.categories = [];
-        if (!db.categories.includes(name)) {
-          db.categories.push(name);
+        if (!db.categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+          db.categories.push({ name, img });
           writeDb(db);
         }
         sendJsonResponse(res, db.categories);
