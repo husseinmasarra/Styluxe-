@@ -494,6 +494,14 @@ function getFilteredAndSortedProducts() {
         result.sort((a, b) => a.price - b.price);
     } else if (sortVal === "price-high") {
         result.sort((a, b) => b.price - a.price);
+    } else {
+        // Default / Featured: Sort by priority (ascending) and fallback to newest products (descending ID)
+        result.sort((a, b) => {
+            const pa = a.priority !== undefined ? a.priority : 1000;
+            const pb = b.priority !== undefined ? b.priority : 1000;
+            if (pa !== pb) return pa - pb;
+            return b.id - a.id;
+        });
     }
 
     return result;
@@ -1269,7 +1277,10 @@ function renderAdminProducts() {
         tr.innerHTML = `
             <td><strong>#${p.id}</strong></td>
             <td><img src="${p.image}" alt="${p.name}"></td>
-            <td><strong>${p.name}</strong></td>
+            <td>
+                <strong>${p.name}</strong>
+                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem;">Priority: ${p.priority !== undefined ? p.priority : 1000}</div>
+            </td>
             <td>${p.department.toUpperCase()} / ${p.category.toUpperCase()}</td>
             <td>${formatPrice(p.price)}</td>
             <td>
@@ -1304,6 +1315,7 @@ async function handleNewProductSubmit(event) {
     const category = document.getElementById("newProdCategory").value;
     const price = parseFloat(document.getElementById("newProdPrice").value);
     const costPrice = parseFloat(document.getElementById("newProdCostPrice").value) || 0;
+    const priority = parseInt(document.getElementById("newProdPriority").value) || 1000;
     const sizes = document.getElementById("newProdSizes").value;
     const colors = document.getElementById("newProdColors").value;
     const inventory = document.getElementById("newProdInventory").value;
@@ -1334,6 +1346,7 @@ async function handleNewProductSubmit(event) {
         department: department,
         price: price,
         costPrice: costPrice,
+        priority: priority,
         image: img,
         description: desc,
         sizes: sizes,
@@ -2223,6 +2236,7 @@ function renderAdminCategories() {
                     <div><strong>${cat.name.toUpperCase()}</strong></div>
                     <div style="font-size: 1.1rem; color: var(--color-text-muted);">${cat.department ? cat.department.toUpperCase() : 'MEN'}</div>
                 </td>
+                <td><strong>${cat.priority !== undefined ? cat.priority : 1000}</strong></td>
                 <td style="text-align: center;">
                     <button class="delete-btn" onclick="deleteCategory(${cat.id})" aria-label="Delete category">
                         <i class="fa-solid fa-trash"></i>
@@ -2267,9 +2281,11 @@ async function handleAddCategory(event) {
     event.preventDefault();
     const input = document.getElementById("newCategoryInput");
     const deptSelect = document.getElementById("newCategoryDept");
+    const priorityInput = document.getElementById("newCategoryPriority");
     const fileInput = document.getElementById("newCategoryImgFileInput");
     const name = input.value.trim();
     const department = deptSelect.value;
+    const priority = priorityInput ? parseInt(priorityInput.value) || 1000 : 1000;
     if (!name || !department) return;
 
     let img = "";
@@ -2288,13 +2304,14 @@ async function handleAddCategory(event) {
     fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, img: img, department: department })
+        body: JSON.stringify({ name: name, img: img, department: department, priority: priority })
     })
     .then(async res => {
         if (res.ok) {
             CATEGORIES = await res.json();
             input.value = "";
             deptSelect.value = "";
+            if (priorityInput) priorityInput.value = "1";
             fileInput.value = "";
             const previewDiv = document.getElementById("newCategoryImgPreview");
             if (previewDiv) previewDiv.style.display = "none";
@@ -3204,10 +3221,18 @@ function renderCategoryTags() {
 
     let deptCategories = [];
     if (CATEGORIES && CATEGORIES.length > 0) {
+        // Sort CATEGORIES copy by priority ASC, id ASC
+        const sortedCats = [...CATEGORIES].sort((a, b) => {
+            const pa = a.priority !== undefined ? a.priority : 1000;
+            const pb = b.priority !== undefined ? b.priority : 1000;
+            if (pa !== pb) return pa - pb;
+            return a.id - b.id;
+        });
+
         if (activeDepartment === "All") {
-            deptCategories = CATEGORIES.map(c => c.name);
+            deptCategories = sortedCats.map(c => c.name);
         } else {
-            deptCategories = CATEGORIES
+            deptCategories = sortedCats
                 .filter(c => c.department && c.department.toLowerCase() === activeDepartment.toLowerCase())
                 .map(c => c.name);
         }
