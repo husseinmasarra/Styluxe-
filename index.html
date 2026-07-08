@@ -944,6 +944,7 @@
                                  <option value="Women">Women</option>
                                  <option value="Kids">Kids</option>
                              </select>
+                             <input type="number" id="newCategoryPriority" required value="1" min="1" placeholder="Sorting Priority (e.g. 1, 2, 3) *" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%;">
                              <label for="newCategoryImgFileInput" style="font-size: 1.1rem; color: var(--color-text-muted);">Category Image *</label>
                              <input type="file" id="newCategoryImgFileInput" accept="image/*" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
                              <div id="newCategoryImgPreview" style="display: none; margin-top: 1rem;">
@@ -959,6 +960,7 @@
                                         <th>ID</th>
                                         <th>IMAGE</th>
                                         <th>CATEGORY NAME</th>
+                                        <th>PRIORITY</th>
                                         <th style="width: 80px; text-align: center;">ACTIONS</th>
                                     </tr>
                                 </thead>
@@ -1072,10 +1074,16 @@
              <h2 class="checkout-title">ADD NEW PRODUCT</h2>
              <form id="addProductForm" onsubmit="handleNewProductSubmit(event)">
                  <div class="form-grid" style="grid-template-columns: 1fr;">
-                     <div class="form-group">
-                         <label for="newProdName">Product Name *</label>
-                         <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE">
-                     </div>
+                       <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 1.5rem;">
+                          <div class="form-group">
+                              <label for="newProdName">Product Name *</label>
+                              <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE">
+                          </div>
+                          <div class="form-group">
+                              <label for="newProdPriority">Priority *</label>
+                              <input type="number" id="newProdPriority" required value="1" min="1" placeholder="e.g. 1" style="height: 50px;">
+                          </div>
+                      </div>
                      <div class="form-grid" style="grid-template-columns: 1fr 1fr 1.5fr; gap: 1.5rem;">
                           <div class="form-group">
                               <label for="newProdDept">Department *</label>
