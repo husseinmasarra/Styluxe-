@@ -254,15 +254,15 @@ function ensureProductInventory(product) {
 }
 
 const initialCategories = [
-  { id: 1, name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200", department: "Men" },
-  { id: 2, name: "Jackets", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200", department: "Men" },
-  { id: 3, name: "Jeans", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200", department: "Men" },
-  { id: 4, name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200", department: "Men" },
-  { id: 5, name: "Dresses", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200", department: "Women" },
-  { id: 6, name: "Tops", img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=200", department: "Women" },
-  { id: 7, name: "Activewear", img: "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=200", department: "Women" },
-  { id: 8, name: "T-Shirts", img: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=200", department: "Kids" },
-  { id: 9, name: "Pants", img: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=200", department: "Kids" }
+  { id: 1, name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200", department: "Men", priority: 1 },
+  { id: 2, name: "Jackets", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200", department: "Men", priority: 2 },
+  { id: 3, name: "Jeans", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200", department: "Men", priority: 3 },
+  { id: 4, name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=200", department: "Men", priority: 4 },
+  { id: 5, name: "Dresses", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200", department: "Women", priority: 1 },
+  { id: 6, name: "Tops", img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=200", department: "Women", priority: 2 },
+  { id: 7, name: "Activewear", img: "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=200", department: "Women", priority: 3 },
+  { id: 8, name: "T-Shirts", img: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=200", department: "Kids", priority: 1 },
+  { id: 9, name: "Pants", img: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=200", department: "Kids", priority: 2 }
 ];
 
 const initialBrands = [
@@ -331,8 +331,10 @@ async function initPgDatabase() {
       sizes TEXT,
       colors TEXT,
       inventory TEXT,
-      badge VARCHAR(50)
+      badge VARCHAR(50),
+      priority INTEGER NOT NULL DEFAULT 1000
     )`);
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 1000`);
 
     // Create orders table
     await pool.query(`CREATE TABLE IF NOT EXISTS orders (
@@ -360,10 +362,12 @@ async function initPgDatabase() {
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       img TEXT,
-      department VARCHAR(50) NOT NULL DEFAULT 'Men'
+      department VARCHAR(50) NOT NULL DEFAULT 'Men',
+      priority INTEGER NOT NULL DEFAULT 1000
     )`);
     await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS img TEXT`);
     await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS department VARCHAR(50) NOT NULL DEFAULT 'Men'`);
+    await pool.query(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 1000`);
     try {
       await pool.query(`ALTER TABLE categories DROP CONSTRAINT IF EXISTS categories_name_key`);
     } catch (e) {}
@@ -466,10 +470,10 @@ async function loadDatabaseIntoMemory() {
     try {
       console.log("Loading database from PostgreSQL into RAM cache...");
       const usersRes = await pool.query('SELECT * FROM users ORDER BY id ASC');
-      const productsRes = await pool.query('SELECT * FROM products ORDER BY id ASC');
+      const productsRes = await pool.query('SELECT * FROM products ORDER BY priority ASC, id ASC');
       const ordersRes = await pool.query('SELECT * FROM orders ORDER BY id ASC');
       const staffRes = await pool.query('SELECT * FROM staff ORDER BY id ASC');
-      const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY id ASC');
+      const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY priority ASC, id ASC');
       const brandsRes = await pool.query('SELECT * FROM brands ORDER BY id ASC');
       const suppliersRes = await pool.query('SELECT * FROM suppliers ORDER BY id ASC');
       const invoicesRes = await pool.query('SELECT * FROM invoices ORDER BY id ASC');
@@ -496,7 +500,8 @@ async function loadDatabaseIntoMemory() {
         colors: JSON.parse(p.colors || '[]'),
         inventory: JSON.parse(p.inventory || '{}'),
         badge: p.badge,
-        costPrice: p.cost_price ? parseFloat(p.cost_price) : 0
+        costPrice: p.cost_price ? parseFloat(p.cost_price) : 0,
+        priority: p.priority !== undefined ? p.priority : 1000
       }));
 
       dbMemory.orders = ordersRes.rows.map(o => ({
@@ -518,7 +523,7 @@ async function loadDatabaseIntoMemory() {
         permissions: JSON.parse(s.permissions || '[]')
       }));
 
-      dbMemory.categories = categoriesRes.rows.map(c => ({ id: c.id, name: c.name, img: c.img || '', department: c.department || 'Men' }));
+      dbMemory.categories = categoriesRes.rows.map(c => ({ id: c.id, name: c.name, img: c.img || '', department: c.department || 'Men', priority: c.priority !== undefined ? c.priority : 1000 }));
       dbMemory.brands = brandsRes.rows.map(b => ({ name: b.name, img: b.img }));
       
       dbMemory.suppliers = suppliersRes.rows.map(s => ({
@@ -611,11 +616,11 @@ function writeDb(data) {
 
           // Sync products
           await client.query('DELETE FROM products');
-          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
+          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
           for (const p of data.products) {
             await client.query(prodStmt, [
               p.id, p.name, p.price, p.category, p.department, p.image, p.description || '',
-              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || '', p.costPrice || 0
+              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || '', p.costPrice || 0, p.priority !== undefined ? p.priority : 1000
             ]);
           }
 
@@ -635,9 +640,9 @@ function writeDb(data) {
 
           // Sync categories
           await client.query('DELETE FROM categories');
-          const catStmt = 'INSERT INTO categories (id, name, img) VALUES ($1, $2, $3)';
+          const catStmt = 'INSERT INTO categories (id, name, img, department, priority) VALUES ($1, $2, $3, $4, $5)';
           for (const c of (data.categories || [])) {
-            await client.query(catStmt, [c.id, c.name, c.img || '']);
+            await client.query(catStmt, [c.id, c.name, c.img || '', c.department || 'Men', c.priority !== undefined ? c.priority : 1000]);
           }
 
           // Sync brands
@@ -981,7 +986,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/categories') {
-        const { name, img, department } = body;
+        const { name, img, department, priority } = body;
         if (!name || !img || !department) {
           sendJsonResponse(res, { error: "Missing category name, image or department" }, 400);
           return;
@@ -992,7 +997,8 @@ const server = http.createServer(async (req, res) => {
             id: db.categories.length > 0 ? Math.max(...db.categories.map(c => c.id)) + 1 : 1,
             name,
             img,
-            department
+            department,
+            priority: priority !== undefined ? parseInt(priority) : 1000
           });
           writeDb(db);
         }
@@ -1060,7 +1066,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/products') {
-        const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice } = body;
+        const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority } = body;
 
         if (!name || !price || !category || !department || !image) {
           sendJsonResponse(res, { error: "Missing required fields" }, 400);
@@ -1108,7 +1114,8 @@ const server = http.createServer(async (req, res) => {
           colors: colorArray,
           inventory: inventoryObj,
           badge: badge || '',
-          costPrice: costPrice !== undefined ? parseFloat(costPrice) : parseFloat((price * 0.6).toFixed(2))
+          costPrice: costPrice !== undefined ? parseFloat(costPrice) : parseFloat((price * 0.6).toFixed(2)),
+          priority: priority !== undefined ? parseInt(priority) : 1000
         };
 
         db.products.push(newProduct);
