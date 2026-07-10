@@ -4303,13 +4303,38 @@ body[data-theme="light"] .size-chart-table th {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
-        width: 100% !important;
+        width: 80mm !important; /* Standard thermal receipt paper size */
         height: auto !important;
         margin: 0 !important;
-        padding: 20px !important;
+        padding: 10px !important;
         border: none !important;
         box-shadow: none !important;
         background-color: #ffffff !important;
         color: #000000 !important;
+    }
+
+    /* Specific Porodo Lifestyle Super HD Thermal Printer Sticker roll format (50mm width) */
+    #posLabelPaper.print-section-active {
+        width: 50mm !important;
+        max-width: 50mm !important;
+        padding: 4mm !important;
+        font-size: 10pt !important;
+        line-height: 1.4 !important;
+        border: 2px dashed #000000 !important;
+    }
+    #posLabelPaper.print-section-active h2 {
+        font-size: 1.8rem !important;
+    }
+    #posLabelPaper.print-section-active span {
+        font-size: 1.15rem !important;
+    }
+
+    /* Handle sequential printing of receipt and sticker label with a page-break */
+    .print-both-mode #posReceiptPaper {
+        page-break-after: always !important;
+    }
+    .print-both-mode #posLabelPaper {
+        position: relative !important;
+        margin-top: 20px !important;
     }
 }
