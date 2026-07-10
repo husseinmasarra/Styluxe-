@@ -712,6 +712,9 @@
                     <button class="admin-nav-btn" id="adminPosNavBtn" onclick="switchAdminTab('pos')">
                         <i class="fa-solid fa-cash-register"></i> POS TERMINAL
                     </button>
+                    <button class="admin-nav-btn" onclick="viewStorefrontAsAdmin()" style="color: var(--color-accent); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 2rem;">
+                        <i class="fa-solid fa-store"></i> VIEW STOREFRONT
+                    </button>
                 </nav>
                 <div class="admin-sidebar-footer">
                     <button class="admin-logout-btn" onclick="logoutAdmin()">
@@ -1409,6 +1412,11 @@
              </form>
          </div>
     </div>
+
+    <!-- Floating Admin Control Panel Quick-Return Button -->
+    <button id="floatingAdminDashboardBtn" onclick="openAdminLoginModal()" style="display: none; position: fixed; bottom: 3rem; right: 3rem; z-index: 9999; background: linear-gradient(135deg, var(--color-accent), #b8912e); color: #000; font-weight: 700; border: none; padding: 1.2rem 2.2rem; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); align-items: center; gap: 0.8rem; font-size: 1.15rem; letter-spacing: 0.05em; transition: all 0.25s ease; text-transform: uppercase;">
+        <i class="fa-solid fa-lock"></i> CONTROL PANEL
+    </button>
 
     <!-- Floating WhatsApp Contact Pill -->
     <a href="https://wa.me/96171987654" target="_blank" class="floating-whatsapp-btn" id="floatingWhatsappBtn">
