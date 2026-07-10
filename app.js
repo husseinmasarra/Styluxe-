@@ -1024,6 +1024,10 @@ const posReceiptModalBackdrop = document.getElementById("posReceiptModalBackdrop
 
 // Admin Modals Handlers
 function openAdminLoginModal() {
+    if (currentAdminStaff) {
+        initAdminDashboard();
+        return;
+    }
     adminPasswordInput.value = "";
     loginError.style.display = "none";
     adminLoginModalBackdrop.classList.add("active");
@@ -1115,6 +1119,10 @@ async function initAdminDashboard() {
         adminDeptTitle.textContent = `${currentAdminDept} ADMIN`;
     }
 
+    // Hide quick-return floating button when dashboard is open
+    const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+    if (floatingBtn) floatingBtn.style.display = "none";
+
     // Toggle overlay
     adminPanelOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -1129,10 +1137,22 @@ function logoutAdmin() {
     adminPanelOverlay.classList.remove("active");
     document.body.style.overflow = "";
     currentAdminDept = "";
+    currentAdminStaff = null;
+    
+    // Hide quick-return floating button on logout
+    const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+    if (floatingBtn) floatingBtn.style.display = "none";
 }
 
 function exitPosMode() {
     switchAdminTab("overview");
+}
+
+function viewStorefrontAsAdmin() {
+    adminPanelOverlay.classList.remove("active");
+    document.body.style.overflow = "";
+    const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+    if (floatingBtn) floatingBtn.style.display = "flex";
 }
 
 // Switch tabs inside admin panel
@@ -1887,6 +1907,8 @@ function handleCustomerLogin(event) {
             
             if (cart.length > 0) {
                 openCheckoutModal();
+            } else {
+                openMyOrdersModal();
             }
         } else {
             errorMsg.textContent = result.error || "INVALID EMAIL OR PASSWORD.";
@@ -2018,6 +2040,8 @@ function selectMockGoogleAccount(name, email) {
         
         if (cart.length > 0) {
             openCheckoutModal();
+        } else {
+            openMyOrdersModal();
         }
     }, 1200);
 }
@@ -2062,6 +2086,8 @@ function triggerAppleBiometrics() {
                 
                 if (cart.length > 0) {
                     openCheckoutModal();
+                } else {
+                    openMyOrdersModal();
                 }
             }, 1000);
         }, 1200);
@@ -3798,6 +3824,8 @@ function handleGoogleOfficialCredentialResponse(response) {
             
             if (cart.length > 0) {
                 openCheckoutModal();
+            } else {
+                openMyOrdersModal();
             }
         } else {
             alert("Google Sign-In verification failed: " + result.error);
