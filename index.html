@@ -1252,9 +1252,10 @@
              </div>
              
              <!-- Print Controls Buttons -->
-             <div style="display: flex; gap: 1.5rem; justify-content: flex-end;">
-                 <button class="checkout-btn" style="background-color: var(--color-accent); color: #000000; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; cursor: pointer;" onclick="printPosReceiptOnly()"><i class="fa-solid fa-print"></i> PRINT INVOICE</button>
-                 <button class="checkout-btn" style="background-color: #2ecc71; color: #ffffff; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; cursor: pointer;" onclick="printPosLabelOnly()"><i class="fa-solid fa-box-open"></i> PRINT STICKER LABEL</button>
+             <div style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+                 <button class="checkout-btn" style="background-color: var(--color-accent); color: #000000; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printPosReceiptOnly()"><i class="fa-solid fa-print"></i> PRINT INVOICE</button>
+                 <button class="checkout-btn" style="background-color: #2ecc71; color: #ffffff; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printPosLabelOnly()"><i class="fa-solid fa-box-open"></i> PRINT STICKER LABEL</button>
+                 <button class="checkout-btn" style="background-color: #3498db; color: #ffffff; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printBothReceiptAndLabel()"><i class="fa-solid fa-paste"></i> PRINT BOTH / طباعة الاثنين</button>
                  <button class="checkout-btn" style="background-color: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); font-weight: 700; cursor: pointer;" onclick="closePosReceipt()">CLOSE</button>
              </div>
          </div>
