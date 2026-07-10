@@ -4293,24 +4293,81 @@ body[data-theme="light"] .size-chart-table th {
 
 /* Print Overrides for thermal printers and stickers */
 @media print {
-    body * {
-        visibility: hidden !important;
+    /* Hide everything in the body except the active print backdrop */
+    body > *:not(#posReceiptModalBackdrop):not(#posDailyReportModalBackdrop) {
+        display: none !important;
     }
-    .print-section-active, .print-section-active * {
-        visibility: visible !important;
+    
+    /* Reset body background & overflow for print */
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    .print-section-active {
+
+    /* Target modal backdrop to fill page and be completely transparent */
+    #posReceiptModalBackdrop, #posDailyReportModalBackdrop {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
-        width: 80mm !important; /* Standard thermal receipt paper size */
+        width: 100% !important;
         height: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
         margin: 0 !important;
-        padding: 10px !important;
+        display: block !important;
+    }
+
+    /* Target checkout modal inner card to clear styling */
+    .checkout-modal {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Hide the side-by-side grid template and make it vertical flow */
+    .pos-print-container {
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Hide controls buttons container */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Hide all papers by default */
+    .print-paper {
+        display: none !important;
+    }
+
+    /* Show only active print papers */
+    .print-section-active {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
         background-color: #ffffff !important;
         color: #000000 !important;
+    }
+
+    /* Standard thermal receipt paper layout (80mm width) */
+    #posReceiptPaper.print-section-active,
+    #posDailyReportPaper.print-section-active {
+        width: 80mm !important;
+        padding: 10px !important;
     }
 
     /* Specific Porodo Lifestyle Super HD Thermal Printer Sticker roll format (50mm width) */
@@ -4331,10 +4388,20 @@ body[data-theme="light"] .size-chart-table th {
 
     /* Handle sequential printing of receipt and sticker label with a page-break */
     .print-both-mode #posReceiptPaper {
+        display: block !important;
+        position: relative !important;
+        width: 80mm !important;
+        margin: 0 0 20px 0 !important;
         page-break-after: always !important;
     }
+    
     .print-both-mode #posLabelPaper {
+        display: block !important;
         position: relative !important;
-        margin-top: 20px !important;
+        width: 50mm !important;
+        max-width: 50mm !important;
+        margin: 20px 0 0 0 !important;
+        border: 2px dashed #000000 !important;
+        page-break-before: always !important;
     }
 }
