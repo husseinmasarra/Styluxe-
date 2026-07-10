@@ -1,4 +1,4 @@
 {
-  "DATABASE_URL": "postgresql://styluxedb_user:gYf1vHFy3jIRIEJ2j36qznUaY5BnuJDv@dpg-d98l7mbtqb8s73fqb280-a.oregon-postgres.render.com/styluxedb",
+  "DATABASE_URL": "postgresql://neondb_owner:npg_Xqimc3tT9hNK@ep-proud-violet-atsewaqr.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require",
   "GOOGLE_CLIENT_ID": "794464256299-cnp2rg2em8o9qbl7mkmk6i072fvnn2qu.apps.googleusercontent.com"
 }
