@@ -1009,57 +1009,72 @@
 
                 <!-- Tab: POS -->
                 <div class="admin-tab-content" id="adminTabPos">
-                    <h2 class="admin-tab-title">POINT OF SALE (POS)</h2>
                     <div class="pos-workspace">
+                         <!-- LEFT: Product Catalog -->
                          <div class="pos-catalog">
+                             <div class="pos-catalog-top">
+                                 <h2 class="pos-title"><i class="fa-solid fa-cash-register"></i> POS TERMINAL</h2>
+                                 <div class="pos-dept-tabs">
+                                     <button class="pos-dept-tab active" onclick="filterPosByDept('All', this)">ALL</button>
+                                     <button class="pos-dept-tab" onclick="filterPosByDept('Men', this)">MEN</button>
+                                     <button class="pos-dept-tab" onclick="filterPosByDept('Women', this)">WOMEN</button>
+                                     <button class="pos-dept-tab" onclick="filterPosByDept('Kids', this)">KIDS</button>
+                                 </div>
+                             </div>
                              <div class="pos-catalog-header">
-                                 <input type="text" id="posSearchInput" placeholder="SEARCH PRODUCTS..." oninput="filterPosCatalog()">
+                                 <div class="pos-search-wrap">
+                                     <i class="fa-solid fa-magnifying-glass"></i>
+                                     <input type="text" id="posSearchInput" placeholder="Search by name or ID..." oninput="filterPosCatalog()">
+                                 </div>
                                  <select id="posCategorySelect" onchange="filterPosCatalog()" aria-label="Filter POS catalog">
                                      <option value="All">ALL CATEGORIES</option>
-                                     <option value="Hoodies">HOODIES</option>
-                                     <option value="Jackets">JACKETS</option>
-                                     <option value="Jeans">JEANS</option>
-                                     <option value="Footwear">FOOTWEAR</option>
                                  </select>
                              </div>
                              <div class="pos-products-grid" id="posProductsGrid">
                                  <!-- Dynamically populated -->
                              </div>
                          </div>
+
+                         <!-- RIGHT: Checkout Panel -->
                          <div class="pos-checkout">
-                             <h3>CHECKOUT TICKET</h3>
+                             <div class="pos-checkout-header">
+                                 <h3><i class="fa-solid fa-receipt"></i> CHECKOUT TICKET</h3>
+                                 <span class="pos-item-count" id="posItemCount">0 ITEMS</span>
+                             </div>
                              <div class="pos-ticket-items" id="posTicketItems">
                                  <!-- Ticket items -->
                              </div>
-                             <div class="pos-customer-info">
-                                 <div class="form-group">
-                                     <label for="posCustomerName">Customer Name</label>
-                                     <input type="text" id="posCustomerName" placeholder="WALK-IN CUSTOMER">
+                             <div class="pos-checkout-footer">
+                                 <div class="pos-customer-info">
+                                     <div class="form-group">
+                                         <label for="posCustomerName"><i class="fa-solid fa-user"></i> Customer</label>
+                                         <input type="text" id="posCustomerName" placeholder="WALK-IN CUSTOMER">
+                                     </div>
+                                     <div class="form-group">
+                                         <label for="posCustomerPhone"><i class="fa-solid fa-phone"></i> Phone</label>
+                                         <input type="text" id="posCustomerPhone" placeholder="+961 70 123 456">
+                                     </div>
                                  </div>
-                                 <div class="form-group">
-                                     <label for="posCustomerPhone">Customer Phone</label>
-                                     <input type="text" id="posCustomerPhone" placeholder="+961 70 123 456">
+                                 <div class="pos-discount">
+                                     <label for="posDiscountInput"><i class="fa-solid fa-tags"></i> Discount (%)</label>
+                                     <input type="number" id="posDiscountInput" min="0" max="100" value="0" oninput="updatePosTotals()">
                                  </div>
+                                 <div class="pos-totals">
+                                     <div class="pos-total-row">
+                                         <span>SUBTOTAL</span>
+                                         <span id="posSubtotal">$0.00</span>
+                                     </div>
+                                     <div class="pos-total-row discount-row">
+                                         <span>DISCOUNT</span>
+                                         <span id="posDiscountAmount">-$0.00</span>
+                                     </div>
+                                     <div class="pos-total-row final-row">
+                                         <span>TOTAL</span>
+                                         <span id="posTotal">$0.00</span>
+                                     </div>
+                                 </div>
+                                 <button class="pos-pay-btn" onclick="processPosSale()"><i class="fa-solid fa-check-circle"></i> COMPLETE SALE</button>
                              </div>
-                             <div class="pos-discount">
-                                 <label for="posDiscountInput">Discount (%)</label>
-                                 <input type="number" id="posDiscountInput" min="0" max="100" value="0" oninput="updatePosTotals()">
-                             </div>
-                             <div class="pos-totals">
-                                 <div class="pos-total-row">
-                                     <span>SUBTOTAL</span>
-                                     <span id="posSubtotal">$0.00</span>
-                                 </div>
-                                 <div class="pos-total-row">
-                                     <span>DISCOUNT</span>
-                                     <span id="posDiscountAmount">$0.00</span>
-                                 </div>
-                                 <div class="pos-total-row final-row">
-                                     <span>TOTAL</span>
-                                     <span id="posTotal">$0.00</span>
-                                 </div>
-                             </div>
-                             <button class="pos-pay-btn" onclick="processPosSale()">COMPLETE SALE</button>
                          </div>
                     </div>
                 </div>
