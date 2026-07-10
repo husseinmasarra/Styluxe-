@@ -1063,7 +1063,6 @@ async function handleAdminLogin(event) {
         } else if (pass === "admin123") {
             currentAdminDept = "Global";
             currentAdminStaff = { name: "Global Admin", email: "", role: "Administrator", permissions: ["manage_products", "manage_orders", "pos_access", "manage_staff"] };
-        }
         } else {
             loginError.textContent = "INCORRECT ACCESS CODE.";
             loginError.style.display = "block";
