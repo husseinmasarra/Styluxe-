@@ -3629,6 +3629,12 @@ function applyStaffPermissions() {
         const hasDashboardAccess = perms.includes("manage_products") || perms.includes("manage_orders");
         posExitBtn.style.display = hasDashboardAccess ? "flex" : "none";
     }
+
+    // Toggle Reset Sales button (Only visible to Global Admin / General Manager)
+    const resetBtn = document.getElementById("adminResetSalesBtn");
+    if (resetBtn) {
+        resetBtn.style.display = (currentAdminDept === "Global") ? "flex" : "none";
+    }
 }
 
 // Load staff list from server API
@@ -3978,5 +3984,27 @@ function handleGoogleOfficialCredentialResponse(response) {
         console.error("Google Sign-In verification failed:", err);
         alert("Failed to connect to server to verify Google token.");
     });
+}
+
+async function resetAllStoreSales() {
+    const confirmation = confirm("هل أنت متأكد من تصفير كافة الحسابات والطلبيات نهائياً؟ لا يمكن التراجع عن هذا الإجراء!");
+    if (!confirmation) return;
+
+    try {
+        const response = await fetch('/api/orders/reset', {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert("تم تصفير كافة الحسابات والطلبيات بنجاح!");
+            // Reload dashboard metrics and database
+            await initAdminDashboard();
+        } else {
+            alert("فشل تصفير الحسابات. يرجى المحاولة لاحقاً.");
+        }
+    } catch (err) {
+        console.error("Failed to reset sales:", err);
+        alert("فشل الاتصال بالسيرفر لتصفير الحسابات.");
+    }
 }
 
