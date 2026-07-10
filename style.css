@@ -1915,7 +1915,14 @@ img {
     }
     
     .search-box input {
-        display: none; /* simple search for extra small viewports */
+        display: none;
+    }
+    
+    .search-box.active input {
+        display: block !important;
+        width: 120px !important;
+        opacity: 1 !important;
+        margin-right: 0.8rem !important;
     }
 }
 
