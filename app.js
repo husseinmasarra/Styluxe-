@@ -1057,9 +1057,13 @@ async function handleAdminLogin(event) {
         } else if (pass === "kids123") {
             currentAdminDept = "Kids";
             currentAdminStaff = { name: "Kids Manager", email: "", role: "Manager", permissions: ["manage_products", "manage_orders"] };
-        } else if (pass === "pos123" || pass === "admin123") {
+        } else if (pass === "pos123") {
+            currentAdminDept = "Global";
+            currentAdminStaff = { name: "POS Operator", email: "", role: "Cashier", permissions: ["pos_access"] };
+        } else if (pass === "admin123") {
             currentAdminDept = "Global";
             currentAdminStaff = { name: "Global Admin", email: "", role: "Administrator", permissions: ["manage_products", "manage_orders", "pos_access", "manage_staff"] };
+        }
         } else {
             loginError.textContent = "INCORRECT ACCESS CODE.";
             loginError.style.display = "block";
@@ -1127,8 +1131,14 @@ async function initAdminDashboard() {
     adminPanelOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
-    // Switch to overview tab
-    switchAdminTab("overview");
+    // Switch to overview tab, or straight to POS if user is cashier only (pos_access only)
+    const perms = currentAdminStaff ? currentAdminStaff.permissions || [] : [];
+    const isCashierOnly = perms.includes("pos_access") && !perms.includes("manage_products") && !perms.includes("manage_orders");
+    if (isCashierOnly) {
+        switchAdminTab("pos");
+    } else {
+        switchAdminTab("overview");
+    }
 }
 
 function logoutAdmin() {
