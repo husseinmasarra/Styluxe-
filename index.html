@@ -1013,7 +1013,11 @@
                          <!-- LEFT: Product Catalog -->
                          <div class="pos-catalog">
                              <div class="pos-catalog-top">
-                                 <h2 class="pos-title"><i class="fa-solid fa-cash-register"></i> POS TERMINAL</h2>
+                                 <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                     <h2 class="pos-title"><i class="fa-solid fa-cash-register"></i> POS TERMINAL</h2>
+                                     <button class="pos-exit-btn" id="posExitBtn" onclick="exitPosMode()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-arrow-left-long"></i> DASHBOARD</button>
+                                     <button class="pos-exit-btn" onclick="logoutAdmin()" style="background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+                                 </div>
                                  <div class="pos-dept-tabs">
                                      <button class="pos-dept-tab active" onclick="filterPosByDept('All', this)">ALL</button>
                                      <button class="pos-dept-tab" onclick="filterPosByDept('Men', this)">MEN</button>
