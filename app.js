@@ -1124,14 +1124,30 @@ async function initAdminDashboard() {
 }
 
 function logoutAdmin() {
+    const container = document.querySelector(".admin-panel-container");
+    if (container) container.classList.remove("pos-mode");
     adminPanelOverlay.classList.remove("active");
     document.body.style.overflow = "";
     currentAdminDept = "";
 }
 
+function exitPosMode() {
+    switchAdminTab("overview");
+}
+
 // Switch tabs inside admin panel
 function switchAdminTab(tab) {
     adminActiveTab = tab;
+
+    // Toggle pos-mode class on container for full screen POS terminal
+    const container = document.querySelector(".admin-panel-container");
+    if (container) {
+        if (tab === "pos") {
+            container.classList.add("pos-mode");
+        } else {
+            container.classList.remove("pos-mode");
+        }
+    }
 
     // Toggle active classes on sidebar navigation buttons
     const navButtons = document.querySelectorAll(".admin-nav-btn");
@@ -2276,12 +2292,16 @@ function renderAdminCategories() {
     const catBody = document.getElementById("adminCategoriesTableBody");
     if (!catBody) return;
 
+    const filtered = currentAdminDept === "Global" 
+        ? CATEGORIES 
+        : CATEGORIES.filter(c => c.department && c.department.toLowerCase() === currentAdminDept.toLowerCase());
+
     // Render Categories Table
     catBody.innerHTML = "";
-    if (CATEGORIES.length === 0) {
-        catBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
+    if (filtered.length === 0) {
+        catBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
     } else {
-        CATEGORIES.forEach(cat => {
+        filtered.forEach(cat => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><strong>#${cat.id}</strong></td>
@@ -3392,7 +3412,7 @@ function applyStaffPermissions() {
         btnBrands.style.display = perms.includes("manage_products") ? "flex" : "none";
     }
     if (btnSuppliers) {
-        btnSuppliers.style.display = perms.includes("manage_products") ? "flex" : "none";
+        btnSuppliers.style.display = (currentAdminDept === "Global") ? "flex" : "none";
     }
     if (btnOrders) {
         btnOrders.style.display = perms.includes("manage_orders") ? "flex" : "none";
@@ -3405,6 +3425,40 @@ function applyStaffPermissions() {
     }
     if (btnPos) {
         btnPos.style.display = perms.includes("pos_access") ? "flex" : "none";
+    }
+
+    // Lock department selections for department managers
+    const newCategoryDept = document.getElementById("newCategoryDept");
+    const newProdDept = document.getElementById("newProdDept");
+
+    if (currentAdminDept !== "Global" && currentAdminDept !== "") {
+        // Lock Add Category Department Select to manager's department
+        if (newCategoryDept) {
+            newCategoryDept.value = currentAdminDept;
+            newCategoryDept.disabled = true;
+        }
+        // Lock Add Product Department Select to manager's department
+        if (newProdDept) {
+            newProdDept.value = currentAdminDept;
+            newProdDept.disabled = true;
+            // Update product categories select
+            updateCategoriesDatalist();
+        }
+    } else {
+        // Unlock for Global Admin
+        if (newCategoryDept) {
+            newCategoryDept.disabled = false;
+        }
+        if (newProdDept) {
+            newProdDept.disabled = false;
+        }
+    }
+
+    // Toggle Exit POS button based on dashboard access
+    const posExitBtn = document.getElementById("posExitBtn");
+    if (posExitBtn) {
+        const hasDashboardAccess = perms.includes("manage_products") || perms.includes("manage_orders");
+        posExitBtn.style.display = hasDashboardAccess ? "flex" : "none";
     }
 }
 
