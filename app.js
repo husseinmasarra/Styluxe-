@@ -1840,6 +1840,94 @@ function closePosReceipt() {
     posReceiptModalBackdrop.classList.remove("active");
 }
 
+async function openDailyReportModal() {
+    await loadOrdersFromServer();
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("dailyReportDate").textContent = today;
+    
+    const cashierName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+    document.getElementById("dailyReportUser").textContent = cashierName;
+
+    // Filter today's POS orders
+    const todayOrders = ordersList.filter(o => o.date === today && o.status.includes("POS"));
+    const totalOrders = todayOrders.length;
+    const grossSales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+
+    document.getElementById("dailyReportTotalOrders").textContent = totalOrders;
+    document.getElementById("dailyReportGrossSales").textContent = formatPrice(grossSales);
+    document.getElementById("dailyReportNetSales").textContent = formatPrice(grossSales);
+
+    // Group sales by department
+    let deptMen = 0, deptWomen = 0, deptKids = 0;
+    todayOrders.forEach(o => {
+        o.items.forEach(item => {
+            const prod = PRODUCTS.find(p => p.id === item.id);
+            const dept = prod ? prod.department : "Men";
+            const itemVal = item.price * item.quantity;
+            if (dept === "Men") deptMen += itemVal;
+            else if (dept === "Women") deptWomen += itemVal;
+            else if (dept === "Kids") deptKids += itemVal;
+        });
+    });
+
+    document.getElementById("dailyReportDeptMen").textContent = formatPrice(deptMen);
+    document.getElementById("dailyReportDeptWomen").textContent = formatPrice(deptWomen);
+    document.getElementById("dailyReportDeptKids").textContent = formatPrice(deptKids);
+
+    // Group sold items for inventory count
+    const itemsSold = {};
+    todayOrders.forEach(o => {
+        o.items.forEach(item => {
+            const key = `${item.id}-${item.size}`;
+            if (!itemsSold[key]) {
+                itemsSold[key] = {
+                    name: item.name,
+                    size: item.size,
+                    quantity: 0
+                };
+            }
+            itemsSold[key].quantity += item.quantity;
+        });
+    });
+
+    const listContainer = document.getElementById("dailyReportItemsSoldList");
+    listContainer.innerHTML = "";
+
+    const itemsArray = Object.values(itemsSold);
+    if (itemsArray.length === 0) {
+        listContainer.innerHTML = `<div style="text-align: center; color: #555; padding: 1rem 0;">NO ITEMS SOLD TODAY</div>`;
+    } else {
+        itemsArray.forEach(item => {
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.innerHTML = `
+                <span>${item.name} [${item.size}]</span>
+                <strong>x${item.quantity}</strong>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    // Reset print classes
+    const reportPaper = document.getElementById("posDailyReportPaper");
+    if (reportPaper) reportPaper.classList.remove("print-section-active");
+
+    // Show modal
+    document.getElementById("posDailyReportModalBackdrop").classList.add("active");
+}
+
+function printDailyReportOnly() {
+    const reportPaper = document.getElementById("posDailyReportPaper");
+    if (reportPaper) reportPaper.classList.add("print-section-active");
+    window.print();
+}
+
+function closeDailyReportModal() {
+    document.getElementById("posDailyReportModalBackdrop").classList.remove("active");
+}
+
 // ==========================================================================
 // CUSTOMER AUTHENTICATION & ORDER ARCHIVE LOGIC
 // ==========================================================================
