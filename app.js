@@ -1734,20 +1734,24 @@ function processPosSale() {
 
     const customer = posCustomerName.value.trim() || "WALK-IN CUSTOMER";
     const phone = posCustomerPhone.value.trim() || "N/A";
+    const addressInput = document.getElementById("posCustomerAddress");
+    const address = addressInput ? addressInput.value.trim() || "STORE PICKUP / WALK-IN" : "STORE PICKUP / WALK-IN";
+    
     const discountPercent = parseFloat(posDiscountInput.value) || 0;
     
     const subtotal = posCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = (subtotal * discountPercent) / 100;
     const total = subtotal - discount;
     const randomId = Math.floor(10000 + Math.random() * 90000);
+    const orderId = `POS-${randomId}`;
 
-    // Register sale inside SQLite Database
+    // Register sale inside Database
     const posOrderData = {
-        id: `POS-${randomId}`,
+        id: orderId,
         customerName: customer,
         customerEmail: "pos@styluxe.com",
         customerPhone: phone,
-        customerAddress: "IN-STORE SALE",
+        customerAddress: address,
         date: new Date().toISOString().split('T')[0],
         items: [...posCart],
         total: total,
@@ -1773,6 +1777,10 @@ function processPosSale() {
     document.getElementById("receiptDate").textContent = new Date().toISOString().split('T')[0] + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     document.getElementById("receiptCustomer").textContent = customer;
     
+    const cashierName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+    const cashierEl = document.getElementById("receiptCashier");
+    if (cashierEl) cashierEl.textContent = cashierName;
+    
     const receiptItemsContainer = document.getElementById("receiptItems");
     receiptItemsContainer.innerHTML = "";
 
@@ -1791,12 +1799,41 @@ function processPosSale() {
     document.getElementById("receiptDiscount").textContent = `-${formatPrice(discount)}`;
     document.getElementById("receiptTotal").textContent = formatPrice(total);
 
+    // Populate Shipping Label Sticker Modal HTML
+    document.getElementById("labelCustomerName").textContent = customer;
+    document.getElementById("labelCustomerPhone").textContent = phone;
+    document.getElementById("labelCustomerAddress").textContent = address;
+    document.getElementById("labelDate").textContent = new Date().toISOString().split('T')[0];
+    document.getElementById("labelOrderId").textContent = orderId;
+
+    // Reset customer info fields
+    posCustomerName.value = "";
+    posCustomerPhone.value = "";
+    if (addressInput) addressInput.value = "";
+    posDiscountInput.value = "0";
+
     // Clear POS cart
     posCart = [];
     renderPosTicketItems();
 
-    // Show thermal receipt modal
+    // Reset any print active styles
+    document.getElementById("posReceiptPaper").classList.remove("print-section-active");
+    document.getElementById("posLabelPaper").classList.remove("print-section-active");
+
+    // Show thermal receipt & label modal
     posReceiptModalBackdrop.classList.add("active");
+}
+
+function printPosReceiptOnly() {
+    document.getElementById("posReceiptPaper").classList.add("print-section-active");
+    document.getElementById("posLabelPaper").classList.remove("print-section-active");
+    window.print();
+}
+
+function printPosLabelOnly() {
+    document.getElementById("posLabelPaper").classList.add("print-section-active");
+    document.getElementById("posReceiptPaper").classList.remove("print-section-active");
+    window.print();
 }
 
 function closePosReceipt() {
