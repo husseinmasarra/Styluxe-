@@ -446,7 +446,7 @@ async function initPgDatabase() {
     if (parseInt(catCount.rows[0].count) === 0) {
       console.log("Seeding categories into PostgreSQL database...");
       for (const c of initialCategories) {
-        await pool.query("INSERT INTO categories (id, name, img, department) VALUES ($1, $2, $3, $4)", [c.id, c.name, c.img, c.department]);
+        await pool.query("INSERT INTO categories (id, name, img, department, priority) VALUES ($1, $2, $3, $4, $5)", [c.id, c.name, c.img, c.department, c.priority || 1000]);
       }
     }
 
