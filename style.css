@@ -4290,3 +4290,26 @@ body[data-theme="light"] .size-chart-table th {
     box-shadow: 0 6px 20px rgba(199, 163, 105, 0.5) !important;
     background: linear-gradient(135deg, #b8912e, var(--color-accent)) !important;
 }
+
+/* Print Overrides for thermal printers and stickers */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    .print-section-active, .print-section-active * {
+        visibility: visible !important;
+    }
+    .print-section-active {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        border: none !important;
+        box-shadow: none !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+}
