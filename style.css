@@ -1775,6 +1775,22 @@ img {
 }
 
 @media screen and (max-width: 768px) {
+    .brand-logo {
+        font-size: 1.8rem !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        position: absolute !important;
+    }
+    
+    .nav-utilities {
+        gap: 1.2rem !important;
+    }
+
+    #navUserGreeting {
+        display: none !important;
+    }
+
     .hero-section {
         height: 50vh !important;
         padding: 0 5% !important;
