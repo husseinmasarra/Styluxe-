@@ -727,7 +727,10 @@
             <main class="admin-main-content">
                 <!-- Tab: Overview -->
                 <div class="admin-tab-content active" id="adminTabOverview">
-                    <h2 class="admin-tab-title">DASHBOARD OVERVIEW</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem;">
+                        <h2 class="admin-tab-title" style="margin: 0;">DASHBOARD OVERVIEW</h2>
+                        <button id="adminResetSalesBtn" class="delete-btn" style="background-color: var(--color-error); color: #ffffff; padding: 0.8rem 1.6rem; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; display: none; align-items: center; gap: 0.6rem;" onclick="resetAllStoreSales()"><i class="fa-solid fa-trash-can"></i> RESET ALL SALES / تصفير الحسابات</button>
+                    </div>
                     <div class="admin-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                          <div class="stat-card">
                              <h3>GLOBAL SALES</h3>
