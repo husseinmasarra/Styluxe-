@@ -1461,6 +1461,8 @@ function renderAdminOrders() {
 }
 
 // 4. POS Terminal Render
+let posDeptFilter = "All";
+
 function renderAdminPos() {
     // Reset inputs
     posCustomerName.value = "";
@@ -1480,8 +1482,12 @@ function updatePosCategorySelect() {
     // Save current selected value
     const currentVal = select.value;
     
-    // Get unique categories from products list
-    const uniqueCats = ["All", ...new Set(PRODUCTS.map(p => p.category))];
+    // Get unique categories from products list, filtered by POS dept
+    let prods = PRODUCTS;
+    if (posDeptFilter !== "All") {
+        prods = prods.filter(p => p.department.toLowerCase() === posDeptFilter.toLowerCase());
+    }
+    const uniqueCats = ["All", ...new Set(prods.map(p => p.category))];
     
     select.innerHTML = "";
     uniqueCats.forEach(cat => {
@@ -1499,6 +1505,15 @@ function updatePosCategorySelect() {
     }
 }
 
+function filterPosByDept(dept, btn) {
+    posDeptFilter = dept;
+    // Update active tab styling
+    document.querySelectorAll(".pos-dept-tab").forEach(b => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    updatePosCategorySelect();
+    filterPosCatalog();
+}
+
 function filterPosCatalog() {
     const query = document.getElementById("posSearchInput").value.toLowerCase();
     const cat = document.getElementById("posCategorySelect").value;
@@ -1506,11 +1521,22 @@ function filterPosCatalog() {
     posProductsGrid.innerHTML = "";
 
     let filtered = PRODUCTS;
+
+    // Department filter
+    if (posDeptFilter !== "All") {
+        filtered = filtered.filter(p => p.department.toLowerCase() === posDeptFilter.toLowerCase());
+    }
+
     if (cat !== "All") {
         filtered = filtered.filter(p => p.category === cat);
     }
     if (query !== "") {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || p.department.toLowerCase().includes(query));
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || p.department.toLowerCase().includes(query) || p.id.toString() === query || ('#' + p.id) === query);
+    }
+
+    if (filtered.length === 0) {
+        posProductsGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--color-text-muted); font-size: 1.2rem;"><i class="fa-solid fa-box-open" style="font-size: 2.5rem; display: block; margin-bottom: 1rem;"></i>NO PRODUCTS FOUND</div>`;
+        return;
     }
 
     filtered.forEach(p => {
@@ -1587,10 +1613,17 @@ function addProdToPos(productId, size) {
 function renderPosTicketItems() {
     posTicketItems.innerHTML = "";
 
+    // Update item count badge
+    const totalQty = posCart.reduce((sum, item) => sum + item.quantity, 0);
+    const countEl = document.getElementById("posItemCount");
+    if (countEl) countEl.textContent = `${totalQty} ITEM${totalQty !== 1 ? 'S' : ''}`;
+
     if (posCart.length === 0) {
         posTicketItems.innerHTML = `
             <div style="text-align: center; color: var(--color-text-muted); padding: 4rem 0; font-size: 1.2rem;">
-                TICKET IS EMPTY. ADD PRODUCTS.
+                <i class="fa-solid fa-cart-shopping" style="font-size: 2.5rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                TICKET IS EMPTY
+                <div style="font-size: 1rem; margin-top: 0.5rem; opacity: 0.6;">Tap a product to add it</div>
             </div>
         `;
         updatePosTotals();
