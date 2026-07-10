@@ -1356,6 +1356,12 @@ const server = http.createServer(async (req, res) => {
         }
         return;
       }
+      if (pathname === '/api/orders/reset') {
+        db.orders = [];
+        writeDb(db);
+        sendJsonResponse(res, { success: true });
+        return;
+      }
       if (pathname === '/api/orders') {
         const id = parsedUrl.query.id;
         if (!id) {
