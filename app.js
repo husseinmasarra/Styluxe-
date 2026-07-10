@@ -1825,18 +1825,28 @@ function processPosSale() {
 }
 
 function printPosReceiptOnly() {
+    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
     document.getElementById("posReceiptPaper").classList.add("print-section-active");
     document.getElementById("posLabelPaper").classList.remove("print-section-active");
     window.print();
 }
 
 function printPosLabelOnly() {
+    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
     document.getElementById("posLabelPaper").classList.add("print-section-active");
     document.getElementById("posReceiptPaper").classList.remove("print-section-active");
     window.print();
 }
 
+function printBothReceiptAndLabel() {
+    document.getElementById("posReceiptModalBackdrop").classList.add("print-both-mode");
+    document.getElementById("posReceiptPaper").classList.add("print-section-active");
+    document.getElementById("posLabelPaper").classList.add("print-section-active");
+    window.print();
+}
+
 function closePosReceipt() {
+    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
     posReceiptModalBackdrop.classList.remove("active");
 }
 
