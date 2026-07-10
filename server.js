@@ -1006,6 +1006,89 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/categories/reorder') {
+        const { id, action } = body;
+        if (!id || !action) {
+          sendJsonResponse(res, { error: "Missing id or action" }, 400);
+          return;
+        }
+        if (!db.categories) db.categories = [];
+        const targetCat = db.categories.find(c => c.id === parseInt(id));
+        if (!targetCat) {
+          sendJsonResponse(res, { error: "Category not found" }, 404);
+          return;
+        }
+
+        const dept = targetCat.department || 'Men';
+        const deptCats = db.categories.filter(c => (c.department || 'Men') === dept);
+        deptCats.sort((a, b) => {
+          const pa = a.priority !== undefined ? a.priority : 1000;
+          const pb = b.priority !== undefined ? b.priority : 1000;
+          if (pa !== pb) return pa - pb;
+          return a.id - b.id;
+        });
+
+        deptCats.forEach((c, idx) => {
+          c.priority = (idx + 1) * 10;
+        });
+
+        const idx = deptCats.findIndex(c => c.id === targetCat.id);
+        if (action === 'up' && idx > 0) {
+          const temp = deptCats[idx].priority;
+          deptCats[idx].priority = deptCats[idx - 1].priority;
+          deptCats[idx - 1].priority = temp;
+        } else if (action === 'down' && idx < deptCats.length - 1) {
+          const temp = deptCats[idx].priority;
+          deptCats[idx].priority = deptCats[idx + 1].priority;
+          deptCats[idx + 1].priority = temp;
+        }
+
+        writeDb(db);
+        sendJsonResponse(res, db.categories);
+        return;
+      }
+
+      if (pathname === '/api/products/reorder') {
+        const { id, action } = body;
+        if (!id || !action) {
+          sendJsonResponse(res, { error: "Missing id or action" }, 400);
+          return;
+        }
+        const targetProd = db.products.find(p => p.id === parseInt(id));
+        if (!targetProd) {
+          sendJsonResponse(res, { error: "Product not found" }, 404);
+          return;
+        }
+
+        const dept = targetProd.department || 'Men';
+        const deptProds = db.products.filter(p => (p.department || 'Men') === dept);
+        deptProds.sort((a, b) => {
+          const pa = a.priority !== undefined ? a.priority : 1000;
+          const pb = b.priority !== undefined ? b.priority : 1000;
+          if (pa !== pb) return pa - pb;
+          return a.id - b.id;
+        });
+
+        deptProds.forEach((p, idx) => {
+          p.priority = (idx + 1) * 10;
+        });
+
+        const idx = deptProds.findIndex(p => p.id === targetProd.id);
+        if (action === 'up' && idx > 0) {
+          const temp = deptProds[idx].priority;
+          deptProds[idx].priority = deptProds[idx - 1].priority;
+          deptProds[idx - 1].priority = temp;
+        } else if (action === 'down' && idx < deptProds.length - 1) {
+          const temp = deptProds[idx].priority;
+          deptProds[idx].priority = deptProds[idx + 1].priority;
+          deptProds[idx + 1].priority = temp;
+        }
+
+        writeDb(db);
+        sendJsonResponse(res, { success: true });
+        return;
+      }
+
       if (pathname === '/api/brands') {
         const { name, img } = body;
         if (!name || !img) {
