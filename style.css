@@ -4284,3 +4284,9 @@ body[data-theme="light"] .size-chart-table th {
     padding: 2rem !important;
     gap: 2rem !important;
 }
+
+#floatingAdminDashboardBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(199, 163, 105, 0.5) !important;
+    background: linear-gradient(135deg, #b8912e, var(--color-accent)) !important;
+}
