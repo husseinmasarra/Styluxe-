@@ -1279,7 +1279,11 @@ function renderAdminProducts() {
             <td><img src="${p.image}" alt="${p.name}"></td>
             <td>
                 <strong>${p.name}</strong>
-                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem;">Priority: ${p.priority !== undefined ? p.priority : 1000}</div>
+                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>Priority: ${p.priority !== undefined ? p.priority : 1000}</span>
+                    <button class="priority-btn" onclick="reorderProduct(${p.id}, 'up')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Up"><i class="fa-solid fa-chevron-up"></i></button>
+                    <button class="priority-btn" onclick="reorderProduct(${p.id}, 'down')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Down"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
             </td>
             <td>${p.department.toUpperCase()} / ${p.category.toUpperCase()}</td>
             <td>${formatPrice(p.price)}</td>
@@ -1374,6 +1378,25 @@ async function handleNewProductSubmit(event) {
         }
     })
     .catch(err => console.error("Error creating product:", err));
+}
+
+async function reorderProduct(id, action) {
+    try {
+        const res = await fetch('/api/products/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, action })
+        });
+        if (res.ok) {
+            await loadProductsFromServer();
+            renderAdminProducts();
+            renderProducts();
+        } else {
+            alert("FAILED TO REORDER PRODUCT.");
+        }
+    } catch (err) {
+        console.error("Error reordering product:", err);
+    }
 }
 
 function deleteProduct(productId) {
@@ -2236,7 +2259,13 @@ function renderAdminCategories() {
                     <div><strong>${cat.name.toUpperCase()}</strong></div>
                     <div style="font-size: 1.1rem; color: var(--color-text-muted);">${cat.department ? cat.department.toUpperCase() : 'MEN'}</div>
                 </td>
-                <td><strong>${cat.priority !== undefined ? cat.priority : 1000}</strong></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <strong>${cat.priority !== undefined ? cat.priority : 1000}</strong>
+                        <button class="priority-btn" onclick="reorderCategory(${cat.id}, 'up')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Up"><i class="fa-solid fa-chevron-up"></i></button>
+                        <button class="priority-btn" onclick="reorderCategory(${cat.id}, 'down')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Down"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                </td>
                 <td style="text-align: center;">
                     <button class="delete-btn" onclick="deleteCategory(${cat.id})" aria-label="Delete category">
                         <i class="fa-solid fa-trash"></i>
@@ -2323,6 +2352,26 @@ async function handleAddCategory(event) {
         }
     })
     .catch(err => console.error("Error adding category:", err));
+}
+
+async function reorderCategory(id, action) {
+    try {
+        const res = await fetch('/api/categories/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, action })
+        });
+        if (res.ok) {
+            CATEGORIES = await res.json();
+            renderAdminCategories();
+            renderCategoryTags();
+            updateCategoriesDatalist();
+        } else {
+            alert("FAILED TO REORDER CATEGORY.");
+        }
+    } catch (err) {
+        console.error("Error reordering category:", err);
+    }
 }
 
 function deleteCategory(id) {
