@@ -1894,6 +1894,15 @@ function handleCustomerLogin(event) {
     .then(async res => {
         const result = await res.json();
         if (res.ok) {
+            if (result.isStaff) {
+                currentAdminDept = "Global";
+                currentAdminStaff = result;
+                closeAuthModal();
+                event.target.reset();
+                initAdminDashboard();
+                return;
+            }
+
             currentUser = result;
             localStorage.setItem("styluxe_user", JSON.stringify(currentUser));
             updateUserSessionUI();
