@@ -4266,7 +4266,21 @@ body[data-theme="light"] .size-chart-table th {
     margin-top: 1.5rem;
 }
 
+/* 11.9 POS Mode Full-Screen Styling Overrides */
+.admin-panel-container.pos-mode .admin-sidebar {
+    display: none !important;
+}
 
+.admin-panel-container.pos-mode .admin-main-content {
+    padding: 0 !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
+}
 
-
-
+.admin-panel-container.pos-mode .pos-workspace {
+    height: 100vh !important;
+    padding: 2rem !important;
+    gap: 2rem !important;
+}
