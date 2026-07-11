@@ -295,17 +295,37 @@ function setupEventListeners() {
     closeDrawerBtn.addEventListener("click", toggleMobileDrawer);
     drawerBackdrop.addEventListener("click", toggleMobileDrawer);
 
+    // Utility to get the primary image from a product (supports comma-separated multiple images)
+    window.getProductMainImage = function(product) {
+        if (product && product.image) {
+            if (product.image.includes(",")) {
+                return product.image.split(",")[0].trim();
+            }
+            return product.image;
+        }
+        return "";
+    };
+
     // Live Image Upload Previews for Admin Panel
     const prodImgFile = document.getElementById("newProdImgFile");
     if (prodImgFile) {
         prodImgFile.addEventListener("change", function() {
-            const file = this.files[0];
-            if (file) {
-                getFileBase64(file).then(base64 => {
-                    const previewDiv = document.getElementById("newProdImgPreview");
-                    const previewImg = previewDiv.querySelector("img");
-                    previewImg.src = base64;
-                    previewDiv.style.display = "block";
+            const previewDiv = document.getElementById("newProdImgPreviews");
+            if (!previewDiv) return;
+            previewDiv.innerHTML = "";
+            
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    getFileBase64(file).then(base64 => {
+                        const img = document.createElement("img");
+                        img.src = base64;
+                        img.alt = "Preview";
+                        img.style.maxHeight = "100px";
+                        img.style.borderRadius = "4px";
+                        img.style.border = "1px solid var(--color-border)";
+                        img.style.objectFit = "contain";
+                        previewDiv.appendChild(img);
+                    });
                 });
             }
         });
@@ -545,7 +565,7 @@ function renderProducts() {
         productCard.innerHTML = `
             ${badgeHTML}
             <div class="product-img-wrapper" onclick="openProductModal(${p.id})">
-                <img src="${p.image}" alt="${p.name}" loading="lazy">
+                <img src="${getProductMainImage(p)}" alt="${p.name}" loading="lazy">
                 <div class="product-quick-view">
                     <button class="quick-view-btn">QUICK VIEW</button>
                 </div>
@@ -569,7 +589,7 @@ function openProductModal(productId) {
     activeModalProduct = product;
     selectedSize = ""; // Reset size choice
 
-    modalProductImg.src = product.image;
+    modalProductImg.src = getProductMainImage(product);
     modalProductImg.alt = product.name;
     modalProductCategory.textContent = `${product.department} / ${product.category}`;
     modalProductName.textContent = product.name;
@@ -733,7 +753,7 @@ function addToCart(productId, size, quantity = 1) {
             id: product.id,
             name: product.name,
             price: product.price,
-            image: product.image,
+            image: getProductMainImage(product),
             size: size,
             quantity: quantity
         });
@@ -1436,7 +1456,7 @@ function renderAdminProducts() {
 
         tr.innerHTML = `
             <td><strong>#${p.id}</strong></td>
-            <td><img src="${p.image}" alt="${p.name}"></td>
+            <td><img src="${getProductMainImage(p)}" alt="${p.name}"></td>
             <td>
                 <strong>${p.name}</strong>
                 <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -1488,15 +1508,17 @@ async function handleNewProductSubmit(event) {
     const fileInput = document.getElementById("newProdImgFile");
     let img = "";
 
-    if (fileInput.files && fileInput.files[0]) {
+    if (fileInput.files && fileInput.files.length > 0) {
         try {
-            img = await getFileBase64(fileInput.files[0]);
+            const base64Promises = Array.from(fileInput.files).map(file => getFileBase64(file));
+            const base64Array = await Promise.all(base64Promises);
+            img = base64Array.join(",");
         } catch (e) {
-            alert("Error reading product image file.");
+            alert("Error reading product image files.");
             return;
         }
     } else {
-        alert("PLEASE SELECT A PRODUCT IMAGE FILE.");
+        alert("PLEASE SELECT AT LEAST ONE PRODUCT IMAGE FILE.");
         return;
     }
 
@@ -1704,7 +1726,7 @@ function filterPosCatalog() {
         card.classList.add("pos-prod-card");
         card.setAttribute("id", `pos-prod-${p.id}`);
         card.innerHTML = `
-            <img src="${p.image}" alt="${p.name}">
+            <img src="${getProductMainImage(p)}" alt="${p.name}">
             <h4>${p.name}</h4>
             <span>${formatPrice(p.price)}</span>
         `;
@@ -3074,6 +3096,10 @@ const GALLERY_MOCKS = {
 
 // Returns an array of gallery images for the specified product
 function getProductGalleryImages(product) {
+    if (!product || !product.image) return [];
+    if (product.image.includes(",")) {
+        return product.image.split(",").map(url => url.trim()).filter(Boolean);
+    }
     if (GALLERY_MOCKS[product.id]) {
         return GALLERY_MOCKS[product.id];
     }
