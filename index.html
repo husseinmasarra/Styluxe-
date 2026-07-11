@@ -489,6 +489,39 @@
         </div>
     </div>
 
+    <!-- Terms of Service Modal -->
+    <div class="modal-backdrop" id="termsModalBackdrop" style="z-index: 1005;">
+        <div class="product-modal" style="max-width: 700px; padding: 4rem; max-height: 80vh; overflow-y: auto; text-align: left;">
+            <button class="modal-close" onclick="closeTermsModal()" aria-label="Close modal" style="top: 2rem; right: 2rem;"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="font-family: var(--font-heading); font-size: 2.2rem; letter-spacing: 0.1em; border-bottom: 1px solid var(--color-border); padding-bottom: 2rem; margin-bottom: 3rem; text-align: center; color: var(--color-text);">TERMS OF SERVICE / الشروط والأحكام</h2>
+            
+            <div style="font-size: 1.3rem; line-height: 1.8; color: var(--color-text-muted); display: flex; flex-direction: column; gap: 2.5rem; text-align: justify; direction: ltr;">
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. INTRODUCTION / مقدمة</h3>
+                    <p>Welcome to STYLUXE. By accessing and using our website, you agree to comply with and be bound by the following terms and conditions. Please read them carefully.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. INTELLECTUAL PROPERTY / الملكية الفكرية</h3>
+                    <p>All content included on this site, such as text, world-class designs, graphics, logos, images, and brand signatures, is the exclusive property of STYLUXE and protected by copyright laws.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. ORDERS & PRICING / الطلبيات والأسعار</h3>
+                    <p>All orders are subject to availability and acceptance. We reserve the right to refuse or cancel any order. Prices are displayed in USD (with support for local currency exchange rates) and exclude delivery fees unless eligible for free shipping.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">4. SHIPPING & DELIVERY / الشحن والتوصيل</h3>
+                    <p>Delivery is carried out by our trusted logistics partners. Standard shipping rates apply based on manager settings. Customers are responsible for providing accurate delivery details.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">5. PRIVACY POLICY / سياسة الخصوصية</h3>
+                    <p>Your privacy is important to us. We securely store and process user profiles, emails, and address books to fulfill orders and provide biometric authentication support.</p>
+                </div>
+            </div>
+            
+            <button onclick="closeTermsModal()" style="background-color: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); font-weight: 700; width: 100%; padding: 1.5rem 0; margin-top: 4rem; cursor: pointer; border-radius: 4px; letter-spacing: 0.1em; transition: all 0.2s;">I ACCEPT / موافق</button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
@@ -516,8 +549,8 @@
             <div class="footer-col">
                 <h3>POLICIES</h3>
                 <ul>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="javascript:void(0)" onclick="openTermsModal()">Terms of Service</a></li>
+                    <li><a href="javascript:void(0)" onclick="openTermsModal()">Privacy Policy</a></li>
                     <li><a href="#">Refund Policy</a></li>
                     <li><a href="#" onclick="event.preventDefault(); openAdminLoginModal();" style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-lock"></i> ADMIN PORTAL</a></li>
                 </ul>
