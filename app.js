@@ -471,6 +471,34 @@ function setupEventListeners() {
             window.updateDefaultSizesAndInventoryGrid();
         });
     }
+
+    // SPA history back/forward control for admin tabs and overlay
+    window.addEventListener("popstate", (event) => {
+        if (event.state && event.state.admin) {
+            if (currentAdminStaff) {
+                adminPanelOverlay.classList.add("active");
+                document.body.style.overflow = "hidden";
+                const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+                if (floatingBtn) floatingBtn.style.display = "none";
+                if (event.state.tab) {
+                    switchAdminTab(event.state.tab, false);
+                }
+            } else {
+                adminPanelOverlay.classList.remove("active");
+                document.body.style.overflow = "";
+            }
+        } else {
+            const container = document.querySelector(".admin-panel-container");
+            if (container) container.classList.remove("pos-mode");
+            adminPanelOverlay.classList.remove("active");
+            document.body.style.overflow = "";
+            
+            const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+            if (floatingBtn) {
+                floatingBtn.style.display = currentAdminStaff ? "flex" : "none";
+            }
+        }
+    });
 }
 
 // FORMAT PRICE ACCORDING TO ACTIVE CURRENCY (Always USD)
@@ -1367,24 +1395,21 @@ async function initAdminDashboard() {
     // Switch to overview tab, or straight to POS if user is cashier only (pos_access only)
     const perms = currentAdminStaff ? currentAdminStaff.permissions || [] : [];
     const isCashierOnly = perms.includes("pos_access") && !perms.includes("manage_products") && !perms.includes("manage_orders");
-    if (isCashierOnly) {
-        switchAdminTab("pos");
-    } else {
-        switchAdminTab("overview");
-    }
+    const initialTab = isCashierOnly ? "pos" : "overview";
+    
+    // Push initial history state
+    history.pushState({ admin: true, tab: initialTab }, "Admin Dashboard", `?admin=true&tab=${initialTab}`);
+    switchAdminTab(initialTab, false);
 }
 
 function logoutAdmin() {
     const container = document.querySelector(".admin-panel-container");
     if (container) container.classList.remove("pos-mode");
-    adminPanelOverlay.classList.remove("active");
-    document.body.style.overflow = "";
     currentAdminDept = "";
     currentAdminStaff = null;
     
-    // Hide quick-return floating button on logout
-    const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
-    if (floatingBtn) floatingBtn.style.display = "none";
+    history.pushState(null, "Styluxe", "?");
+    window.dispatchEvent(new Event("popstate"));
 }
 
 function exitPosMode() {
@@ -1392,17 +1417,14 @@ function exitPosMode() {
 }
 
 function viewStorefrontAsAdmin() {
-    adminPanelOverlay.classList.remove("active");
-    document.body.style.overflow = "";
-    const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
-    if (floatingBtn) floatingBtn.style.display = "flex";
+    history.pushState(null, "Styluxe", "?");
+    window.dispatchEvent(new Event("popstate"));
 }
 
 // Switch tabs inside admin panel
-function switchAdminTab(tab) {
+function switchAdminTab(tab, pushState = true) {
     adminActiveTab = tab;
 
-    // Toggle pos-mode class on container for full screen POS terminal
     const container = document.querySelector(".admin-panel-container");
     if (container) {
         if (tab === "pos") {
@@ -1410,6 +1432,10 @@ function switchAdminTab(tab) {
         } else {
             container.classList.remove("pos-mode");
         }
+    }
+
+    if (pushState && currentAdminStaff) {
+        history.pushState({ admin: true, tab: tab }, "Admin Dashboard", `?admin=true&tab=${tab}`);
     }
 
     // Toggle active classes on sidebar navigation buttons
