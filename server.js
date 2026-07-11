@@ -281,7 +281,7 @@ const initialBrands = [
 ];
 
 // Global in-memory cache for ultra-fast, zero-latency synchronous reads
-let dbMemory = { products: [], users: [], orders: [], staff: [], categories: [], brands: [] };
+let dbMemory = { products: [], users: [], orders: [], staff: [], categories: [], brands: [], coupons: [], settings: {} };
 let pool = null;
 
 // Initialize PostgreSQL connection pool if configured in config.json
@@ -402,6 +402,56 @@ async function initPgDatabase() {
     // Migration: Add cost_price column to products table
     await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10, 2) DEFAULT 0`);
 
+    // Create coupons table
+    await pool.query(`CREATE TABLE IF NOT EXISTS coupons (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(50) UNIQUE NOT NULL,
+      discount_type VARCHAR(20) NOT NULL,
+      discount_value DOUBLE PRECISION NOT NULL,
+      active BOOLEAN DEFAULT TRUE
+    )`);
+
+    // Create settings table
+    await pool.query(`CREATE TABLE IF NOT EXISTS settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value TEXT NOT NULL
+    )`);
+
+    // Seed default settings if empty
+    const settingsCount = await pool.query("SELECT COUNT(*) FROM settings");
+    if (parseInt(settingsCount.rows[0].count) === 0) {
+      console.log("Seeding default settings into PostgreSQL database...");
+      const defaultSettings = [
+        { key: "shipping_fee", value: "5" },
+        { key: "free_shipping_threshold", value: "150" },
+        { key: "whatsapp_men", value: "+961 70 123 456" },
+        { key: "whatsapp_women", value: "+961 70 123 456" },
+        { key: "whatsapp_kids", value: "+961 70 123 456" },
+        { key: "whatsapp_global", value: "+961 01 123 456" },
+        { key: "instagram_men", value: "https://instagram.com/styluxe.men" },
+        { key: "facebook_men", value: "https://facebook.com/styluxe.men" },
+        { key: "twitter_men", value: "https://twitter.com/styluxe.men" },
+        { key: "tiktok_men", value: "https://tiktok.com/@styluxe.men" },
+        { key: "instagram_women", value: "https://instagram.com/styluxe.women" },
+        { key: "facebook_women", value: "https://facebook.com/styluxe.women" },
+        { key: "twitter_women", value: "https://twitter.com/styluxe.women" },
+        { key: "tiktok_women", value: "https://tiktok.com/@styluxe.women" },
+        { key: "instagram_kids", value: "https://instagram.com/styluxe.kids" },
+        { key: "facebook_kids", value: "https://facebook.com/styluxe.kids" },
+        { key: "twitter_kids", value: "https://twitter.com/styluxe.kids" },
+        { key: "tiktok_kids", value: "https://tiktok.com/@styluxe.kids" },
+        { key: "instagram_global", value: "https://instagram.com/styluxe" },
+        { key: "facebook_global", value: "https://facebook.com/styluxe" },
+        { key: "twitter_global", value: "https://twitter.com/styluxe" },
+        { key: "tiktok_global", value: "https://tiktok.com/@styluxe" },
+        { key: "show_twitter", value: "false" },
+        { key: "show_tiktok", value: "false" }
+      ];
+      for (const s of defaultSettings) {
+        await pool.query("INSERT INTO settings (key, value) VALUES ($1, $2)", [s.key, s.value]);
+      }
+    }
+
     // Seed defaults if tables are empty
     const prodCount = await pool.query("SELECT COUNT(*) FROM products");
     if (parseInt(prodCount.rows[0].count) === 0) {
@@ -477,6 +527,8 @@ async function loadDatabaseIntoMemory() {
       const brandsRes = await pool.query('SELECT * FROM brands ORDER BY id ASC');
       const suppliersRes = await pool.query('SELECT * FROM suppliers ORDER BY id ASC');
       const invoicesRes = await pool.query('SELECT * FROM invoices ORDER BY id ASC');
+      const couponsRes = await pool.query('SELECT * FROM coupons ORDER BY id ASC');
+      const settingsRes = await pool.query('SELECT * FROM settings');
 
       dbMemory.users = usersRes.rows.map(u => ({
         id: u.id,
@@ -544,7 +596,20 @@ async function loadDatabaseIntoMemory() {
         notes: inv.notes || ''
       }));
 
-      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands, ${dbMemory.suppliers.length} suppliers, ${dbMemory.invoices.length} invoices.`);
+      dbMemory.coupons = couponsRes.rows.map(c => ({
+        id: c.id,
+        code: c.code,
+        discountType: c.discount_type,
+        discountValue: c.discount_value,
+        active: c.active
+      }));
+
+      dbMemory.settings = {};
+      settingsRes.rows.forEach(row => {
+        dbMemory.settings[row.key] = row.value;
+      });
+
+      console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands, ${dbMemory.suppliers.length} suppliers, ${dbMemory.invoices.length} invoices, ${dbMemory.coupons.length} coupons.`);
       return;
     } catch (err) {
       console.error("Failed to load PostgreSQL data, falling back to local JSON:", err);
@@ -666,6 +731,22 @@ function writeDb(data) {
             await client.query(invoiceStmt, [inv.invoiceNumber, inv.supplier, inv.date, inv.total, inv.status, inv.notes]);
           }
 
+          // Sync coupons
+          await client.query('DELETE FROM coupons');
+          const couponStmt = 'INSERT INTO coupons (code, discount_type, discount_value, active) VALUES ($1, $2, $3, $4)';
+          for (const c of (data.coupons || [])) {
+            await client.query(couponStmt, [c.code, c.discountType, c.discountValue, c.active]);
+          }
+
+          // Sync settings
+          await client.query('DELETE FROM settings');
+          const settingsStmt = 'INSERT INTO settings (key, value) VALUES ($1, $2)';
+          if (data.settings) {
+            for (const [key, val] of Object.entries(data.settings)) {
+              await client.query(settingsStmt, [key, String(val)]);
+            }
+          }
+
           await client.query('COMMIT');
         } catch (err) {
           await client.query('ROLLBACK');
@@ -757,6 +838,33 @@ const server = http.createServer(async (req, res) => {
         sendJsonResponse(res, {
           GOOGLE_CLIENT_ID: currentConfig.GOOGLE_CLIENT_ID || ""
         });
+        return;
+      }
+      if (pathname === '/api/settings') {
+        sendJsonResponse(res, db.settings || {});
+        return;
+      }
+      if (pathname === '/api/coupons') {
+        sendJsonResponse(res, db.coupons || []);
+        return;
+      }
+      if (pathname === '/api/coupons/validate') {
+        const code = (parsedUrl.query.code || "").trim().toUpperCase();
+        if (!code) {
+          sendJsonResponse(res, { error: "Missing coupon code" }, 400);
+          return;
+        }
+        const coupon = (db.coupons || []).find(c => c.code.toUpperCase() === code && c.active);
+        if (coupon) {
+          sendJsonResponse(res, {
+            valid: true,
+            code: coupon.code,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue
+          });
+        } else {
+          sendJsonResponse(res, { valid: false, error: "Invalid or inactive coupon code" });
+        }
         return;
       }
       if (pathname === '/api/products') {
@@ -1148,6 +1256,46 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/settings') {
+        if (body && typeof body === 'object') {
+          if (!db.settings) db.settings = {};
+          for (const [k, v] of Object.entries(body)) {
+            db.settings[k] = String(v);
+          }
+          writeDb(db);
+          sendJsonResponse(res, { success: true, settings: db.settings });
+        } else {
+          sendJsonResponse(res, { error: "Invalid settings payload" }, 400);
+        }
+        return;
+      }
+
+      if (pathname === '/api/coupons') {
+        const { code, discountType, discountValue } = body;
+        if (!code || !discountType || discountValue === undefined) {
+          sendJsonResponse(res, { error: "Missing required coupon fields" }, 400);
+          return;
+        }
+        if (!db.coupons) db.coupons = [];
+        const exists = db.coupons.some(c => c.code.toUpperCase() === code.trim().toUpperCase());
+        if (exists) {
+          sendJsonResponse(res, { error: "Coupon code already exists" }, 400);
+          return;
+        }
+
+        const newCoupon = {
+          id: db.coupons.length > 0 ? Math.max(...db.coupons.map(c => c.id || 0)) + 1 : 1,
+          code: code.trim().toUpperCase(),
+          discountType,
+          discountValue: parseFloat(discountValue),
+          active: true
+        };
+        db.coupons.push(newCoupon);
+        writeDb(db);
+        sendJsonResponse(res, newCoupon);
+        return;
+      }
+
       if (pathname === '/api/products') {
         const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority } = body;
 
@@ -1353,6 +1501,23 @@ const server = http.createServer(async (req, res) => {
           sendJsonResponse(res, { success: true });
         } else {
           sendJsonResponse(res, { error: "Product not found" }, 404);
+        }
+        return;
+      }
+      if (pathname === '/api/coupons') {
+        const code = (parsedUrl.query.code || "").trim().toUpperCase();
+        if (!code) {
+          sendJsonResponse(res, { error: "Missing coupon code" }, 400);
+          return;
+        }
+        if (!db.coupons) db.coupons = [];
+        const index = db.coupons.findIndex(c => c.code.toUpperCase() === code);
+        if (index > -1) {
+          db.coupons.splice(index, 1);
+          writeDb(db);
+          sendJsonResponse(res, { success: true });
+        } else {
+          sendJsonResponse(res, { error: "Coupon not found" }, 404);
         }
         return;
       }
