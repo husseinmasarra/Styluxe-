@@ -800,6 +800,16 @@ img {
     flex-grow: 1;
 }
 
+.product-brand {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-heading);
+}
+
 .product-category {
     font-size: 1rem;
     font-weight: 600;
@@ -1900,6 +1910,11 @@ img {
     .product-info {
         padding: 1.2rem 1rem;
         gap: 0.4rem;
+    }
+
+    .product-brand {
+        font-size: 1.4rem;
+        margin-bottom: 0.3rem;
     }
 
     .product-category {
