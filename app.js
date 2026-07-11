@@ -660,17 +660,89 @@ function getFilteredAndSortedProducts() {
         result = result.filter(p => getProductBrand(p).toLowerCase() === activeBrand.toLowerCase());
     }
 
-    // Search Query Filter
+    // Search Query Filter with Multi-Word Tokenized Scoring Relevance System
     if (searchQuery.trim() !== "") {
         const query = searchQuery.trim().toLowerCase();
-        result = result.filter(p => 
-            p.name.toLowerCase().includes(query) || 
-            p.category.toLowerCase().includes(query) ||
-            p.department.toLowerCase().includes(query) ||
-            p.description.toLowerCase().includes(query) ||
-            p.id.toString() === query ||
-            (`#${p.id}`) === query
-        );
+        const keywords = query.split(/\s+/).filter(w => w.length > 0);
+        
+        const scoredResults = [];
+        result.forEach(p => {
+            let score = 0;
+            let matchesAllKeywords = true;
+
+            const nameLower = p.name.toLowerCase();
+            const brandLower = getProductBrand(p).toLowerCase();
+            const categoryLower = p.category.toLowerCase();
+            const deptLower = p.department.toLowerCase();
+            const descLower = (p.description || "").toLowerCase();
+            const sizesLower = (p.sizes || []).map(s => s.toLowerCase()).join(" ");
+            const colorsLower = (p.colors || []).map(c => c.toLowerCase()).join(" ");
+            const idStr = p.id.toString();
+
+            keywords.forEach(keyword => {
+                let keywordMatch = false;
+
+                if (idStr === keyword || `#${idStr}` === keyword) {
+                    score += 150;
+                    keywordMatch = true;
+                }
+                if (brandLower.includes(keyword)) {
+                    score += 80;
+                    keywordMatch = true;
+                    if (brandLower === keyword) score += 40;
+                }
+                if (nameLower.includes(keyword)) {
+                    score += 50;
+                    keywordMatch = true;
+                    if (nameLower.startsWith(keyword) || nameLower.includes(" " + keyword)) score += 20;
+                }
+                if (categoryLower.includes(keyword)) {
+                    score += 30;
+                    keywordMatch = true;
+                }
+                if (deptLower.includes(keyword)) {
+                    score += 20;
+                    keywordMatch = true;
+                }
+                if (colorsLower.includes(keyword)) {
+                    score += 25;
+                    keywordMatch = true;
+                }
+                if (sizesLower.includes(keyword)) {
+                    score += 20;
+                    keywordMatch = true;
+                }
+                if (descLower.includes(keyword)) {
+                    score += 10;
+                    keywordMatch = true;
+                }
+
+                if (!keywordMatch) {
+                    matchesAllKeywords = false;
+                }
+            });
+
+            if (matchesAllKeywords && score > 0) {
+                scoredResults.push({ product: p, score: score });
+            }
+        });
+
+        result = scoredResults.map(item => item.product);
+
+        const sortVal = sortSelect.value;
+        if (sortVal === "default") {
+            result.sort((a, b) => {
+                const scoreA = scoredResults.find(item => item.product.id === a.id).score;
+                const scoreB = scoredResults.find(item => item.product.id === b.id).score;
+                if (scoreA !== scoreB) return scoreB - scoreA;
+                
+                const pa = a.priority !== undefined ? a.priority : 1000;
+                const pb = b.priority !== undefined ? b.priority : 1000;
+                if (pa !== pb) return pa - pb;
+                return b.id - a.id;
+            });
+            return result;
+        }
     }
 
     // Sort Selector
@@ -2150,7 +2222,27 @@ function filterPosCatalog() {
         filtered = filtered.filter(p => p.category === cat);
     }
     if (query !== "") {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || p.department.toLowerCase().includes(query) || p.id.toString() === query || ('#' + p.id) === query);
+        const keywords = query.split(/\s+/).filter(w => w.length > 0);
+        filtered = filtered.filter(p => {
+            const nameLower = p.name.toLowerCase();
+            const brandLower = getProductBrand(p).toLowerCase();
+            const categoryLower = p.category.toLowerCase();
+            const deptLower = p.department.toLowerCase();
+            const idStr = p.id.toString();
+            const colorsLower = (p.colors || []).map(c => c.toLowerCase()).join(" ");
+            const sizesLower = (p.sizes || []).map(s => s.toLowerCase()).join(" ");
+
+            return keywords.every(keyword => 
+                nameLower.includes(keyword) || 
+                brandLower.includes(keyword) ||
+                categoryLower.includes(keyword) ||
+                deptLower.includes(keyword) ||
+                colorsLower.includes(keyword) ||
+                sizesLower.includes(keyword) ||
+                idStr === keyword || 
+                (`#${idStr}`) === keyword
+            );
+        });
     }
 
     if (filtered.length === 0) {
