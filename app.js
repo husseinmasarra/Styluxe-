@@ -3323,7 +3323,7 @@ function switchSgTab(tab) {
     }
 }
 
-// Multi-factor calculator mapping weight range to sizing letters
+// Multi-factor calculator mapping height/weight to sizing letters, including specialized footwear and kids logic
 function calculateRecommendedSize() {
     if (!activeModalProduct) return;
 
@@ -3340,29 +3340,71 @@ function calculateRecommendedSize() {
     let recommendedSize = "M"; // Default fallback
     const category = activeModalProduct.category;
     const catUpper = category.toUpperCase();
+    const isFootwear = category === "Footwear" || catUpper.includes("SHOE") || catUpper.includes("SNEAKER") || catUpper.includes("SLIDE") || catUpper.includes("BOOT");
+    const isKids = activeModalProduct.department === "Kids";
 
-    if (category === "Hoodies" || category === "Jackets" || catUpper.includes("SHIRT") || catUpper.includes("TOP") || catUpper.includes("SWEATER") || catUpper.includes("JACKET") || catUpper.includes("HOOD")) {
-        if (weight < 62) recommendedSize = "S";
-        else if (weight < 72) recommendedSize = "M";
-        else if (weight < 82) recommendedSize = "L";
-        else if (weight < 92) recommendedSize = "XL";
-        else recommendedSize = "XXL";
-    } else if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
-        if (weight < 60) recommendedSize = "30";
-        else if (weight < 72) recommendedSize = "32";
-        else if (weight < 85) recommendedSize = "34";
-        else recommendedSize = "36";
-    } else { // Footwear/shoes
-        if (activeModalProduct.department === "Women") {
-            if (height < 160) recommendedSize = "37";
-            else if (height < 170) recommendedSize = "38";
-            else recommendedSize = "39";
-        } else if (activeModalProduct.department === "Kids") {
-            recommendedSize = "30";
-        } else { // Men
-            if (height < 170) recommendedSize = "41";
-            else if (height < 180) recommendedSize = "42";
-            else recommendedSize = "43";
+    if (isKids) {
+        if (isFootwear) {
+            // Kids shoe sizes: 24 to 35
+            if (height < 90) recommendedSize = "24";
+            else if (height < 100) recommendedSize = "26";
+            else if (height < 110) recommendedSize = "28";
+            else if (height < 120) recommendedSize = "30";
+            else if (height < 130) recommendedSize = "32";
+            else if (height < 140) recommendedSize = "34";
+            else recommendedSize = "35";
+        } else {
+            // Kids clothing: letter sizes or age sizes
+            const sizeList = activeModalProduct.sizes || [];
+            const hasAgeSizes = sizeList.some(s => s.toUpperCase().includes("Y"));
+            
+            if (hasAgeSizes) {
+                if (height < 95) recommendedSize = "2Y";
+                else if (height < 105) recommendedSize = "4Y";
+                else if (height < 115) recommendedSize = "6Y";
+                else if (height < 125) recommendedSize = "8Y";
+                else if (height < 135) recommendedSize = "10Y";
+                else recommendedSize = "12Y";
+            } else {
+                // Letter sizes (S, M, L, XL) for kids
+                if (height < 100) recommendedSize = "S";
+                else if (height < 120) recommendedSize = "M";
+                else if (height < 135) recommendedSize = "L";
+                else recommendedSize = "XL";
+            }
+        }
+    } else {
+        // Adults (Men & Women)
+        if (isFootwear) {
+            if (activeModalProduct.department === "Women") {
+                if (height < 155) recommendedSize = "36";
+                else if (height < 162) recommendedSize = "37";
+                else if (height < 168) recommendedSize = "38";
+                else if (height < 175) recommendedSize = "39";
+                else if (height < 180) recommendedSize = "40";
+                else recommendedSize = "41";
+            } else { // Men / Unisex
+                if (height < 165) recommendedSize = "40";
+                else if (height < 172) recommendedSize = "41";
+                else if (height < 178) recommendedSize = "42";
+                else if (height < 185) recommendedSize = "43";
+                else if (height < 190) recommendedSize = "44";
+                else recommendedSize = "45";
+            }
+        } else {
+            // Clothing
+            if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
+                if (weight < 60) recommendedSize = "30";
+                else if (weight < 72) recommendedSize = "32";
+                else if (weight < 85) recommendedSize = "34";
+                else recommendedSize = "36";
+            } else { // Tops, Hoodies, Jackets, etc.
+                if (weight < 62) recommendedSize = "S";
+                else if (weight < 72) recommendedSize = "M";
+                else if (weight < 82) recommendedSize = "L";
+                else if (weight < 92) recommendedSize = "XL";
+                else recommendedSize = "XXL";
+            }
         }
     }
 
@@ -3378,13 +3420,19 @@ function calculateRecommendedSize() {
 
     document.getElementById("recommendedSizeValue").textContent = recommendedSize;
     
-    let descriptionText = `Based on your height of ${height} cm and weight of ${weight} kg, we suggest size **${recommendedSize}** for a premium silhouette.`;
+    let descriptionText = `Based on your height of ${height} cm and weight of ${weight} kg, we suggest size **${recommendedSize}** for a premium fit.`;
+    if (isKids) {
+        descriptionText = `Based on your child's height of ${height} cm and weight of ${weight} kg, we recommend size **${recommendedSize}** for absolute comfort.`;
+    }
+    
     if (category === "Hoodies") {
         descriptionText += " Our hoodies are designed with an oversized fit, so going with this size will give you a cozy, drop-shoulder look.";
     } else if (category === "Jackets") {
         descriptionText += " Our jackets feature structured fits. If you prefer to layer heavily underneath, consider sizing up.";
     } else if (category === "Jeans") {
         descriptionText += " This corresponds to your waist sizing. The jeans feature an adjustable straight leg cut.";
+    } else if (isFootwear) {
+        descriptionText += " This matches standard EU sizing benchmarks for footwear.";
     }
 
     document.getElementById("recommendedSizeText").innerHTML = descriptionText;
@@ -3417,67 +3465,116 @@ function renderSizeChartTable() {
 
     const category = activeModalProduct.category;
     const catUpper = category.toUpperCase();
+    const isFootwear = category === "Footwear" || catUpper.includes("SHOE") || catUpper.includes("SNEAKER") || catUpper.includes("SLIDE") || catUpper.includes("BOOT");
+    const isKids = activeModalProduct.department === "Kids";
     let html = "";
 
-    if (category === "Hoodies" || category === "Jackets" || catUpper.includes("SHIRT") || catUpper.includes("TOP") || catUpper.includes("SWEATER") || catUpper.includes("JACKET") || catUpper.includes("HOOD")) {
-        html = `
-            <table class="size-chart-table">
-                <thead>
-                    <tr>
-                        <th>SIZE</th>
-                        <th>CHEST (CM)</th>
-                        <th>LENGTH (CM)</th>
-                        <th>SLEEVE (CM)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>S</td><td>120</td><td>68</td><td>60</td></tr>
-                    <tr><td>M</td><td>126</td><td>70</td><td>61</td></tr>
-                    <tr><td>L</td><td>132</td><td>72</td><td>62</td></tr>
-                    <tr><td>XL</td><td>138</td><td>74</td><td>63</td></tr>
-                    <tr><td>XXL</td><td>144</td><td>76</td><td>64</td></tr>
-                </tbody>
-            </table>
-        `;
-    } else if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
-        html = `
-            <table class="size-chart-table">
-                <thead>
-                    <tr>
-                        <th>SIZE</th>
-                        <th>WAIST (INCH)</th>
-                        <th>HIP (CM)</th>
-                        <th>LENGTH (CM)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>30</td><td>30</td><td>104</td><td>106</td></tr>
-                    <tr><td>32</td><td>32</td><td>108</td><td>108</td></tr>
-                    <tr><td>34</td><td>34</td><td>112</td><td>110</td></tr>
-                    <tr><td>36</td><td>36</td><td>116</td><td>112</td></tr>
-                </tbody>
-            </table>
-        `;
-    } else { // Default to Footwear/Shoes size chart
-        html = `
-            <table class="size-chart-table">
-                <thead>
-                    <tr>
-                        <th>EURO SIZE</th>
-                        <th>US SIZE (M)</th>
-                        <th>US SIZE (W)</th>
-                        <th>FOOT LENGTH (CM)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>36</td><td>4.5</td><td>6</td><td>22.5</td></tr>
-                    <tr><td>38</td><td>6</td><td>7.5</td><td>24.0</td></tr>
-                    <tr><td>40</td><td>7.5</td><td>9</td><td>25.0</td></tr>
-                    <tr><td>42</td><td>9</td><td>10.5</td><td>26.5</td></tr>
-                    <tr><td>44</td><td>10.5</td><td>12</td><td>28.0</td></tr>
-                </tbody>
-            </table>
-        `;
+    if (isKids) {
+        if (isFootwear) {
+            html = `
+                <table class="size-chart-table">
+                    <thead>
+                        <tr>
+                            <th>EURO SIZE</th>
+                            <th>US SIZE</th>
+                            <th>UK SIZE</th>
+                            <th>FOOT LENGTH (CM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>24</td><td>8C</td><td>7.5</td><td>15.0</td></tr>
+                        <tr><td>26</td><td>9.5C</td><td>9</td><td>16.2</td></tr>
+                        <tr><td>28</td><td>11C</td><td>10.5</td><td>17.5</td></tr>
+                        <tr><td>30</td><td>12.5C</td><td>12</td><td>18.7</td></tr>
+                        <tr><td>32</td><td>1Y</td><td>13.5</td><td>20.0</td></tr>
+                        <tr><td>34</td><td>2.5Y</td><td>2</td><td>21.2</td></tr>
+                        <tr><td>35</td><td>3.5Y</td><td>3</td><td>22.0</td></tr>
+                    </tbody>
+                </table>
+            `;
+        } else {
+            html = `
+                <table class="size-chart-table">
+                    <thead>
+                        <tr>
+                            <th>KIDS SIZE</th>
+                            <th>AGE GROUP</th>
+                            <th>HEIGHT (CM)</th>
+                            <th>CHEST (CM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>2Y (S)</td><td>1-2 Years</td><td>86-92</td><td>52-54</td></tr>
+                        <tr><td>4Y (M)</td><td>3-4 Years</td><td>98-104</td><td>55-57</td></tr>
+                        <tr><td>6Y (L)</td><td>5-6 Years</td><td>110-116</td><td>58-60</td></tr>
+                        <tr><td>8Y (XL)</td><td>7-8 Years</td><td>122-128</td><td>61-64</td></tr>
+                        <tr><td>10Y</td><td>9-10 Years</td><td>134-140</td><td>65-69</td></tr>
+                        <tr><td>12Y</td><td>11-12 Years</td><td>146-152</td><td>70-75</td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
+    } else {
+        if (isFootwear) {
+            html = `
+                <table class="size-chart-table">
+                    <thead>
+                        <tr>
+                            <th>EURO SIZE</th>
+                            <th>US SIZE (M)</th>
+                            <th>US SIZE (W)</th>
+                            <th>FOOT LENGTH (CM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>36</td><td>4.5</td><td>6</td><td>22.5</td></tr>
+                        <tr><td>38</td><td>6</td><td>7.5</td><td>24.0</td></tr>
+                        <tr><td>40</td><td>7.5</td><td>9</td><td>25.0</td></tr>
+                        <tr><td>42</td><td>9</td><td>10.5</td><td>26.5</td></tr>
+                        <tr><td>44</td><td>10.5</td><td>12</td><td>28.0</td></tr>
+                    </tbody>
+                </table>
+            `;
+        } else if (category === "Jeans" || catUpper.includes("PANT") || catUpper.includes("SHORT") || catUpper.includes("JEAN") || catUpper.includes("TROUSER")) {
+            html = `
+                <table class="size-chart-table">
+                    <thead>
+                        <tr>
+                            <th>SIZE</th>
+                            <th>WAIST (INCH)</th>
+                            <th>HIP (CM)</th>
+                            <th>LENGTH (CM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>30</td><td>30</td><td>104</td><td>106</td></tr>
+                        <tr><td>32</td><td>32</td><td>108</td><td>108</td></tr>
+                        <tr><td>34</td><td>34</td><td>112</td><td>110</td></tr>
+                        <tr><td>36</td><td>36</td><td>116</td><td>112</td></tr>
+                    </tbody>
+                </table>
+            `;
+        } else {
+            html = `
+                <table class="size-chart-table">
+                    <thead>
+                        <tr>
+                            <th>SIZE</th>
+                            <th>CHEST (CM)</th>
+                            <th>LENGTH (CM)</th>
+                            <th>SLEEVE (CM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>S</td><td>120</td><td>68</td><td>60</td></tr>
+                        <tr><td>M</td><td>126</td><td>70</td><td>61</td></tr>
+                        <tr><td>L</td><td>132</td><td>72</td><td>62</td></tr>
+                        <tr><td>XL</td><td>138</td><td>74</td><td>63</td></tr>
+                        <tr><td>XXL</td><td>144</td><td>76</td><td>64</td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
     }
 
     container.innerHTML = html;
