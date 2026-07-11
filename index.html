@@ -1030,11 +1030,11 @@
                 <div class="admin-tab-content" id="adminTabSettings">
                     <h2 class="admin-tab-title">GENERAL STORE SETTINGS / الإعدادات العامة</h2>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
                         
                         <!-- Block 1: Shipping and Toggles -->
-                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 2.5rem;">
-                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-truck"></i> Shipping & Delivery / الشحن والتوصيل</h3>
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 2rem;">
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-truck"></i> Shipping & Delivery / الشحن</h3>
                             
                             <div class="form-group">
                                 <label for="settingsShippingFee">Default Shipping Fee / سعر التوصيل ($)</label>
@@ -1046,66 +1046,136 @@
                                 <input type="number" id="settingsFreeShippingThreshold" step="1" value="150" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
                             </div>
 
-                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1.5rem;"><i class="fa-solid fa-share-nodes"></i> Social Platform Visibility / تفعيل المنصات</h3>
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-share-nodes"></i> Social Visibility / تفعيل المنصات</h3>
                             
                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text); font-size: 1.3rem;">
                                 <input type="checkbox" id="settingsShowTwitter" style="width: auto; height: auto;">
-                                <span>Show Twitter Link / إظهار رابط تويتر</span>
+                                <span>Show Twitter Link / إظهار تويتر</span>
                             </label>
                             
                             <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; color: var(--color-text); font-size: 1.3rem;">
                                 <input type="checkbox" id="settingsShowTiktok" style="width: auto; height: auto;">
-                                <span>Show TikTok Link / إظهار رابط تيك توك</span>
+                                <span>Show TikTok Link / إظهار تيك توك</span>
                             </label>
-
-                            <button onclick="saveGeneralSettings()" class="admin-action-btn" style="margin-top: auto; width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE SETTINGS / حفظ الإعدادات</button>
+                            
+                            <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="margin-top: auto; width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS / حفظ الإعدادات</button>
                         </div>
 
-                        <!-- Block 2: Department Dynamic Links -->
-                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 2rem;">
-                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-map-pin"></i> Department Contacts & Links / روابط الأقسام</h3>
+                        <!-- Block 2: Global/Main Contact -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 1.5rem;">
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-globe"></i> Global Settings / القسم العام</h3>
                             
                             <div class="form-group">
-                                <label for="settingsDeptSelect">Select Department to Edit / اختر القسم للتعديل</label>
-                                <select id="settingsDeptSelect" onchange="onSettingsDeptChange()" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                                    <option value="Global">Global / العام</option>
-                                    <option value="Men">Men / الرجالي</option>
-                                    <option value="Women">Women / النسائي</option>
-                                    <option value="Kids">Kids / الولادي</option>
-                                </select>
+                                <label for="settingsWhatsappGlobal">WhatsApp Number / رقم الواتساب</label>
+                                <input type="text" id="settingsWhatsappGlobal" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsInstagramGlobal">Instagram Link / رابط انستقرام</label>
+                                <input type="text" id="settingsInstagramGlobal" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsFacebookGlobal">Facebook Link / رابط فيسبوك</label>
+                                <input type="text" id="settingsFacebookGlobal" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTwitterGlobal">Twitter Link / رابط تويتر</label>
+                                <input type="text" id="settingsTwitterGlobal" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTiktokGlobal">TikTok Link / رابط تيك توك</label>
+                                <input type="text" id="settingsTiktokGlobal" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
                             </div>
                             
-                            <div class="form-group">
-                                <label for="settingsWhatsapp">WhatsApp Phone Number / رقم الواتساب</label>
-                                <input type="text" id="settingsWhatsapp" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="settingsInstagram">Instagram Link / رابط انستقرام</label>
-                                <input type="text" id="settingsInstagram" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="settingsFacebook">Facebook Link / رابط فيسبوك</label>
-                                <input type="text" id="settingsFacebook" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                            </div>
-
-                            <div id="settingsTwitterGroup" class="form-group">
-                                <label for="settingsTwitter">Twitter Link / رابط تويتر</label>
-                                <input type="text" id="settingsTwitter" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                            </div>
-
-                            <div id="settingsTiktokGroup" class="form-group">
-                                <label for="settingsTiktok">TikTok Link / رابط تيك توك</label>
-                                <input type="text" id="settingsTiktok" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                            </div>
-                            
-                            <button onclick="saveGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE SETTINGS / حفظ الإعدادات</button>
+                            <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS</button>
                         </div>
 
-                        <!-- Block 3: Coupon Codes -->
+                        <!-- Block 3: Men Contact -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 1.5rem;">
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-person"></i> Men's Collection / القسم الرجالي</h3>
+                            
+                            <div class="form-group">
+                                <label for="settingsWhatsappMen">WhatsApp Number / رقم الواتساب</label>
+                                <input type="text" id="settingsWhatsappMen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsInstagramMen">Instagram Link / رابط انستقرام</label>
+                                <input type="text" id="settingsInstagramMen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsFacebookMen">Facebook Link / رابط فيسبوك</label>
+                                <input type="text" id="settingsFacebookMen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTwitterMen">Twitter Link / رابط تويتر</label>
+                                <input type="text" id="settingsTwitterMen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTiktokMen">TikTok Link / رابط تيك توك</label>
+                                <input type="text" id="settingsTiktokMen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS</button>
+                        </div>
+
+                        <!-- Block 4: Women Contact -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 1.5rem;">
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-person-dress"></i> Women's Collection / القسم النسائي</h3>
+                            
+                            <div class="form-group">
+                                <label for="settingsWhatsappWomen">WhatsApp Number / رقم الواتساب</label>
+                                <input type="text" id="settingsWhatsappWomen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsInstagramWomen">Instagram Link / رابط انستقرام</label>
+                                <input type="text" id="settingsInstagramWomen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsFacebookWomen">Facebook Link / رابط فيسبوك</label>
+                                <input type="text" id="settingsFacebookWomen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTwitterWomen">Twitter Link / رابط تويتر</label>
+                                <input type="text" id="settingsTwitterWomen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTiktokWomen">TikTok Link / رابط تيك توك</label>
+                                <input type="text" id="settingsTiktokWomen" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS</button>
+                        </div>
+
+                        <!-- Block 5: Kids Contact -->
+                        <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column; gap: 1.5rem;">
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;"><i class="fa-solid fa-child"></i> Kids' Collection / القسم الولادي</h3>
+                            
+                            <div class="form-group">
+                                <label for="settingsWhatsappKids">WhatsApp Number / رقم الواتساب</label>
+                                <input type="text" id="settingsWhatsappKids" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsInstagramKids">Instagram Link / رابط انستقرام</label>
+                                <input type="text" id="settingsInstagramKids" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsFacebookKids">Facebook Link / رابط فيسبوك</label>
+                                <input type="text" id="settingsFacebookKids" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTwitterKids">Twitter Link / رابط تويتر</label>
+                                <input type="text" id="settingsTwitterKids" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTiktokKids">TikTok Link / رابط تيك توك</label>
+                                <input type="text" id="settingsTiktokKids" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS</button>
+                        </div>
+
+                        <!-- Block 6: Coupons -->
                         <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 3rem; border-radius: 8px; display: flex; flex-direction: column;">
-                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 2rem;"><i class="fa-solid fa-ticket"></i> Coupon Codes / إدارة الكوبونات</h3>
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 2rem;"><i class="fa-solid fa-ticket"></i> Coupon Codes / الكوبونات</h3>
                             
                             <form id="addCouponForm" onsubmit="addCouponSubmit(event)" style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
                                 <div class="form-group">
@@ -1113,26 +1183,26 @@
                                     <input type="text" id="newCouponCode" required style="text-transform: uppercase; background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;" placeholder="e.g. STY10">
                                 </div>
                                 <div class="form-group">
-                                    <label for="newCouponType">Discount Type / نوع الحسم</label>
+                                    <label for="newCouponType">Discount Type / النوع</label>
                                     <select id="newCouponType" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                                        <option value="percent">Percentage (%) / نسبة مئوية</option>
-                                        <option value="fixed">Fixed Amount ($) / مبلغ ثابت</option>
+                                        <option value="percent">Percentage (%) / نسبة</option>
+                                        <option value="fixed">Fixed ($) / ثابت</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="newCouponValue">Discount Value / قيمة الخصم</label>
+                                    <label for="newCouponValue">Discount Value / القيمة</label>
                                     <input type="number" id="newCouponValue" step="0.1" required style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;" placeholder="e.g. 10">
                                 </div>
-                                <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD COUPON / إضافة كوبون</button>
+                                <button type="submit" class="admin-action-btn" style="width: 100%;">+ ADD COUPON</button>
                             </form>
 
-                            <div style="max-height: 250px; overflow-y: auto; border-top: 1px solid var(--color-border); padding-top: 1.5rem;">
+                            <div style="max-height: 200px; overflow-y: auto; border-top: 1px solid var(--color-border); padding-top: 1.5rem;">
                                 <table class="admin-table">
                                     <thead>
                                         <tr>
                                             <th>CODE</th>
                                             <th>DISCOUNT</th>
-                                            <th style="width: 60px; text-align: center;">DELETE</th>
+                                            <th style="width: 60px; text-align: center;">DEL</th>
                                         </tr>
                                     </thead>
                                     <tbody id="adminCouponsTableBody">
