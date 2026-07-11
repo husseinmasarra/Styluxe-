@@ -1621,8 +1621,10 @@ function renderAdminProducts() {
             <td><img src="${getProductMainImage(p)}" alt="${p.name}"></td>
             <td>
                 <strong>${p.name}</strong>
-                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem;">
+                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem; display: flex; align-items: center; gap: 0.8rem;">
                     <span>Priority: ${p.priority !== undefined ? p.priority : 1000}</span>
+                    <button onclick="moveProductToTop(${p.id})" style="background: none; color: var(--color-accent); border: none; cursor: pointer; font-size: 1.2rem; padding: 0.2rem;" title="Move to Top"><i class="fa-solid fa-angles-up"></i></button>
+                    <button onclick="moveProductToBottom(${p.id})" style="background: none; color: var(--color-accent); border: none; cursor: pointer; font-size: 1.2rem; padding: 0.2rem;" title="Move to Bottom"><i class="fa-solid fa-angles-down"></i></button>
                 </div>
             </td>
             <td>${p.department.toUpperCase()} / ${p.category.toUpperCase()}</td>
@@ -1664,6 +1666,16 @@ function setupAdminProductsDragAndDrop() {
 
     tableBody.addEventListener("dragover", (e) => {
         e.preventDefault();
+
+        // Auto-scroll window if dragging near top/bottom boundaries of viewport
+        const scrollThreshold = 80;
+        const scrollSpeed = 15;
+        if (e.clientY < scrollThreshold) {
+            window.scrollBy(0, -scrollSpeed);
+        } else if (window.innerHeight - e.clientY < scrollThreshold) {
+            window.scrollBy(0, scrollSpeed);
+        }
+
         const tr = e.target.closest("tr");
         if (!tr || tr === draggingRow || !tr.classList.contains("draggable-row")) return;
 
@@ -1715,6 +1727,70 @@ function setupAdminProductsDragAndDrop() {
             console.error("Failed to update priorities batch:", err);
         }
     });
+}
+
+async function moveProductToTop(productId) {
+    const filtered = currentAdminDept === "Global" 
+        ? PRODUCTS 
+        : PRODUCTS.filter(p => p.department === currentAdminDept);
+    
+    if (filtered.length === 0) return;
+
+    let minPriority = 1000;
+    filtered.forEach(p => {
+        const prio = p.priority !== undefined ? p.priority : 1000;
+        if (prio < minPriority) {
+            minPriority = prio;
+        }
+    });
+
+    const newPriority = minPriority - 10;
+
+    try {
+        const res = await fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: productId, priority: newPriority })
+        });
+        if (res.ok) {
+            await loadProductsFromServer();
+            renderAdminProducts();
+        }
+    } catch (err) {
+        console.error("Failed to move product to top:", err);
+    }
+}
+
+async function moveProductToBottom(productId) {
+    const filtered = currentAdminDept === "Global" 
+        ? PRODUCTS 
+        : PRODUCTS.filter(p => p.department === currentAdminDept);
+    
+    if (filtered.length === 0) return;
+
+    let maxPriority = 0;
+    filtered.forEach(p => {
+        const prio = p.priority !== undefined ? p.priority : 1000;
+        if (prio > maxPriority) {
+            maxPriority = prio;
+        }
+    });
+
+    const newPriority = maxPriority + 10;
+
+    try {
+        const res = await fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: productId, priority: newPriority })
+        });
+        if (res.ok) {
+            await loadProductsFromServer();
+            renderAdminProducts();
+        }
+    } catch (err) {
+        console.error("Failed to move product to bottom:", err);
+    }
 }
 
 // Add/Delete/Edit Products helpers
