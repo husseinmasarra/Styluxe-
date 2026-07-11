@@ -422,10 +422,53 @@ function setupEventListeners() {
         });
     }
 
+    window.updateDefaultSizesAndInventoryGrid = function() {
+        const deptSelect = document.getElementById("newProdDept");
+        const categorySelect = document.getElementById("newProdCategory");
+        const sizesInput = document.getElementById("newProdSizes");
+        
+        if (!deptSelect || !categorySelect || !sizesInput) return;
+        
+        const dept = deptSelect.value;
+        const category = categorySelect.value;
+        const catUpper = (category || "").toUpperCase();
+        const isFootwear = category === "Footwear" || catUpper.includes("SHOE") || catUpper.includes("SNEAKER") || catUpper.includes("SLIDE") || catUpper.includes("BOOT");
+        
+        let defaultSizes = "S, M, L, XL";
+        
+        if (isFootwear) {
+            if (dept === "Men") {
+                defaultSizes = "40, 41, 42, 43, 44, 45";
+            } else if (dept === "Women") {
+                defaultSizes = "36, 37, 38, 39, 40, 41";
+            } else if (dept === "Kids") {
+                defaultSizes = "26, 28, 30, 32, 34";
+            } else {
+                defaultSizes = "38, 39, 40, 41, 42, 43";
+            }
+        } else if (dept === "Kids") {
+            defaultSizes = "2Y, 4Y, 6Y, 8Y, 10Y";
+        }
+        
+        sizesInput.value = defaultSizes;
+        
+        if (window.updateDynamicInventoryGrid) {
+            window.updateDynamicInventoryGrid();
+        }
+    };
+
     const prodDeptSelect = document.getElementById("newProdDept");
     if (prodDeptSelect) {
         prodDeptSelect.addEventListener("change", () => {
             updateCategoriesDatalist();
+            window.updateDefaultSizesAndInventoryGrid();
+        });
+    }
+
+    const prodCategorySelect = document.getElementById("newProdCategory");
+    if (prodCategorySelect) {
+        prodCategorySelect.addEventListener("change", () => {
+            window.updateDefaultSizesAndInventoryGrid();
         });
     }
 }
@@ -1546,8 +1589,8 @@ function renderAdminProducts() {
 // Add/Delete Products helpers
 function openAddProductModal() {
     addProductForm.reset();
-    if (window.updateDynamicInventoryGrid) {
-        window.updateDynamicInventoryGrid();
+    if (window.updateDefaultSizesAndInventoryGrid) {
+        window.updateDefaultSizesAndInventoryGrid();
     }
     addProductModalBackdrop.classList.add("active");
 }
