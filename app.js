@@ -233,6 +233,33 @@ function setupEventListeners() {
 
     searchInput.addEventListener("input", (e) => {
         searchQuery = e.target.value.toLowerCase();
+        
+        const collectionsGridSec = document.getElementById("collections");
+        const shopSec = document.getElementById("shop-section");
+        const backBtnContainer = document.getElementById("backToCollectionsContainer");
+        
+        if (searchQuery.trim() !== "") {
+            if (collectionsGridSec) collectionsGridSec.style.display = "none";
+            if (shopSec) shopSec.style.display = "block";
+            if (backBtnContainer) {
+                if (activeDepartment !== "All") {
+                    backBtnContainer.style.display = "block";
+                } else {
+                    backBtnContainer.style.display = "none";
+                }
+            }
+        } else {
+            if (activeDepartment === "All") {
+                if (collectionsGridSec) collectionsGridSec.style.display = "block";
+                if (shopSec) shopSec.style.display = "none";
+                if (backBtnContainer) backBtnContainer.style.display = "none";
+            } else {
+                if (collectionsGridSec) collectionsGridSec.style.display = "none";
+                if (shopSec) shopSec.style.display = "block";
+                if (backBtnContainer) backBtnContainer.style.display = "block";
+            }
+        }
+        
         renderProducts();
     });
 
