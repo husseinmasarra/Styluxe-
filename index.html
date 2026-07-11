@@ -1402,8 +1402,11 @@
                       </div>
 
                       <div class="form-group" style="grid-column: span 2;">
-                          <label for="newProdInventory">Initial Quantities (Format: S-Black:10, M-Black:5) *</label>
-                          <input type="text" id="newProdInventory" required value="S-Black:10, M-Black:10, L-Black:10, XL-Black:10, S-Charcoal:10, M-Charcoal:10, L-Charcoal:10, XL-Charcoal:10, S-Grey:10, M-Grey:10, L-Grey:10, XL-Grey:10" placeholder="S-Black:10, M-Black:5" style="width: 100%;">
+                          <label style="font-weight: 600; color: var(--color-text); margin-bottom: 0.8rem; display: block;">Stock Quantities by Size & Color</label>
+                          <div id="dynamicInventoryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.2rem; background: rgba(255,255,255,0.02); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; max-height: 250px; overflow-y: auto;">
+                              <!-- Dynamically generated size-color inputs will go here -->
+                          </div>
+                          <input type="hidden" id="newProdInventory" required>
                       </div>
 
                       <div class="form-group" style="grid-column: span 2;">
