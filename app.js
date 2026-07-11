@@ -2845,9 +2845,48 @@ function deleteCategory(id) {
 
 function getFileBase64(file) {
     return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            return;
+        }
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                const maxWidth = 1200;
+                const maxHeight = 1200;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress image to JPEG at 80% quality (visually lossless but ~80-90% smaller file size)
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(compressedBase64);
+            };
+            img.onerror = err => reject(err);
+        };
         reader.onerror = error => reject(error);
     });
 }
