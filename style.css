@@ -4533,3 +4533,9 @@ body[data-theme="light"] .size-chart-table th {
         page-break-before: always !important;
     }
 }
+
+.draggable-row.dragging {
+    opacity: 0.5;
+    background-color: var(--color-surface-hover) !important;
+    border: 1px dashed var(--color-accent) !important;
+}
