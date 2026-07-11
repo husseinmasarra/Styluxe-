@@ -1995,6 +1995,12 @@ img {
     letter-spacing: 0.2em;
     display: block;
     margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.admin-logo:hover {
+    color: var(--color-accent);
 }
 
 .admin-dept-title {
