@@ -358,7 +358,7 @@ function formatPrice(priceInUSD) {
 function changeCurrency(currency) {
     currentCurrency = currency;
     if (currencyBtn) {
-        currencyBtn.textContent = currency === "USD" ? "USD ($)" : "LBP (ل.ل)";
+        currencyBtn.textContent = currency === "USD" ? "USD ($)" : "LBP (L.L.)";
     }
     if (currencyDropdown) {
         currencyDropdown.classList.remove("active");
@@ -933,8 +933,8 @@ function updateCheckoutSummary() {
     const shippingRow = document.createElement("div");
     shippingRow.classList.add("summary-item-row");
     shippingRow.innerHTML = `
-        <span>SHIPPING / التوصيل</span>
-        <span>${shipping === 0 ? "FREE / مجاني" : formatPrice(shipping)}</span>
+        <span>SHIPPING</span>
+        <span>${shipping === 0 ? "FREE" : formatPrice(shipping)}</span>
     `;
     checkoutOrderSummary.appendChild(shippingRow);
 
@@ -956,7 +956,7 @@ async function applyCouponCode() {
     if (!code) {
         msgEl.style.display = "block";
         msgEl.style.color = "var(--color-error)";
-        msgEl.textContent = "يرجى إدخال كود الحسم أولاً.";
+        msgEl.textContent = "Please enter coupon code first.";
         return;
     }
 
@@ -968,20 +968,20 @@ async function applyCouponCode() {
             activeCoupon = result;
             msgEl.style.display = "block";
             msgEl.style.color = "#2ecc71";
-            msgEl.textContent = `تم تطبيق الكود بنجاح! خصم بقيمة ${result.discountType === 'percent' ? result.discountValue + '%' : formatPrice(result.discountValue)}`;
+            msgEl.textContent = `Coupon applied successfully! Discount: ${result.discountType === 'percent' ? result.discountValue + '%' : formatPrice(result.discountValue)}`;
             updateCheckoutSummary();
         } else {
             activeCoupon = null;
             msgEl.style.display = "block";
             msgEl.style.color = "var(--color-error)";
-            msgEl.textContent = result.error || "كود غير صالح أو منتهي الصلاحية.";
+            msgEl.textContent = result.error || "Invalid or expired coupon code.";
             updateCheckoutSummary();
         }
     } catch (e) {
         console.error("Error validating coupon:", e);
         msgEl.style.display = "block";
         msgEl.style.color = "var(--color-error)";
-        msgEl.textContent = "حدث خطأ أثناء التحقق من الكود.";
+        msgEl.textContent = "Error occurred while validating coupon.";
     }
 }
 
@@ -4134,7 +4134,7 @@ function handleGoogleOfficialCredentialResponse(response) {
 }
 
 async function resetAllStoreSales() {
-    const confirmation = confirm("هل أنت متأكد من تصفير كافة الحسابات والطلبيات نهائياً؟ لا يمكن التراجع عن هذا الإجراء!");
+    const confirmation = confirm("Are you sure you want to permanently reset all sales and orders? This action cannot be undone!");
     if (!confirmation) return;
 
     try {
@@ -4143,15 +4143,15 @@ async function resetAllStoreSales() {
         });
 
         if (response.ok) {
-            alert("تم تصفير كافة الحسابات والطلبيات بنجاح!");
+            alert("All sales and orders reset successfully!");
             // Reload dashboard metrics and database
             await initAdminDashboard();
         } else {
-            alert("فشل تصفير الحسابات. يرجى المحاولة لاحقاً.");
+            alert("Failed to reset sales. Please try again later.");
         }
     } catch (err) {
         console.error("Failed to reset sales:", err);
-        alert("فشل الاتصال بالسيرفر لتصفير الحسابات.");
+        alert("Failed to connect to the server to reset sales.");
     }
 }
 
@@ -4223,14 +4223,14 @@ async function saveAllGeneralSettings() {
         });
 
         if (response.ok) {
-            alert("تم حفظ الإعدادات العامة لكافة الأقسام بنجاح!");
+            alert("General settings saved successfully for all departments!");
             await loadProductsFromServer();
         } else {
-            alert("فشل حفظ الإعدادات.");
+            alert("Failed to save settings.");
         }
     } catch (e) {
         console.error("Error saving general settings:", e);
-        alert("فشل الاتصال بالسيرفر لحفظ الإعدادات.");
+        alert("Failed to connect to server to save settings.");
     }
 }
 
@@ -4240,7 +4240,7 @@ function renderAdminCoupons() {
     tableBody.innerHTML = "";
 
     if (COUPONS.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem 0;">لا توجد كوبونات حسم نشطة.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem 0;">No active coupons found.</td></tr>`;
         return;
     }
 
@@ -4265,7 +4265,7 @@ async function addCouponSubmit(event) {
     const value = parseFloat(document.getElementById("newCouponValue").value);
 
     if (!code || isNaN(value) || value <= 0) {
-        alert("يرجى إدخال بيانات الكوبون بشكل صحيح.");
+        alert("Please enter coupon details correctly.");
         return;
     }
 
@@ -4277,21 +4277,21 @@ async function addCouponSubmit(event) {
         });
 
         if (response.ok) {
-            alert("تمت إضافة الكوبون بنجاح!");
+            alert("Coupon added successfully!");
             event.target.reset();
             await loadProductsFromServer();
         } else {
             const err = await response.json();
-            alert("فشل إضافة الكوبون: " + err.error);
+            alert("Failed to add coupon: " + err.error);
         }
     } catch (e) {
         console.error("Error adding coupon:", e);
-        alert("فشل الاتصال بالسيرفر لإضافة الكوبون.");
+        alert("Failed to connect to server to add coupon.");
     }
 }
 
 async function deleteCoupon(code) {
-    if (!confirm(`هل أنت متأكد من حذف الكوبون ${code} نهائياً؟`)) return;
+    if (!confirm(`Are you sure you want to delete coupon ${code} permanently?`)) return;
 
     try {
         const response = await fetch(`/api/coupons?code=${code}`, {
@@ -4299,14 +4299,14 @@ async function deleteCoupon(code) {
         });
 
         if (response.ok) {
-            alert("تم حذف الكوبون بنجاح!");
+            alert("Coupon deleted successfully!");
             await loadProductsFromServer();
         } else {
-            alert("فشل حذف الكوبون.");
+            alert("Failed to delete coupon.");
         }
     } catch (e) {
         console.error("Error deleting coupon:", e);
-        alert("فشل الاتصال بالسيرفر لحذف الكوبون.");
+        alert("Failed to connect to server to delete coupon.");
     }
 }
 
@@ -4352,26 +4352,26 @@ function closeTermsModal() {
 
 const INFO_PAGES = {
     "refund": {
-        title: "REFUND & RETURNS POLICY / سياسة الاستبدال والاسترجاع",
+        title: "REFUND & RETURNS POLICY",
         content: `
             <div style="display: flex; flex-direction: column; gap: 2rem;">
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. RETURNS ELIGIBILITY / أهلية الاسترجاع</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. RETURNS ELIGIBILITY</h3>
                     <p>We accept returns and exchanges within 14 days of delivery. Items must be unworn, unwashed, and in their original packaging with all tags attached.</p>
                 </div>
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. REFUND PROCESS / طريقة الاسترداد</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. REFUND PROCESS</h3>
                     <p>Once your return is inspected and approved, your refund will be processed. Refunds are issued via the original payment method or store credit.</p>
                 </div>
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. CUSTOM PIECES / القطع الخاصة</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. CUSTOM PIECES</h3>
                     <p>Please note that custom-made garments or altered items are not eligible for returns or exchanges unless defective.</p>
                 </div>
             </div>
         `
     },
     "track": {
-        title: "TRACK YOUR ORDER / تتبع الطلبية",
+        title: "TRACK YOUR ORDER",
         content: `
             <div style="display: flex; flex-direction: column; gap: 2rem; text-align: center; padding: 2rem 0;">
                 <i class="fa-solid fa-truck-fast" style="font-size: 4rem; color: var(--color-accent); margin-bottom: 1rem;"></i>
@@ -4385,26 +4385,26 @@ const INFO_PAGES = {
         `
     },
     "shipping": {
-        title: "SHIPPING & RETURNS / الشحن والتسليم",
+        title: "SHIPPING & RETURNS",
         content: `
             <div style="display: flex; flex-direction: column; gap: 2rem;">
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. SHIPPING DESTINATIONS / مناطق الشحن</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. SHIPPING DESTINATIONS</h3>
                     <p>We provide swift delivery across Lebanon (and select international regions). Local delivery takes 2-5 business days.</p>
                 </div>
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. SHIPPING FEES / تكاليف التوصيل</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. SHIPPING FEES</h3>
                     <p>Shipping fee is automatically calculated at checkout. Enjoy FREE shipping when your purchase exceeds the free delivery threshold!</p>
                 </div>
                 <div>
-                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. RETURNS / الاسترجاع</h3>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. RETURNS</h3>
                     <p>For return pickup requests, please contact our support department on WhatsApp.</p>
                 </div>
             </div>
         `
     },
     "faqs": {
-        title: "FREQUENTLY ASKED QUESTIONS / الأسئلة الشائعة",
+        title: "FREQUENTLY ASKED QUESTIONS",
         content: `
             <div style="display: flex; flex-direction: column; gap: 2rem; text-align: left;">
                 <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
@@ -4423,7 +4423,7 @@ const INFO_PAGES = {
         `
     },
     "support": {
-        title: "CONTACT SUPPORT / خدمة العملاء",
+        title: "CONTACT SUPPORT",
         content: `
             <div style="display: flex; flex-direction: column; gap: 2.5rem; text-align: center; padding: 2rem 0;">
                 <i class="fa-solid fa-headset" style="font-size: 4rem; color: var(--color-accent); margin-bottom: 1rem;"></i>
@@ -4469,7 +4469,7 @@ function trackOrderSubmit() {
 
     if (!inputVal) {
         resultEl.style.color = "var(--color-error)";
-        resultEl.innerHTML = "الرجاء إدخال رقم الطلبية أولاً.";
+        resultEl.innerHTML = "Please enter your Order ID first.";
         return;
     }
 
@@ -4479,14 +4479,14 @@ function trackOrderSubmit() {
         resultEl.innerHTML = `
             <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.25); padding: 1.5rem; border-radius: 4px; text-align: left; margin-top: 1rem;">
                 <p><strong>Order ID:</strong> ${order.id}</p>
-                <p><strong>Status / الحالة:</strong> <span style="text-transform: uppercase; font-weight: 700;">${order.status}</span></p>
-                <p><strong>Date / التاريخ:</strong> ${order.date}</p>
-                <p><strong>Total / المجموع:</strong> ${formatPrice(order.total)}</p>
+                <p><strong>Status:</strong> <span style="text-transform: uppercase; font-weight: 700;">${order.status}</span></p>
+                <p><strong>Date:</strong> ${order.date}</p>
+                <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
             </div>
         `;
     } else {
         resultEl.style.color = "var(--color-error)";
-        resultEl.innerHTML = "الطلبية غير موجودة. يرجى التحقق من الرقم والمحاولة مرة أخرى.";
+        resultEl.innerHTML = "Order not found. Please verify the ID and try again.";
     }
 }
 
