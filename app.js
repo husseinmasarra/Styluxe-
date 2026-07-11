@@ -1607,19 +1607,22 @@ function renderAdminProducts() {
 
     filtered.forEach(p => {
         const tr = document.createElement("tr");
+        tr.setAttribute("draggable", "true");
+        tr.classList.add("draggable-row");
+        tr.setAttribute("data-id", p.id);
+
         const inventoryStr = Object.entries(p.inventory || {})
             .map(([key, val]) => `${key}: ${val}`)
             .join(" | ");
 
         tr.innerHTML = `
+            <td style="cursor: grab; color: var(--color-text-muted); text-align: center; font-size: 1.4rem;"><i class="fa-solid fa-grip-vertical"></i></td>
             <td><strong>#${p.id}</strong></td>
             <td><img src="${getProductMainImage(p)}" alt="${p.name}"></td>
             <td>
                 <strong>${p.name}</strong>
-                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem; display: flex; align-items: center; gap: 0.5rem;">
+                <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem;">
                     <span>Priority: ${p.priority !== undefined ? p.priority : 1000}</span>
-                    <button class="priority-btn" onclick="reorderProduct(${p.id}, 'up')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Up"><i class="fa-solid fa-chevron-up"></i></button>
-                    <button class="priority-btn" onclick="reorderProduct(${p.id}, 'down')" style="background: none; color: var(--color-accent); border: none; padding: 0.2rem; cursor: pointer; font-size: 1.2rem;" aria-label="Move Down"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
             </td>
             <td>${p.department.toUpperCase()} / ${p.category.toUpperCase()}</td>
@@ -1639,6 +1642,78 @@ function renderAdminProducts() {
             </td>
         `;
         tableBody.appendChild(tr);
+    });
+
+    setupAdminProductsDragAndDrop();
+}
+
+function setupAdminProductsDragAndDrop() {
+    const tableBody = document.getElementById("adminProductsTableBody");
+    if (!tableBody) return;
+
+    let draggingRow = null;
+
+    tableBody.addEventListener("dragstart", (e) => {
+        const tr = e.target.closest("tr");
+        if (!tr) return;
+        draggingRow = tr;
+        tr.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/html", tr.innerHTML);
+    });
+
+    tableBody.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const tr = e.target.closest("tr");
+        if (!tr || tr === draggingRow || !tr.classList.contains("draggable-row")) return;
+
+        const bounding = tr.getBoundingClientRect();
+        const offset = e.clientY - bounding.top;
+        if (offset > bounding.height / 2) {
+            tr.after(draggingRow);
+        } else {
+            tr.before(draggingRow);
+        }
+    });
+
+    tableBody.addEventListener("dragend", async (e) => {
+        if (draggingRow) {
+            draggingRow.classList.remove("dragging");
+            draggingRow = null;
+        }
+
+        const rows = tableBody.querySelectorAll("tr.draggable-row");
+        const batchOrders = [];
+        rows.forEach((row, index) => {
+            const pId = row.dataset.id;
+            const newPriority = (index + 1) * 10;
+            batchOrders.push({ id: pId, priority: newPriority });
+        });
+
+        try {
+            const res = await fetch("/api/products/reorder-batch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orders: batchOrders })
+            });
+            if (res.ok) {
+                await loadProductsFromServer();
+                batchOrders.forEach(item => {
+                    const p = PRODUCTS.find(prod => prod.id === parseInt(item.id));
+                    if (p) p.priority = item.priority;
+                });
+                renderProducts();
+                
+                rows.forEach((row, index) => {
+                    const prioritySpan = row.querySelector("td:nth-child(4) div span");
+                    if (prioritySpan) {
+                        prioritySpan.textContent = `Priority: ${(index + 1) * 10}`;
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Failed to update priorities batch:", err);
+        }
     });
 }
 
