@@ -4350,3 +4350,143 @@ function closeTermsModal() {
     }
 }
 
+const INFO_PAGES = {
+    "refund": {
+        title: "REFUND & RETURNS POLICY / سياسة الاستبدال والاسترجاع",
+        content: `
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. RETURNS ELIGIBILITY / أهلية الاسترجاع</h3>
+                    <p>We accept returns and exchanges within 14 days of delivery. Items must be unworn, unwashed, and in their original packaging with all tags attached.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. REFUND PROCESS / طريقة الاسترداد</h3>
+                    <p>Once your return is inspected and approved, your refund will be processed. Refunds are issued via the original payment method or store credit.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. CUSTOM PIECES / القطع الخاصة</h3>
+                    <p>Please note that custom-made garments or altered items are not eligible for returns or exchanges unless defective.</p>
+                </div>
+            </div>
+        `
+    },
+    "track": {
+        title: "TRACK YOUR ORDER / تتبع الطلبية",
+        content: `
+            <div style="display: flex; flex-direction: column; gap: 2rem; text-align: center; padding: 2rem 0;">
+                <i class="fa-solid fa-truck-fast" style="font-size: 4rem; color: var(--color-accent); margin-bottom: 1rem;"></i>
+                <p style="font-size: 1.4rem;">Enter your Order ID (e.g. STX-12345) below to track the shipping status of your package.</p>
+                <div style="display: flex; gap: 1rem; max-width: 400px; margin: 2rem auto 0; width: 100%;">
+                    <input type="text" id="trackOrderInput" placeholder="Order ID (e.g. STX-12345)" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); flex: 1; text-align: center; text-transform: uppercase; border-radius: 4px;">
+                    <button onclick="trackOrderSubmit()" style="background-color: var(--color-accent); color: #000; border: none; font-weight: 700; padding: 0 2rem; cursor: pointer; border-radius: 4px;">TRACK</button>
+                </div>
+                <div id="trackResult" style="margin-top: 2rem; font-size: 1.3rem; font-weight: 600; line-height: 1.6;"></div>
+            </div>
+        `
+    },
+    "shipping": {
+        title: "SHIPPING & RETURNS / الشحن والتسليم",
+        content: `
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">1. SHIPPING DESTINATIONS / مناطق الشحن</h3>
+                    <p>We provide swift delivery across Lebanon (and select international regions). Local delivery takes 2-5 business days.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">2. SHIPPING FEES / تكاليف التوصيل</h3>
+                    <p>Shipping fee is automatically calculated at checkout. Enjoy FREE shipping when your purchase exceeds the free delivery threshold!</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--color-accent); font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600;">3. RETURNS / الاسترجاع</h3>
+                    <p>For return pickup requests, please contact our support department on WhatsApp.</p>
+                </div>
+            </div>
+        `
+    },
+    "faqs": {
+        title: "FREQUENTLY ASKED QUESTIONS / الأسئلة الشائعة",
+        content: `
+            <div style="display: flex; flex-direction: column; gap: 2rem; text-align: left;">
+                <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
+                    <h4 style="color: var(--color-text); font-size: 1.4rem; margin-bottom: 0.6rem; font-weight: 600;">Q: Are your hoodies oversized?</h4>
+                    <p style="color: var(--color-text-muted);">A: Yes! Our streetwear pieces are designed with a relaxed, premium oversized fit. Check our size guides in product details.</p>
+                </div>
+                <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
+                    <h4 style="color: var(--color-text); font-size: 1.4rem; margin-bottom: 0.6rem; font-weight: 600;">Q: What payment methods do you accept?</h4>
+                    <p style="color: var(--color-text-muted);">A: We currently support Cash on Delivery (COD) and major credit cards.</p>
+                </div>
+                <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
+                    <h4 style="color: var(--color-text); font-size: 1.4rem; margin-bottom: 0.6rem; font-weight: 600;">Q: Can I exchange sizes?</h4>
+                    <p style="color: var(--color-text-muted);">A: Absolutely. Contact us on WhatsApp within 14 days, and we will swap sizes for you.</p>
+                </div>
+            </div>
+        `
+    },
+    "support": {
+        title: "CONTACT SUPPORT / خدمة العملاء",
+        content: `
+            <div style="display: flex; flex-direction: column; gap: 2.5rem; text-align: center; padding: 2rem 0;">
+                <i class="fa-solid fa-headset" style="font-size: 4rem; color: var(--color-accent); margin-bottom: 1rem;"></i>
+                <p style="font-size: 1.4rem;">Our support team is available 24/7. Chat with us directly on WhatsApp or call our support lines.</p>
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 300px; margin: 1rem auto 0; width: 100%;">
+                    <a href="https://wa.me/96171987654" target="_blank" style="background-color: #2ecc71; color: white; text-decoration: none; padding: 1.2rem 2rem; font-weight: 700; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 0.8rem;"><i class="fa-brands fa-whatsapp"></i> WHATSAPP CHAT</a>
+                    <a href="mailto:support@styluxe.com" style="background-color: var(--color-surface); color: var(--color-text); text-decoration: none; border: 1px solid var(--color-border); padding: 1.2rem 2rem; font-weight: 700; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 0.8rem;"><i class="fa-regular fa-envelope"></i> EMAIL SUPPORT</a>
+                </div>
+            </div>
+        `
+    }
+};
+
+function openInfoModal(type) {
+    const data = INFO_PAGES[type];
+    if (!data) return;
+
+    const titleEl = document.getElementById("infoModalTitle");
+    const bodyEl = document.getElementById("infoModalBody");
+    const backdrop = document.getElementById("infoModalBackdrop");
+
+    if (titleEl) titleEl.innerHTML = data.title;
+    if (bodyEl) bodyEl.innerHTML = data.content;
+
+    if (backdrop) {
+        backdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closeInfoModal() {
+    const backdrop = document.getElementById("infoModalBackdrop");
+    if (backdrop) {
+        backdrop.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+}
+
+function trackOrderSubmit() {
+    const inputVal = document.getElementById("trackOrderInput").value.trim().toUpperCase();
+    const resultEl = document.getElementById("trackResult");
+    if (!resultEl) return;
+
+    if (!inputVal) {
+        resultEl.style.color = "var(--color-error)";
+        resultEl.innerHTML = "الرجاء إدخال رقم الطلبية أولاً.";
+        return;
+    }
+
+    const order = ordersList.find(o => o.id.toUpperCase() === inputVal || `#${o.id.toUpperCase()}` === inputVal);
+    if (order) {
+        resultEl.style.color = "#2ecc71";
+        resultEl.innerHTML = `
+            <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.25); padding: 1.5rem; border-radius: 4px; text-align: left; margin-top: 1rem;">
+                <p><strong>Order ID:</strong> ${order.id}</p>
+                <p><strong>Status / الحالة:</strong> <span style="text-transform: uppercase; font-weight: 700;">${order.status}</span></p>
+                <p><strong>Date / التاريخ:</strong> ${order.date}</p>
+                <p><strong>Total / المجموع:</strong> ${formatPrice(order.total)}</p>
+            </div>
+        `;
+    } else {
+        resultEl.style.color = "var(--color-error)";
+        resultEl.innerHTML = "الطلبية غير موجودة. يرجى التحقق من الرقم والمحاولة مرة أخرى.";
+    }
+}
+
