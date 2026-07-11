@@ -1201,6 +1201,25 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/products/reorder-batch') {
+        const { orders } = body;
+        if (!orders || !Array.isArray(orders)) {
+          sendJsonResponse(res, { error: "Missing or invalid orders array" }, 400);
+          return;
+        }
+
+        orders.forEach(item => {
+          const prod = db.products.find(p => p.id === parseInt(item.id));
+          if (prod) {
+            prod.priority = parseInt(item.priority);
+          }
+        });
+
+        writeDb(db);
+        sendJsonResponse(res, { success: true });
+        return;
+      }
+
       if (pathname === '/api/brands') {
         const { name, img } = body;
         if (!name || !img) {
