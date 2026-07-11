@@ -331,6 +331,67 @@ function setupEventListeners() {
         });
     }
 
+    // Dynamic stock grid generator
+    window.updateDynamicInventoryGrid = function() {
+        const sizesInput = document.getElementById("newProdSizes");
+        const colorsInput = document.getElementById("newProdColors");
+        const gridContainer = document.getElementById("dynamicInventoryGrid");
+        
+        if (!sizesInput || !colorsInput || !gridContainer) return;
+        
+        const sizes = sizesInput.value.split(",")
+            .map(s => s.trim())
+            .filter(Boolean);
+            
+        const colors = colorsInput.value.split(",")
+            .map(c => c.trim())
+            .filter(Boolean);
+            
+        const currentValues = {};
+        gridContainer.querySelectorAll(".inv-qty-input").forEach(input => {
+            const key = input.dataset.key;
+            currentValues[key] = input.value;
+        });
+        
+        gridContainer.innerHTML = "";
+        
+        if (sizes.length === 0 || colors.length === 0) {
+            gridContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); font-size: 1.2rem; padding: 1rem 0;">Enter sizes and colors first.</div>`;
+            return;
+        }
+        
+        sizes.forEach(size => {
+            colors.forEach(color => {
+                const key = `${size}-${color}`;
+                const existingVal = currentValues[key] !== undefined ? currentValues[key] : "10";
+                
+                const cell = document.createElement("div");
+                cell.style.display = "flex";
+                cell.style.flexDirection = "column";
+                cell.style.gap = "0.5rem";
+                cell.style.backgroundColor = "var(--color-surface)";
+                cell.style.border = "1px solid var(--color-border)";
+                cell.style.padding = "1rem";
+                cell.style.borderRadius = "4px";
+                
+                cell.innerHTML = `
+                    <span style="font-size: 1.1rem; font-weight: 700; color: var(--color-accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${key}">${size} - ${color}</span>
+                    <input type="number" class="inv-qty-input" data-key="${key}" min="0" value="${existingVal}" style="width: 100%; height: 35px; padding: 0.5rem; background: var(--color-background); border: 1px solid var(--color-border); color: var(--color-text); border-radius: 4px;">
+                `;
+                gridContainer.appendChild(cell);
+            });
+        });
+    };
+
+    const newProdSizesInput = document.getElementById("newProdSizes");
+    const newProdColorsInput = document.getElementById("newProdColors");
+    if (newProdSizesInput) {
+        newProdSizesInput.addEventListener("input", window.updateDynamicInventoryGrid);
+    }
+    if (newProdColorsInput) {
+        newProdColorsInput.addEventListener("input", window.updateDynamicInventoryGrid);
+    }
+
     const brandImgFile = document.getElementById("newBrandImgFileInput");
     if (brandImgFile) {
         brandImgFile.addEventListener("change", function() {
@@ -1485,6 +1546,9 @@ function renderAdminProducts() {
 // Add/Delete Products helpers
 function openAddProductModal() {
     addProductForm.reset();
+    if (window.updateDynamicInventoryGrid) {
+        window.updateDynamicInventoryGrid();
+    }
     addProductModalBackdrop.classList.add("active");
 }
 
@@ -1494,6 +1558,21 @@ function closeAddProductModal() {
 
 async function handleNewProductSubmit(event) {
     event.preventDefault();
+
+    // Serialize dynamic inventory quantities to hidden input
+    const gridContainer = document.getElementById("dynamicInventoryGrid");
+    const qtyInputs = gridContainer ? gridContainer.querySelectorAll(".inv-qty-input") : [];
+    const inventoryArray = [];
+    qtyInputs.forEach(input => {
+        const key = input.dataset.key;
+        const val = parseInt(input.value) || 0;
+        inventoryArray.push(`${key}:${val}`);
+    });
+    const inventoryStr = inventoryArray.join(", ");
+    const inventoryInput = document.getElementById("newProdInventory");
+    if (inventoryInput) {
+        inventoryInput.value = inventoryStr;
+    }
 
     const name = document.getElementById("newProdName").value;
     const category = document.getElementById("newProdCategory").value;
