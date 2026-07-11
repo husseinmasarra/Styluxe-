@@ -102,6 +102,7 @@ async function loadProductsFromServer() {
         updateSocialFooterLinks();
         renderAdminCoupons();
         populateSettingsFields();
+        applyHeroBackgroundFromSettings();
     } catch (err) {
         console.error("Failed to load store data from server:", err);
     }
@@ -469,6 +470,24 @@ function setupEventListeners() {
     if (prodCategorySelect) {
         prodCategorySelect.addEventListener("change", () => {
             window.updateDefaultSizesAndInventoryGrid();
+        });
+    }
+
+    const heroImageFileInput = document.getElementById("settingsHeroImageFile");
+    if (heroImageFileInput) {
+        heroImageFileInput.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                getFileBase64(file).then(base64 => {
+                    const previewDiv = document.getElementById("settingsHeroImagePreview");
+                    const previewImg = previewDiv ? previewDiv.querySelector("img") : null;
+                    if (previewDiv && previewImg) {
+                        previewImg.src = base64;
+                        previewDiv.style.display = "block";
+                        previewDiv.dataset.base64 = base64;
+                    }
+                });
+            }
         });
     }
 
@@ -4485,6 +4504,20 @@ function populateSettingsFields() {
     if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
     if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
 
+    const heroPreviewDiv = document.getElementById("settingsHeroImagePreview");
+    const heroPreviewImg = heroPreviewDiv ? heroPreviewDiv.querySelector("img") : null;
+    const heroFileInput = document.getElementById("settingsHeroImageFile");
+    
+    if (heroFileInput) heroFileInput.value = "";
+    if (heroPreviewDiv) delete heroPreviewDiv.dataset.base64;
+    
+    if (STORE_SETTINGS.heroImage && heroPreviewDiv && heroPreviewImg) {
+        heroPreviewImg.src = STORE_SETTINGS.heroImage;
+        heroPreviewDiv.style.display = "block";
+    } else if (heroPreviewDiv) {
+        heroPreviewDiv.style.display = "none";
+    }
+
     const suffixes = ["global", "men", "women", "kids"];
     suffixes.forEach(suffix => {
         const uSuffix = suffix.charAt(0).toUpperCase() + suffix.slice(1);
@@ -4500,6 +4533,13 @@ function populateSettingsFields() {
         if (twitterInput) twitterInput.value = STORE_SETTINGS[`twitter_${suffix}`] || "";
         if (tiktokInput) tiktokInput.value = STORE_SETTINGS[`tiktok_${suffix}`] || "";
     });
+}
+
+function applyHeroBackgroundFromSettings() {
+    const heroBg = document.querySelector(".hero-background");
+    if (heroBg && STORE_SETTINGS && STORE_SETTINGS.heroImage) {
+        heroBg.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('${STORE_SETTINGS.heroImage}')`;
+    }
 }
 
 async function saveAllGeneralSettings() {
@@ -4530,6 +4570,11 @@ async function saveAllGeneralSettings() {
         if (tiktokInput) payload[`tiktok_${suffix}`] = tiktokInput.value.trim();
     });
 
+    const heroPreviewDiv = document.getElementById("settingsHeroImagePreview");
+    if (heroPreviewDiv && heroPreviewDiv.dataset.base64) {
+        payload.heroImage = heroPreviewDiv.dataset.base64;
+    }
+
     try {
         const response = await fetch('/api/settings', {
             method: 'POST',
@@ -4539,6 +4584,11 @@ async function saveAllGeneralSettings() {
 
         if (response.ok) {
             alert("General settings saved successfully for all departments!");
+            const resSettings = await fetch('/api/settings');
+            if (resSettings.ok) {
+                STORE_SETTINGS = await resSettings.json();
+                applyHeroBackgroundFromSettings();
+            }
             await loadProductsFromServer();
         } else {
             alert("Failed to save settings.");
