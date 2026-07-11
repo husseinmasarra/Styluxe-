@@ -522,6 +522,18 @@
         </div>
     </div>
 
+    <!-- Info Modal Backdrop -->
+    <div class="modal-backdrop" id="infoModalBackdrop" style="z-index: 1006;">
+        <div class="product-modal" style="max-width: 700px; padding: 4rem; max-height: 80vh; overflow-y: auto; text-align: left;">
+            <button class="modal-close" onclick="closeInfoModal()" aria-label="Close modal" style="top: 2rem; right: 2rem;"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="infoModalTitle" style="font-family: var(--font-heading); font-size: 2.2rem; letter-spacing: 0.1em; border-bottom: 1px solid var(--color-border); padding-bottom: 2rem; margin-bottom: 3rem; text-align: center; color: var(--color-text);">INFO</h2>
+            <div id="infoModalBody" style="font-size: 1.3rem; line-height: 1.8; color: var(--color-text-muted);">
+                <!-- Populated dynamically -->
+            </div>
+            <button onclick="closeInfoModal()" style="background-color: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); font-weight: 700; width: 100%; padding: 1.5rem 0; margin-top: 4rem; cursor: pointer; border-radius: 4px; letter-spacing: 0.1em; transition: all 0.2s;">OK / إغلاق</button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
@@ -539,10 +551,10 @@
             <div class="footer-col">
                 <h3>HELP</h3>
                 <ul>
-                    <li><a href="#">Track Order</a></li>
-                    <li><a href="#">Shipping & Returns</a></li>
-                    <li><a href="#">FAQs</a></li>
-                    <li><a href="#">Contact Support</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoModal('track')">Track Order</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoModal('shipping')">Shipping & Returns</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoModal('faqs')">FAQs</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoModal('support')">Contact Support</a></li>
                 </ul>
             </div>
 
@@ -551,7 +563,7 @@
                 <ul>
                     <li><a href="javascript:void(0)" onclick="openTermsModal()">Terms of Service</a></li>
                     <li><a href="javascript:void(0)" onclick="openTermsModal()">Privacy Policy</a></li>
-                    <li><a href="#">Refund Policy</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoModal('refund')">Refund Policy</a></li>
                     <li><a href="#" onclick="event.preventDefault(); openAdminLoginModal();" style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-lock"></i> ADMIN PORTAL</a></li>
                 </ul>
             </div>
@@ -565,8 +577,9 @@
                 </form>
             </div>
         </div>
-        <div class="footer-bottom">
+        <div class="footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <p>&copy; 2026 STYLUXE ARCHIVE. ALL RIGHTS RESERVED.</p>
+            <p style="font-size: 1.1rem; letter-spacing: 0.05em;">DEVELOPED BY: <a href="https://wa.me/96181713408" target="_blank" style="color: var(--color-accent); font-weight: 600; text-decoration: none;"><i class="fa-brands fa-whatsapp"></i> CONTACT DEVELOPER / للتواصل مع المبرمج</a></p>
         </div>
     </footer>
 
