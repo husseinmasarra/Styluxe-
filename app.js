@@ -2246,7 +2246,7 @@ function handleCustomerLogin(event) {
         const result = await res.json();
         if (res.ok) {
             if (result.isStaff) {
-                currentAdminDept = "Global";
+                currentAdminDept = result.department || "Global";
                 currentAdminStaff = result;
                 closeAuthModal();
                 event.target.reset();
@@ -3955,7 +3955,10 @@ function renderStaffList() {
         tr.innerHTML = `
             <td><strong>${s.name}</strong></td>
             <td>${s.email}</td>
-            <td><span class="product-badge" style="background-color: var(--color-border); color: var(--color-text);">${s.role}</span></td>
+            <td>
+                <span class="product-badge" style="background-color: var(--color-border); color: var(--color-text);">${s.role}</span>
+                <div style="font-size: 1.1rem; color: var(--color-accent); margin-top: 0.3rem; font-weight: 600;">Dept: ${(s.department || 'Global').toUpperCase()}</div>
+            </td>
             <td style="font-size: 1.1rem; color: var(--color-text-muted);">${permsFormatted}</td>
             <td><span style="color: #25d366; font-weight: 600;">● ${s.status || 'Active'}</span></td>
             <td>
@@ -3987,6 +3990,7 @@ function handleNewStaffSubmit(event) {
     const email = document.getElementById("staffEmail").value;
     const password = document.getElementById("staffPassword").value;
     const role = document.getElementById("staffRole").value;
+    const department = document.getElementById("staffDept").value;
 
     // Read checkboxes
     const checkboxes = document.querySelectorAll('#addStaffForm input[name="permissions"]:checked');
@@ -4002,7 +4006,8 @@ function handleNewStaffSubmit(event) {
         email,
         password,
         role,
-        permissions
+        permissions,
+        department
     };
 
     fetch('/api/staff', {
