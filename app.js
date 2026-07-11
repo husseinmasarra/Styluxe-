@@ -1300,6 +1300,7 @@ function switchAdminTab(tab) {
             customers: "btnTabCustomers",
             staff: "btnTabStaff",
             suppliers: "btnTabSuppliers",
+            settings: "btnTabSettings",
             pos: "adminPosNavBtn"
         };
         if (btn.id === idMap[tab]) {
@@ -1321,6 +1322,7 @@ function switchAdminTab(tab) {
             customers: "adminTabCustomers",
             staff: "adminTabStaff",
             suppliers: "adminTabSuppliers",
+            settings: "adminTabSettings",
             pos: "adminTabPos"
         };
         if (content.id === idMap[tab]) {
@@ -1343,6 +1345,9 @@ function switchAdminTab(tab) {
         renderAdminOrders();
     } else if (tab === "customers") {
         renderAdminCustomers();
+    } else if (tab === "settings") {
+        populateSettingsFields();
+        renderAdminCoupons();
     } else if (tab === "staff") {
         renderStaffList();
     } else if (tab === "suppliers") {
