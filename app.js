@@ -4334,3 +4334,19 @@ function updateSocialFooterLinks() {
     }
 }
 
+function openTermsModal() {
+    const backdrop = document.getElementById("termsModalBackdrop");
+    if (backdrop) {
+        backdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closeTermsModal() {
+    const backdrop = document.getElementById("termsModalBackdrop");
+    if (backdrop) {
+        backdrop.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+}
+
