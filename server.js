@@ -699,9 +699,9 @@ function writeDb(data) {
 
           // Sync staff
           await client.query('DELETE FROM staff');
-          const staffStmt = 'INSERT INTO staff (id, name, email, password, role, permissions) VALUES ($1, $2, $3, $4, $5, $6)';
+          const staffStmt = 'INSERT INTO staff (id, name, email, password, role, permissions, department) VALUES ($1, $2, $3, $4, $5, $6, $7)';
           for (const s of data.staff) {
-            await client.query(staffStmt, [s.id, s.name, s.email, s.password, s.role, JSON.stringify(s.permissions || [])]);
+            await client.query(staffStmt, [s.id, s.name, s.email, s.password, s.role, JSON.stringify(s.permissions || []), s.department || 'Global']);
           }
 
           // Sync categories
@@ -1409,6 +1409,58 @@ const server = http.createServer(async (req, res) => {
         body = await readRequestBody(req);
       } catch (err) {
         sendJsonResponse(res, { error: "Invalid JSON body" }, 400);
+        return;
+      }
+
+      if (pathname === '/api/products') {
+        const { id, name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority } = body;
+        
+        if (!id) {
+          sendJsonResponse(res, { error: "Missing product ID" }, 400);
+          return;
+        }
+
+        const productIndex = db.products.findIndex(p => p.id === id);
+        if (productIndex === -1) {
+          sendJsonResponse(res, { error: "Product not found" }, 404);
+          return;
+        }
+
+        const currentProduct = db.products[productIndex];
+
+        if (name) currentProduct.name = name;
+        if (price !== undefined) currentProduct.price = parseFloat(price);
+        if (category) currentProduct.category = category;
+        if (department) currentProduct.department = department;
+        if (image) currentProduct.image = image;
+        if (description !== undefined) currentProduct.description = description;
+        if (badge !== undefined) currentProduct.badge = badge;
+        if (costPrice !== undefined) currentProduct.costPrice = parseFloat(costPrice);
+        if (priority !== undefined) currentProduct.priority = parseInt(priority);
+
+        if (sizes) {
+          currentProduct.sizes = Array.isArray(sizes) ? sizes : sizes.split(',').map(s=>s.trim());
+        }
+        if (colors) {
+          currentProduct.colors = Array.isArray(colors) ? colors : colors.split(',').map(c=>c.trim());
+        }
+        if (inventory) {
+          if (typeof inventory === 'object') {
+            currentProduct.inventory = inventory;
+          } else if (typeof inventory === 'string') {
+            const inventoryObj = {};
+            inventory.split(',').forEach(item => {
+              const [key, val] = item.split(':');
+              if (key && val) {
+                inventoryObj[key.trim()] = parseInt(val.trim());
+              }
+            });
+            currentProduct.inventory = inventoryObj;
+          }
+        }
+
+        writeDb(db);
+        sendJsonResponse(res, currentProduct);
         return;
       }
 
