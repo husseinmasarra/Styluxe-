@@ -16,6 +16,8 @@ let currentAdminDept = ""; // "Men", "Women", "Kids", "Global"
 let currentAdminStaff = null; // Active logged in staff details
 let adminActiveTab = "overview";
 let posCart = [];
+let isEditingProduct = false;
+let editingProductId = null;
 
 // Customer Accounts State
 let currentUser = null;
@@ -1624,16 +1626,38 @@ function renderAdminProducts() {
                 </div>
             </td>
             <td>
-                <button class="admin-delete-btn" onclick="deleteProduct(${p.id})" aria-label="Delete product"><i class="fa-regular fa-trash-can"></i></button>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="admin-edit-btn" onclick="openEditProductModal(${p.id})" aria-label="Edit product" style="background: none; border: none; color: var(--color-accent); font-size: 1.4rem; cursor: pointer;"><i class="fa-regular fa-pen-to-square"></i></button>
+                    <button class="admin-delete-btn" onclick="deleteProduct(${p.id})" aria-label="Delete product" style="background: none; border: none; color: var(--color-error); font-size: 1.4rem; cursor: pointer;"><i class="fa-regular fa-trash-can"></i></button>
+                </div>
             </td>
         `;
         tableBody.appendChild(tr);
     });
 }
 
-// Add/Delete Products helpers
+// Add/Delete/Edit Products helpers
 function openAddProductModal() {
+    isEditingProduct = false;
+    editingProductId = null;
+
+    const titleEl = document.getElementById("productModalTitle");
+    if (titleEl) titleEl.textContent = "ADD NEW PRODUCT";
+
     addProductForm.reset();
+
+    const fileInput = document.getElementById("newProdImgFile");
+    if (fileInput) {
+        fileInput.value = "";
+        fileInput.required = true;
+    }
+
+    const previewDiv = document.getElementById("newProdImgPreviews");
+    if (previewDiv) {
+        previewDiv.innerHTML = "";
+        delete previewDiv.dataset.existingImages;
+    }
+
     if (window.updateDefaultSizesAndInventoryGrid) {
         window.updateDefaultSizesAndInventoryGrid();
     }
@@ -1644,10 +1668,82 @@ function closeAddProductModal() {
     addProductModalBackdrop.classList.remove("active");
 }
 
+function openEditProductModal(productId) {
+    const prod = PRODUCTS.find(p => p.id === productId);
+    if (!prod) return;
+
+    isEditingProduct = true;
+    editingProductId = productId;
+
+    const titleEl = document.getElementById("productModalTitle");
+    if (titleEl) titleEl.textContent = "EDIT PRODUCT";
+
+    document.getElementById("newProdName").value = prod.name;
+    document.getElementById("newProdPriority").value = prod.priority || 1000;
+    
+    const deptSelect = document.getElementById("newProdDept");
+    if (deptSelect) {
+        deptSelect.value = prod.department;
+        if (currentAdminDept === "Global") {
+            deptSelect.disabled = false;
+        }
+    }
+    
+    updateCategoriesDatalist();
+    
+    const catSelect = document.getElementById("newProdCategory");
+    if (catSelect) catSelect.value = prod.category;
+
+    document.getElementById("newProdPrice").value = prod.price;
+    document.getElementById("newProdCostPrice").value = prod.costPrice || (prod.price * 0.6).toFixed(2);
+    document.getElementById("newProdSizes").value = prod.sizes ? prod.sizes.join(", ") : "";
+    document.getElementById("newProdColors").value = prod.colors ? prod.colors.join(", ") : "";
+    document.getElementById("newProdDesc").value = prod.description || "";
+
+    const fileInput = document.getElementById("newProdImgFile");
+    if (fileInput) {
+        fileInput.value = "";
+        fileInput.required = false; 
+    }
+
+    const previewDiv = document.getElementById("newProdImgPreviews");
+    if (previewDiv) {
+        previewDiv.innerHTML = "";
+        const imgs = getProductGalleryImages(prod);
+        imgs.forEach(imgSrc => {
+            const imgEl = document.createElement("img");
+            imgEl.src = imgSrc;
+            imgEl.style.width = "60px";
+            imgEl.style.height = "60px";
+            imgEl.style.objectFit = "cover";
+            imgEl.style.borderRadius = "4px";
+            imgEl.style.border = "1px solid var(--color-border)";
+            previewDiv.appendChild(imgEl);
+        });
+        previewDiv.dataset.existingImages = prod.image || "";
+    }
+
+    if (window.updateDynamicInventoryGrid) {
+        window.updateDynamicInventoryGrid();
+        
+        setTimeout(() => {
+            const gridContainer = document.getElementById("dynamicInventoryGrid");
+            const inputs = gridContainer ? gridContainer.querySelectorAll(".inv-qty-input") : [];
+            inputs.forEach(input => {
+                const key = input.dataset.key;
+                if (prod.inventory && prod.inventory[key] !== undefined) {
+                    input.value = prod.inventory[key];
+                }
+            });
+        }, 50);
+    }
+
+    addProductModalBackdrop.classList.add("active");
+}
+
 async function handleNewProductSubmit(event) {
     event.preventDefault();
 
-    // Serialize dynamic inventory quantities to hidden input
     const gridContainer = document.getElementById("dynamicInventoryGrid");
     const qtyInputs = gridContainer ? gridContainer.querySelectorAll(".inv-qty-input") : [];
     const inventoryArray = [];
@@ -1673,6 +1769,7 @@ async function handleNewProductSubmit(event) {
     const desc = document.getElementById("newProdDesc").value;
 
     const fileInput = document.getElementById("newProdImgFile");
+    const previewDiv = document.getElementById("newProdImgPreviews");
     let img = "";
 
     if (fileInput.files && fileInput.files.length > 0) {
@@ -1684,16 +1781,17 @@ async function handleNewProductSubmit(event) {
             alert("Error reading product image files.");
             return;
         }
+    } else if (isEditingProduct && previewDiv && previewDiv.dataset.existingImages) {
+        img = previewDiv.dataset.existingImages;
     } else {
         alert("PLEASE SELECT AT LEAST ONE PRODUCT IMAGE FILE.");
         return;
     }
 
-    // Determine department
     const deptSelect = document.getElementById("newProdDept");
     const department = deptSelect ? deptSelect.value : (currentAdminDept === "Global" ? "Men" : currentAdminDept);
 
-    const newProductData = {
+    const productData = {
         name: name.toUpperCase(),
         category: category,
         department: department,
@@ -1708,25 +1806,32 @@ async function handleNewProductSubmit(event) {
         badge: "NEW"
     };
 
-    fetch('/api/products', {
-        method: 'POST',
+    if (isEditingProduct) {
+        productData.id = editingProductId;
+    }
+
+    const apiUrl = '/api/products';
+    const apiMethod = isEditingProduct ? 'PUT' : 'POST';
+
+    fetch(apiUrl, {
+        method: apiMethod,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProductData)
+        body: JSON.stringify(productData)
     })
     .then(async res => {
         if (res.ok) {
             closeAddProductModal();
-            await loadProductsFromServer(); // reload & sync
-            renderAdminProducts(); // Refresh admin table
+            await loadProductsFromServer(); 
+            renderAdminProducts(); 
             event.target.reset();
-            const previewDiv = document.getElementById("newProdImgPreview");
-            if (previewDiv) previewDiv.style.display = "none";
+            const previewDiv = document.getElementById("newProdImgPreviews");
+            if (previewDiv) previewDiv.innerHTML = "";
         } else {
             const err = await res.json();
-            alert("Error creating product: " + err.error);
+            alert("Error saving product: " + err.error);
         }
     })
-    .catch(err => console.error("Error creating product:", err));
+    .catch(err => console.error("Error saving product:", err));
 }
 
 async function reorderProduct(id, action) {
