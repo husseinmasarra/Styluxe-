@@ -1764,9 +1764,18 @@
                          <input type="password" id="staffPassword" required placeholder="Min 6 characters">
                      </div>
                      <div class="form-group">
-                         <label for="staffRole">Role Title *</label>
-                         <input type="text" id="staffRole" required placeholder="e.g. Store Supervisor">
-                     </div>
+                          <label for="staffRole">Role Title *</label>
+                          <input type="text" id="staffRole" required placeholder="e.g. Store Supervisor">
+                      </div>
+                      <div class="form-group">
+                          <label for="staffDept">Assigned Department *</label>
+                          <select id="staffDept" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                              <option value="Global" selected>Global (All Departments)</option>
+                              <option value="Men">Men</option>
+                              <option value="Women">Women</option>
+                              <option value="Kids">Kids</option>
+                          </select>
+                      </div>
                      <div class="form-group">
                          <label style="margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.05em;">ASSIGN PERMISSIONS *</label>
                          <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; background-color: var(--color-surface); padding: 1.5rem; border: 1px solid var(--color-border); border-radius: 4px;">
