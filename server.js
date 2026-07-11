@@ -356,6 +356,7 @@ async function initPgDatabase() {
       role VARCHAR(100) NOT NULL,
       permissions TEXT NOT NULL
     )`);
+    await pool.query(`ALTER TABLE staff ADD COLUMN IF NOT EXISTS department VARCHAR(50) NOT NULL DEFAULT 'Global'`);
 
     // Create categories table
     await pool.query(`CREATE TABLE IF NOT EXISTS categories (
@@ -1061,7 +1062,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/staff') {
-        const { name, email, password, role, permissions } = body;
+        const { name, email, password, role, permissions, department } = body;
         const normalizedEmail = (email || '').trim().toLowerCase();
 
         if (!name || !normalizedEmail || !password || !role) {
@@ -1082,6 +1083,7 @@ const server = http.createServer(async (req, res) => {
           password,
           role,
           permissions: Array.isArray(permissions) ? permissions : [],
+          department: department || "Global",
           status: "Active"
         };
 
