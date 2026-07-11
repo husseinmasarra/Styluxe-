@@ -238,13 +238,21 @@
                     <button class="filter-tag" onclick="filterByCategory('Jeans')">JEANS</button>
                     <button class="filter-tag" onclick="filterByCategory('Footwear')">FOOTWEAR</button>
                 </div>
-                <div class="sort-selector">
-                    <label for="sortSelect" class="sr-only">Sort By</label>
-                    <select id="sortSelect" onchange="sortProducts()" aria-label="Sort products">
-                        <option value="default">SORT BY: FEATURED</option>
-                        <option value="price-low">PRICE: LOW TO HIGH</option>
-                        <option value="price-high">PRICE: HIGH TO LOW</option>
-                    </select>
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    <div class="sort-selector">
+                        <label for="brandFilterSelect" class="sr-only">Filter by Brand</label>
+                        <select id="brandFilterSelect" onchange="filterByBrand(this.value)" aria-label="Filter by Brand">
+                            <option value="All">ALL BRANDS</option>
+                        </select>
+                    </div>
+                    <div class="sort-selector">
+                        <label for="sortSelect" class="sr-only">Sort By</label>
+                        <select id="sortSelect" onchange="sortProducts()" aria-label="Sort products">
+                            <option value="default">SORT BY: FEATURED</option>
+                            <option value="price-low">PRICE: LOW TO HIGH</option>
+                            <option value="price-high">PRICE: HIGH TO LOW</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -279,6 +287,7 @@
                     </div>
                 </div>
                 <div class="modal-info">
+                    <div id="modalProductBrand" style="font-size: 1.8rem; font-weight: 700; color: var(--color-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem;">STYLUXE</div>
                     <span id="modalProductCategory" class="modal-category">CATEGORY</span>
                     <h2 id="modalProductName" class="modal-title">PRODUCT NAME</h2>
                     <div id="modalProductPrice" class="modal-price">$0.00</div>
@@ -1389,6 +1398,14 @@
                           <label for="newProdCategory">Category *</label>
                           <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
                               <option value="" disabled selected>Select Category</option>
+                          </select>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label for="newProdBrand">Brand *</label>
+                          <select id="newProdBrand" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                              <option value="" disabled selected>Select Brand</option>
+                              <option value="Styluxe">Styluxe</option>
                           </select>
                       </div>
                       
