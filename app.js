@@ -96,6 +96,7 @@ async function loadProductsFromServer() {
         if (resCoupons.ok) COUPONS = await resCoupons.json();
 
         updateCategoriesDatalist();
+        populateBrandOptions();
         
         renderProducts();
         renderBrandSlider();
@@ -724,6 +725,7 @@ function renderProducts() {
                 </div>
             </div>
             <div class="product-info" onclick="openProductModal(${p.id})">
+                <div class="product-brand">${getProductBrand(p)}</div>
                 <span class="product-category">${p.department} / ${p.category}</span>
                 <h3 class="product-name">${p.name}</h3>
                 <span class="product-price">${formatPrice(p.price)}</span>
@@ -744,6 +746,10 @@ function openProductModal(productId) {
 
     modalProductImg.src = getProductMainImage(product);
     modalProductImg.alt = product.name;
+    
+    const brandEl = document.getElementById("modalProductBrand");
+    if (brandEl) brandEl.textContent = getProductBrand(product);
+    
     modalProductCategory.textContent = `${product.department} / ${product.category}`;
     modalProductName.textContent = product.name;
     modalProductPrice.textContent = formatPrice(product.price);
@@ -1658,6 +1664,9 @@ function openAddProductModal() {
         delete previewDiv.dataset.existingImages;
     }
 
+    const brandSelect = document.getElementById("newProdBrand");
+    if (brandSelect) brandSelect.selectedIndex = 0;
+
     if (window.updateDefaultSizesAndInventoryGrid) {
         window.updateDefaultSizesAndInventoryGrid();
     }
@@ -1693,6 +1702,9 @@ function openEditProductModal(productId) {
     
     const catSelect = document.getElementById("newProdCategory");
     if (catSelect) catSelect.value = prod.category;
+
+    const brandSelect = document.getElementById("newProdBrand");
+    if (brandSelect) brandSelect.value = prod.brand || "Styluxe";
 
     document.getElementById("newProdPrice").value = prod.price;
     document.getElementById("newProdCostPrice").value = prod.costPrice || (prod.price * 0.6).toFixed(2);
@@ -1767,6 +1779,7 @@ async function handleNewProductSubmit(event) {
     const colors = document.getElementById("newProdColors").value;
     const inventory = document.getElementById("newProdInventory").value;
     const desc = document.getElementById("newProdDesc").value;
+    const brand = document.getElementById("newProdBrand").value;
 
     const fileInput = document.getElementById("newProdImgFile");
     const previewDiv = document.getElementById("newProdImgPreviews");
@@ -1803,7 +1816,8 @@ async function handleNewProductSubmit(event) {
         sizes: sizes,
         colors: colors,
         inventory: inventory,
-        badge: "NEW"
+        badge: "NEW",
+        brand: brand || "Styluxe"
     };
 
     if (isEditingProduct) {
@@ -3986,7 +4000,10 @@ const DEPT_WHATSAPP = {
 
 // Extract brand names dynamically from product details
 function getProductBrand(product) {
-    const name = product.name.toUpperCase();
+    if (product && product.brand) {
+        return product.brand;
+    }
+    const name = product && product.name ? product.name.toUpperCase() : "";
     for (const b of BRANDS) {
         if (name.includes(b.name.toUpperCase())) {
             return b.name;
@@ -4040,8 +4057,51 @@ function renderBrandSlider() {
 
 function selectBrand(brand) {
     activeBrand = brand;
+    const select = document.getElementById("brandFilterSelect");
+    if (select) select.value = brand;
     renderBrandSlider();
     renderProducts();
+}
+
+function filterByBrand(brand) {
+    selectBrand(brand);
+}
+
+function populateBrandOptions() {
+    const newProdBrand = document.getElementById("newProdBrand");
+    if (newProdBrand) {
+        newProdBrand.innerHTML = `<option value="" disabled selected>Select Brand</option>`;
+        BRANDS.forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b.name;
+            opt.textContent = b.name;
+            newProdBrand.appendChild(opt);
+        });
+        if (BRANDS.length === 0 || !BRANDS.some(b => b.name === "Styluxe")) {
+            const opt = document.createElement("option");
+            opt.value = "Styluxe";
+            opt.textContent = "Styluxe";
+            newProdBrand.appendChild(opt);
+        }
+    }
+
+    const brandFilterSelect = document.getElementById("brandFilterSelect");
+    if (brandFilterSelect) {
+        brandFilterSelect.innerHTML = `<option value="All">ALL BRANDS</option>`;
+        const uniqueProductBrands = [...new Set(PRODUCTS.map(p => p.brand || "Styluxe"))];
+        const allBrandNames = new Set([
+            "Styluxe", 
+            ...BRANDS.map(b => b.name),
+            ...uniqueProductBrands
+        ]);
+        allBrandNames.forEach(bName => {
+            const opt = document.createElement("option");
+            opt.value = bName;
+            opt.textContent = bName.toUpperCase();
+            brandFilterSelect.appendChild(opt);
+        });
+        brandFilterSelect.value = activeBrand || "All";
+    }
 }
 
 // Renders the subcategory tabs dynamically based on selected department's products
