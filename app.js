@@ -4170,35 +4170,28 @@ function populateSettingsFields() {
     if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
     if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
 
-    onSettingsDeptChange();
+    const suffixes = ["global", "men", "women", "kids"];
+    suffixes.forEach(suffix => {
+        const uSuffix = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+        const whatsappInput = document.getElementById(`settingsWhatsapp${uSuffix}`);
+        const instagramInput = document.getElementById(`settingsInstagram${uSuffix}`);
+        const facebookInput = document.getElementById(`settingsFacebook${uSuffix}`);
+        const twitterInput = document.getElementById(`settingsTwitter${uSuffix}`);
+        const tiktokInput = document.getElementById(`settingsTiktok${uSuffix}`);
+
+        if (whatsappInput) whatsappInput.value = STORE_SETTINGS[`whatsapp_${suffix}`] || "";
+        if (instagramInput) instagramInput.value = STORE_SETTINGS[`instagram_${suffix}`] || "";
+        if (facebookInput) facebookInput.value = STORE_SETTINGS[`facebook_${suffix}`] || "";
+        if (twitterInput) twitterInput.value = STORE_SETTINGS[`twitter_${suffix}`] || "";
+        if (tiktokInput) tiktokInput.value = STORE_SETTINGS[`tiktok_${suffix}`] || "";
+    });
 }
 
-function onSettingsDeptChange() {
-    const deptSelect = document.getElementById("settingsDeptSelect");
-    if (!deptSelect) return;
-    const dept = deptSelect.value;
-
-    const suffix = dept.toLowerCase();
-    
-    const whatsappInput = document.getElementById("settingsWhatsapp");
-    const instagramInput = document.getElementById("settingsInstagram");
-    const facebookInput = document.getElementById("settingsFacebook");
-    const twitterInput = document.getElementById("settingsTwitter");
-    const tiktokInput = document.getElementById("settingsTiktok");
-
-    if (whatsappInput) whatsappInput.value = STORE_SETTINGS[`whatsapp_${suffix}`] || "";
-    if (instagramInput) instagramInput.value = STORE_SETTINGS[`instagram_${suffix}`] || "";
-    if (facebookInput) facebookInput.value = STORE_SETTINGS[`facebook_${suffix}`] || "";
-    if (twitterInput) twitterInput.value = STORE_SETTINGS[`twitter_${suffix}`] || "";
-    if (tiktokInput) tiktokInput.value = STORE_SETTINGS[`tiktok_${suffix}`] || "";
-}
-
-async function saveGeneralSettings() {
+async function saveAllGeneralSettings() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
     const twitterCheck = document.getElementById("settingsShowTwitter");
     const tiktokCheck = document.getElementById("settingsShowTiktok");
-    const deptSelect = document.getElementById("settingsDeptSelect");
 
     const payload = {};
     if (feeInput) payload.shipping_fee = feeInput.value;
@@ -4206,22 +4199,21 @@ async function saveGeneralSettings() {
     if (twitterCheck) payload.show_twitter = String(twitterCheck.checked);
     if (tiktokCheck) payload.show_tiktok = String(tiktokCheck.checked);
 
-    if (deptSelect) {
-        const dept = deptSelect.value;
-        const suffix = dept.toLowerCase();
-        
-        const whatsappInput = document.getElementById("settingsWhatsapp");
-        const instagramInput = document.getElementById("settingsInstagram");
-        const facebookInput = document.getElementById("settingsFacebook");
-        const twitterInput = document.getElementById("settingsTwitter");
-        const tiktokInput = document.getElementById("settingsTiktok");
+    const suffixes = ["global", "men", "women", "kids"];
+    suffixes.forEach(suffix => {
+        const uSuffix = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+        const whatsappInput = document.getElementById(`settingsWhatsapp${uSuffix}`);
+        const instagramInput = document.getElementById(`settingsInstagram${uSuffix}`);
+        const facebookInput = document.getElementById(`settingsFacebook${uSuffix}`);
+        const twitterInput = document.getElementById(`settingsTwitter${uSuffix}`);
+        const tiktokInput = document.getElementById(`settingsTiktok${uSuffix}`);
 
         if (whatsappInput) payload[`whatsapp_${suffix}`] = whatsappInput.value.trim();
         if (instagramInput) payload[`instagram_${suffix}`] = instagramInput.value.trim();
         if (facebookInput) payload[`facebook_${suffix}`] = facebookInput.value.trim();
         if (twitterInput) payload[`twitter_${suffix}`] = twitterInput.value.trim();
         if (tiktokInput) payload[`tiktok_${suffix}`] = tiktokInput.value.trim();
-    }
+    });
 
     try {
         const response = await fetch('/api/settings', {
@@ -4231,7 +4223,7 @@ async function saveGeneralSettings() {
         });
 
         if (response.ok) {
-            alert("تم حفظ الإعدادات العامة بنجاح!");
+            alert("تم حفظ الإعدادات العامة لكافة الأقسام بنجاح!");
             await loadProductsFromServer();
         } else {
             alert("فشل حفظ الإعدادات.");
