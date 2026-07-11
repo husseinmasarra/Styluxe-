@@ -809,9 +809,11 @@ img {
 }
 
 .product-name {
-    font-size: 1.4rem;
-    font-weight: 500;
+    font-size: 1.6rem;
+    font-weight: 700;
     letter-spacing: 0.05em;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
 }
 
 .product-price {
@@ -948,10 +950,11 @@ img {
 
 .modal-title {
     font-family: var(--font-heading);
-    font-size: 3rem;
-    font-weight: 400;
+    font-size: 3.4rem;
+    font-weight: 700;
     letter-spacing: 0.1em;
     margin-bottom: 2rem;
+    color: var(--color-text);
 }
 
 .modal-price {
@@ -1891,7 +1894,8 @@ img {
     }
 
     .product-name {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+        font-weight: 700;
         line-height: 1.3;
     }
 
