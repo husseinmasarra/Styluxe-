@@ -1351,72 +1351,76 @@
          <div class="checkout-modal" style="max-width: 600px;">
              <button class="close-modal-btn" onclick="closeAddProductModal()"><i class="fa-solid fa-xmark"></i></button>
              <h2 class="checkout-title">ADD NEW PRODUCT</h2>
-             <form id="addProductForm" onsubmit="handleNewProductSubmit(event)">
-                 <div class="form-grid" style="grid-template-columns: 1fr;">
-                       <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 1.5rem;">
-                          <div class="form-group">
-                              <label for="newProdName">Product Name *</label>
-                              <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE">
-                          </div>
-                          <div class="form-group">
-                              <label for="newProdPriority">Priority *</label>
-                              <input type="number" id="newProdPriority" required value="1" min="1" placeholder="e.g. 1" style="height: 50px;">
-                          </div>
+              <form id="addProductForm" onsubmit="handleNewProductSubmit(event)">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
+                      
+                      <div class="form-group" style="grid-column: span 2;">
+                          <label for="newProdName">Product Name *</label>
+                          <input type="text" id="newProdName" required placeholder="e.g. STYLUXE CROP TEE" style="width: 100%;">
                       </div>
-                     <div class="form-grid" style="grid-template-columns: 1fr 1fr 1.5fr; gap: 1.5rem;">
-                          <div class="form-group">
-                              <label for="newProdDept">Department *</label>
-                              <select id="newProdDept" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
-                                  <option value="" disabled selected>Select Department</option>
-                                  <option value="Men">Men</option>
-                                  <option value="Women">Women</option>
-                                  <option value="Kids">Kids</option>
-                              </select>
-                          </div>
-                          <div class="form-group">
-                              <label for="newProdCategory">Category *</label>
-                              <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
-                                  <option value="" disabled selected>Select Category</option>
-                              </select>
-                          </div>
-                          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                              <div class="form-group">
-                                  <label for="newProdPrice">Selling Price *</label>
-                                  <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="Price" style="height: 50px;">
-                              </div>
-                              <div class="form-group">
-                                  <label for="newProdCostPrice">Cost Price *</label>
-                                  <input type="number" id="newProdCostPrice" min="0" step="0.01" required placeholder="Cost" style="height: 50px;">
-                              </div>
-                          </div>
-                     </div>
+                      
                       <div class="form-group">
-                          <label for="newProdImgFile">Upload Product Image *</label>
-                          <input type="file" id="newProdImgFile" accept="image/*" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                          <input type="text" id="newProdImg" style="display: none;">
-                          <div id="newProdImgPreview" style="display: none; margin-top: 1rem;">
-                              <img src="" alt="Preview" style="max-height: 120px; border-radius: 4px; border: 1px solid var(--color-border); object-fit: contain;">
-                          </div>
+                          <label for="newProdPriority">Priority *</label>
+                          <input type="number" id="newProdPriority" required value="1" min="1" placeholder="e.g. 1" style="width: 100%; height: 50px;">
                       </div>
-                     <div class="form-group">
+                      
+                      <div class="form-group">
+                          <label for="newProdDept">Department *</label>
+                          <select id="newProdDept" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                              <option value="" disabled selected>Select Department</option>
+                              <option value="Men">Men</option>
+                              <option value="Women">Women</option>
+                              <option value="Kids">Kids</option>
+                          </select>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label for="newProdCategory">Category *</label>
+                          <select id="newProdCategory" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.2rem; color: var(--color-text); width: 100%; height: 50px; border-radius: 4px;">
+                              <option value="" disabled selected>Select Category</option>
+                          </select>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label for="newProdPrice">Selling Price ($) *</label>
+                          <input type="number" id="newProdPrice" min="1" step="0.01" required placeholder="e.g. 45" style="width: 100%; height: 50px;">
+                      </div>
+
+                      <div class="form-group">
+                          <label for="newProdCostPrice">Cost Price ($) *</label>
+                          <input type="number" id="newProdCostPrice" min="0" step="0.01" required placeholder="e.g. 18" style="width: 100%; height: 50px;">
+                      </div>
+
+                      <div class="form-group">
                           <label for="newProdSizes">Sizes (Comma-separated) *</label>
-                          <input type="text" id="newProdSizes" required value="S, M, L, XL" placeholder="S, M, L">
+                          <input type="text" id="newProdSizes" required value="S, M, L, XL" placeholder="S, M, L" style="width: 100%;">
                       </div>
-                      <div class="form-group">
+
+                      <div class="form-group" style="grid-column: span 2;">
                           <label for="newProdColors">Colors (Comma-separated) *</label>
-                          <input type="text" id="newProdColors" required value="Black, Charcoal, Grey" placeholder="Black, Grey">
+                          <input type="text" id="newProdColors" required value="Black, Charcoal, Grey" placeholder="Black, Grey" style="width: 100%;">
                       </div>
-                      <div class="form-group">
+
+                      <div class="form-group" style="grid-column: span 2;">
                           <label for="newProdInventory">Initial Quantities (Format: S-Black:10, M-Black:5) *</label>
-                          <input type="text" id="newProdInventory" required value="S-Black:10, M-Black:10, L-Black:10, XL-Black:10, S-Charcoal:10, M-Charcoal:10, L-Charcoal:10, XL-Charcoal:10, S-Grey:10, M-Grey:10, L-Grey:10, XL-Grey:10" placeholder="S-Black:10, M-Black:5">
+                          <input type="text" id="newProdInventory" required value="S-Black:10, M-Black:10, L-Black:10, XL-Black:10, S-Charcoal:10, M-Charcoal:10, L-Charcoal:10, XL-Charcoal:10, S-Grey:10, M-Grey:10, L-Grey:10, XL-Grey:10" placeholder="S-Black:10, M-Black:5" style="width: 100%;">
                       </div>
-                      <div class="form-group">
+
+                      <div class="form-group" style="grid-column: span 2;">
+                          <label for="newProdImgFile">Upload Product Images (Select multiple if needed) *</label>
+                          <input type="file" id="newProdImgFile" accept="image/*" multiple required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                          <div id="newProdImgPreviews" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                              <!-- Dynamically populated previews -->
+                          </div>
+                      </div>
+
+                      <div class="form-group" style="grid-column: span 2;">
                           <label for="newProdDesc">Description *</label>
-                          <textarea id="newProdDesc" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); height: 80px; resize: none;" placeholder=" Garment details..."></textarea>
+                          <textarea id="newProdDesc" required style="background-color: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; color: var(--color-text); width: 100%; height: 80px; resize: none;" placeholder="Garment details..."></textarea>
                       </div>
-                 </div>
-                 <button type="submit" class="place-order-btn" style="margin-top: 2rem;">SAVE PRODUCT</button>
-             </form>
+                  </div>
+                  <button type="submit" class="place-order-btn" style="margin-top: 3rem; width: 100%;">SAVE PRODUCT</button>
+              </form>
          </div>
     </div>
 
