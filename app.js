@@ -6,6 +6,9 @@ let CATEGORIES = [];
 let BRANDS = [];
 let SUPPLIERS = [];
 let INVOICES = [];
+let STORE_SETTINGS = {};
+let COUPONS = [];
+let activeCoupon = null;
 let cart = [];
 
 // Admin Panel State
@@ -72,12 +75,14 @@ const drawerBackdrop = document.getElementById("drawerBackdrop");
 // DATABASE SYNC ACTIONS
 async function loadProductsFromServer() {
     try {
-        const [resProd, resCat, resBrand, resSupp, resInv] = await Promise.all([
+        const [resProd, resCat, resBrand, resSupp, resInv, resSettings, resCoupons] = await Promise.all([
             fetch('/api/products'),
             fetch('/api/categories'),
             fetch('/api/brands'),
             fetch('/api/suppliers'),
-            fetch('/api/invoices')
+            fetch('/api/invoices'),
+            fetch('/api/settings'),
+            fetch('/api/coupons')
         ]);
         
         if (resProd.ok) PRODUCTS = await resProd.json();
@@ -85,12 +90,18 @@ async function loadProductsFromServer() {
         if (resBrand.ok) BRANDS = await resBrand.json();
         if (resSupp.ok) SUPPLIERS = await resSupp.json();
         if (resInv.ok) INVOICES = await resInv.json();
+        if (resSettings.ok) STORE_SETTINGS = await resSettings.json();
+        if (resCoupons.ok) COUPONS = await resCoupons.json();
 
         updateCategoriesDatalist();
         
         renderProducts();
         renderBrandSlider();
         renderCategoryTags();
+        updateWhatsAppPill(activeDepartment);
+        updateSocialFooterLinks();
+        renderAdminCoupons();
+        populateSettingsFields();
     } catch (err) {
         console.error("Failed to load store data from server:", err);
     }
@@ -831,11 +842,6 @@ function openCheckoutModal() {
 
     toggleCartDrawer(false);
 
-    // Populate Order Summary inside Checkout
-    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const shipping = subtotal >= 150 ? 0 : 10; // Free shipping over $150
-    const total = subtotal + shipping;
-
     // Pre-fill fields from user profile if logged in, otherwise leave empty
     if (currentUser) {
         document.getElementById("fullName").value = currentUser.name;
@@ -850,6 +856,43 @@ function openCheckoutModal() {
     }
     document.getElementById("city").value = "Beirut";
 
+    // Reset coupon code input and active coupon
+    activeCoupon = null;
+    const couponInput = document.getElementById("checkoutCouponInput");
+    if (couponInput) couponInput.value = "";
+    const couponMessage = document.getElementById("couponMessage");
+    if (couponMessage) {
+        couponMessage.style.display = "none";
+        couponMessage.innerHTML = "";
+    }
+
+    updateCheckoutSummary();
+
+    // Display modal
+    checkoutModalBackdrop.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+function updateCheckoutSummary() {
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    
+    // Read dynamic settings
+    const shippingFee = parseFloat(STORE_SETTINGS.shipping_fee) || 5;
+    const freeThreshold = parseFloat(STORE_SETTINGS.free_shipping_threshold) || 150;
+    
+    const shipping = subtotal >= freeThreshold ? 0 : shippingFee;
+    
+    let discount = 0;
+    if (activeCoupon) {
+        if (activeCoupon.discountType === 'percent') {
+            discount = (subtotal * activeCoupon.discountValue) / 100;
+        } else if (activeCoupon.discountType === 'fixed') {
+            discount = Math.min(subtotal, activeCoupon.discountValue);
+        }
+    }
+    
+    const total = subtotal - discount + shipping;
+
     checkoutOrderSummary.innerHTML = "";
     
     // Add cart items
@@ -863,12 +906,35 @@ function openCheckoutModal() {
         checkoutOrderSummary.appendChild(row);
     });
 
+    // Add subtotal row
+    const subtotalRow = document.createElement("div");
+    subtotalRow.classList.add("summary-item-row");
+    subtotalRow.style.borderTop = "1px solid var(--color-border)";
+    subtotalRow.style.paddingTop = "1rem";
+    subtotalRow.innerHTML = `
+        <span>SUBTOTAL</span>
+        <span>${formatPrice(subtotal)}</span>
+    `;
+    checkoutOrderSummary.appendChild(subtotalRow);
+
+    // Add discount row if coupon active
+    if (discount > 0) {
+        const discountRow = document.createElement("div");
+        discountRow.classList.add("summary-item-row");
+        discountRow.style.color = "#2ecc71";
+        discountRow.innerHTML = `
+            <span>DISCOUNT (${activeCoupon.code})</span>
+            <span>-${formatPrice(discount)}</span>
+        `;
+        checkoutOrderSummary.appendChild(discountRow);
+    }
+
     // Add shipping row
     const shippingRow = document.createElement("div");
     shippingRow.classList.add("summary-item-row");
     shippingRow.innerHTML = `
-        <span>SHIPPING</span>
-        <span>${shipping === 0 ? "FREE" : formatPrice(shipping)}</span>
+        <span>SHIPPING / التوصيل</span>
+        <span>${shipping === 0 ? "FREE / مجاني" : formatPrice(shipping)}</span>
     `;
     checkoutOrderSummary.appendChild(shippingRow);
 
@@ -877,13 +943,46 @@ function openCheckoutModal() {
     totalRow.classList.add("summary-item-row", "total-row");
     totalRow.innerHTML = `
         <span>TOTAL TO PAY</span>
-        <span>${formatPrice(total)}</span>
+        <span id="checkoutGrandTotal">${formatPrice(total)}</span>
     `;
     checkoutOrderSummary.appendChild(totalRow);
+}
 
-    // Display modal
-    checkoutModalBackdrop.classList.add("active");
-    document.body.style.overflow = "hidden";
+async function applyCouponCode() {
+    const code = document.getElementById("checkoutCouponInput").value.trim().toUpperCase();
+    const msgEl = document.getElementById("couponMessage");
+    if (!msgEl) return;
+
+    if (!code) {
+        msgEl.style.display = "block";
+        msgEl.style.color = "var(--color-error)";
+        msgEl.textContent = "يرجى إدخال كود الحسم أولاً.";
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/coupons/validate?code=${code}`);
+        const result = await response.json();
+
+        if (response.ok && result.valid) {
+            activeCoupon = result;
+            msgEl.style.display = "block";
+            msgEl.style.color = "#2ecc71";
+            msgEl.textContent = `تم تطبيق الكود بنجاح! خصم بقيمة ${result.discountType === 'percent' ? result.discountValue + '%' : formatPrice(result.discountValue)}`;
+            updateCheckoutSummary();
+        } else {
+            activeCoupon = null;
+            msgEl.style.display = "block";
+            msgEl.style.color = "var(--color-error)";
+            msgEl.textContent = result.error || "كود غير صالح أو منتهي الصلاحية.";
+            updateCheckoutSummary();
+        }
+    } catch (e) {
+        console.error("Error validating coupon:", e);
+        msgEl.style.display = "block";
+        msgEl.style.color = "var(--color-error)";
+        msgEl.textContent = "حدث خطأ أثناء التحقق من الكود.";
+    }
 }
 
 function closeCheckoutModal() {
@@ -902,8 +1001,19 @@ function handleCheckoutSubmit(event) {
     submitBtn.textContent = "PROCESSING ORDER...";
 
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const shipping = subtotal >= 150 ? 0 : 10;
-    const total = subtotal + shipping;
+    const shippingFee = parseFloat(STORE_SETTINGS.shipping_fee) || 5;
+    const freeThreshold = parseFloat(STORE_SETTINGS.free_shipping_threshold) || 150;
+    const shipping = subtotal >= freeThreshold ? 0 : shippingFee;
+    
+    let discount = 0;
+    if (activeCoupon) {
+        if (activeCoupon.discountType === 'percent') {
+            discount = (subtotal * activeCoupon.discountValue) / 100;
+        } else if (activeCoupon.discountType === 'fixed') {
+            discount = Math.min(subtotal, activeCoupon.discountValue);
+        }
+    }
+    const total = subtotal - discount + shipping;
     const randomNum = Math.floor(10000 + Math.random() * 90000);
     const firstItemDept = cart[0] ? PRODUCTS.find(p => p.id === cart[0].id).department : "Men";
 
@@ -3548,16 +3658,34 @@ function renderCategoryTags() {
 
 // Updates floating WhatsApp action details
 function updateWhatsAppPill(dept) {
-    const data = DEPT_WHATSAPP[dept] || DEPT_WHATSAPP["All"];
     const btn = document.getElementById("floatingWhatsappBtn");
     const label = document.getElementById("whatsappDeptTag");
 
+    let number = "96171987654";
+    let lbl = "GENERAL SUPPORT";
+
+    if (dept === "All") {
+        number = STORE_SETTINGS.whatsapp_global || "96101123456";
+        lbl = "GENERAL SUPPORT";
+    } else if (dept === "Men") {
+        number = STORE_SETTINGS.whatsapp_men || "96170123456";
+        lbl = "MEN'S SUPPORT";
+    } else if (dept === "Women") {
+        number = STORE_SETTINGS.whatsapp_women || "96170123456";
+        lbl = "WOMEN'S SUPPORT";
+    } else if (dept === "Kids") {
+        number = STORE_SETTINGS.whatsapp_kids || "96170123456";
+        lbl = "KIDS' SUPPORT";
+    }
+
+    const cleanNumber = number.replace(/[^\d]/g, "");
+
     if (btn) {
         const msg = encodeURIComponent(`Hi Styluxe, I'm inquiring about the ${dept === 'All' ? 'collections' : dept + ' collection'}.`);
-        btn.href = `https://wa.me/${data.number}?text=${msg}`;
+        btn.href = `https://wa.me/${cleanNumber}?text=${msg}`;
     }
     if (label) {
-        label.textContent = data.label;
+        label.textContent = lbl;
     }
 }
 
@@ -3576,6 +3704,7 @@ function applyStaffPermissions() {
     const btnCustomers = document.getElementById("btnTabCustomers");
     const btnStaff = document.getElementById("btnTabStaff");
     const btnPos = document.getElementById("adminPosNavBtn");
+    const btnSettings = document.getElementById("btnTabSettings");
     
     const btnCategories = document.getElementById("btnTabCategories");
     const btnBrands = document.getElementById("btnTabBrands");
@@ -3592,6 +3721,9 @@ function applyStaffPermissions() {
     }
     if (btnSuppliers) {
         btnSuppliers.style.display = (currentAdminDept === "Global") ? "flex" : "none";
+    }
+    if (btnSettings) {
+        btnSettings.style.display = (currentAdminDept === "Global") ? "flex" : "none";
     }
     if (btnOrders) {
         btnOrders.style.display = perms.includes("manage_orders") ? "flex" : "none";
@@ -4015,6 +4147,193 @@ async function resetAllStoreSales() {
     } catch (err) {
         console.error("Failed to reset sales:", err);
         alert("فشل الاتصال بالسيرفر لتصفير الحسابات.");
+    }
+}
+
+// ==========================================================================
+// GENERAL STORE SETTINGS & COUPON CODES MANAGEMENT FRONTEND LOGIC
+// ==========================================================================
+function populateSettingsFields() {
+    const feeInput = document.getElementById("settingsShippingFee");
+    const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
+    const twitterCheck = document.getElementById("settingsShowTwitter");
+    const tiktokCheck = document.getElementById("settingsShowTiktok");
+
+    if (feeInput) feeInput.value = STORE_SETTINGS.shipping_fee || "5";
+    if (thresholdInput) thresholdInput.value = STORE_SETTINGS.free_shipping_threshold || "150";
+    
+    if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
+    if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
+
+    onSettingsDeptChange();
+}
+
+function onSettingsDeptChange() {
+    const deptSelect = document.getElementById("settingsDeptSelect");
+    if (!deptSelect) return;
+    const dept = deptSelect.value;
+
+    const suffix = dept.toLowerCase();
+    
+    const whatsappInput = document.getElementById("settingsWhatsapp");
+    const instagramInput = document.getElementById("settingsInstagram");
+    const facebookInput = document.getElementById("settingsFacebook");
+    const twitterInput = document.getElementById("settingsTwitter");
+    const tiktokInput = document.getElementById("settingsTiktok");
+
+    if (whatsappInput) whatsappInput.value = STORE_SETTINGS[`whatsapp_${suffix}`] || "";
+    if (instagramInput) instagramInput.value = STORE_SETTINGS[`instagram_${suffix}`] || "";
+    if (facebookInput) facebookInput.value = STORE_SETTINGS[`facebook_${suffix}`] || "";
+    if (twitterInput) twitterInput.value = STORE_SETTINGS[`twitter_${suffix}`] || "";
+    if (tiktokInput) tiktokInput.value = STORE_SETTINGS[`tiktok_${suffix}`] || "";
+}
+
+async function saveGeneralSettings() {
+    const feeInput = document.getElementById("settingsShippingFee");
+    const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
+    const twitterCheck = document.getElementById("settingsShowTwitter");
+    const tiktokCheck = document.getElementById("settingsShowTiktok");
+    const deptSelect = document.getElementById("settingsDeptSelect");
+
+    const payload = {};
+    if (feeInput) payload.shipping_fee = feeInput.value;
+    if (thresholdInput) payload.free_shipping_threshold = thresholdInput.value;
+    if (twitterCheck) payload.show_twitter = String(twitterCheck.checked);
+    if (tiktokCheck) payload.show_tiktok = String(tiktokCheck.checked);
+
+    if (deptSelect) {
+        const dept = deptSelect.value;
+        const suffix = dept.toLowerCase();
+        
+        const whatsappInput = document.getElementById("settingsWhatsapp");
+        const instagramInput = document.getElementById("settingsInstagram");
+        const facebookInput = document.getElementById("settingsFacebook");
+        const twitterInput = document.getElementById("settingsTwitter");
+        const tiktokInput = document.getElementById("settingsTiktok");
+
+        if (whatsappInput) payload[`whatsapp_${suffix}`] = whatsappInput.value.trim();
+        if (instagramInput) payload[`instagram_${suffix}`] = instagramInput.value.trim();
+        if (facebookInput) payload[`facebook_${suffix}`] = facebookInput.value.trim();
+        if (twitterInput) payload[`twitter_${suffix}`] = twitterInput.value.trim();
+        if (tiktokInput) payload[`tiktok_${suffix}`] = tiktokInput.value.trim();
+    }
+
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert("تم حفظ الإعدادات العامة بنجاح!");
+            await loadProductsFromServer();
+        } else {
+            alert("فشل حفظ الإعدادات.");
+        }
+    } catch (e) {
+        console.error("Error saving general settings:", e);
+        alert("فشل الاتصال بالسيرفر لحفظ الإعدادات.");
+    }
+}
+
+function renderAdminCoupons() {
+    const tableBody = document.getElementById("adminCouponsTableBody");
+    if (!tableBody) return;
+    tableBody.innerHTML = "";
+
+    if (COUPONS.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem 0;">لا توجد كوبونات حسم نشطة.</td></tr>`;
+        return;
+    }
+
+    COUPONS.forEach(c => {
+        const tr = document.createElement("tr");
+        const discountStr = c.discountType === 'percent' ? `${c.discountValue}%` : `$${c.discountValue}`;
+        tr.innerHTML = `
+            <td><strong>${c.code}</strong></td>
+            <td>${discountStr}</td>
+            <td style="text-align: center;">
+                <button onclick="deleteCoupon('${c.code}')" style="background: none; border: none; color: var(--color-error); cursor: pointer; font-size: 1.3rem;"><i class="fa-regular fa-trash-can"></i></button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
+async function addCouponSubmit(event) {
+    event.preventDefault();
+    const code = document.getElementById("newCouponCode").value.trim().toUpperCase();
+    const type = document.getElementById("newCouponType").value;
+    const value = parseFloat(document.getElementById("newCouponValue").value);
+
+    if (!code || isNaN(value) || value <= 0) {
+        alert("يرجى إدخال بيانات الكوبون بشكل صحيح.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/coupons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, discountType: type, discountValue: value })
+        });
+
+        if (response.ok) {
+            alert("تمت إضافة الكوبون بنجاح!");
+            event.target.reset();
+            await loadProductsFromServer();
+        } else {
+            const err = await response.json();
+            alert("فشل إضافة الكوبون: " + err.error);
+        }
+    } catch (e) {
+        console.error("Error adding coupon:", e);
+        alert("فشل الاتصال بالسيرفر لإضافة الكوبون.");
+    }
+}
+
+async function deleteCoupon(code) {
+    if (!confirm(`هل أنت متأكد من حذف الكوبون ${code} نهائياً؟`)) return;
+
+    try {
+        const response = await fetch(`/api/coupons?code=${code}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert("تم حذف الكوبون بنجاح!");
+            await loadProductsFromServer();
+        } else {
+            alert("فشل حذف الكوبون.");
+        }
+    } catch (e) {
+        console.error("Error deleting coupon:", e);
+        alert("فشل الاتصال بالسيرفر لحذف الكوبون.");
+    }
+}
+
+function updateSocialFooterLinks() {
+    const instLink = document.getElementById("footerInsta");
+    const fbLink = document.getElementById("footerFB");
+    const twitterLink = document.getElementById("footerTwitter");
+    const tiktokLink = document.getElementById("footerTiktok");
+
+    const suffix = activeDepartment === "All" ? "global" : activeDepartment.toLowerCase();
+
+    if (instLink) {
+        instLink.href = STORE_SETTINGS[`instagram_${suffix}`] || "#";
+    }
+    if (fbLink) {
+        fbLink.href = STORE_SETTINGS[`facebook_${suffix}`] || "#";
+    }
+    if (twitterLink) {
+        twitterLink.href = STORE_SETTINGS[`twitter_${suffix}`] || "#";
+        twitterLink.style.display = (STORE_SETTINGS.show_twitter === "true") ? "inline-block" : "none";
+    }
+    if (tiktokLink) {
+        tiktokLink.href = STORE_SETTINGS[`tiktok_${suffix}`] || "#";
+        tiktokLink.style.display = (STORE_SETTINGS.show_tiktok === "true") ? "inline-block" : "none";
     }
 }
 
