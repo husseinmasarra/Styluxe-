@@ -334,7 +334,8 @@ async function initPgDatabase() {
       badge VARCHAR(50),
       priority INTEGER NOT NULL DEFAULT 1000
     )`);
-    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 1000`);
+     await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 1000`);
+     await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(255) DEFAULT 'Styluxe'`);
 
     // Create orders table
     await pool.query(`CREATE TABLE IF NOT EXISTS orders (
@@ -682,11 +683,12 @@ function writeDb(data) {
 
           // Sync products
           await client.query('DELETE FROM products');
-          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
+          const prodStmt = 'INSERT INTO products (id, name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price, priority, brand) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
           for (const p of data.products) {
             await client.query(prodStmt, [
               p.id, p.name, p.price, p.category, p.department, p.image, p.description || '',
-              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || '', p.costPrice || 0, p.priority !== undefined ? p.priority : 1000
+              JSON.stringify(p.sizes || []), JSON.stringify(p.colors || []), JSON.stringify(p.inventory || {}), p.badge || '', p.costPrice || 0, p.priority !== undefined ? p.priority : 1000,
+              p.brand || 'Styluxe'
             ]);
           }
 
@@ -1299,7 +1301,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/products') {
-        const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority } = body;
+        const { name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority, brand } = body;
 
         if (!name || !price || !category || !department || !image) {
           sendJsonResponse(res, { error: "Missing required fields" }, 400);
@@ -1348,7 +1350,8 @@ const server = http.createServer(async (req, res) => {
           inventory: inventoryObj,
           badge: badge || '',
           costPrice: costPrice !== undefined ? parseFloat(costPrice) : parseFloat((price * 0.6).toFixed(2)),
-          priority: priority !== undefined ? parseInt(priority) : 1000
+          priority: priority !== undefined ? parseInt(priority) : 1000,
+          brand: brand || 'Styluxe'
         };
 
         db.products.push(newProduct);
@@ -1413,7 +1416,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/products') {
-        const { id, name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority } = body;
+        const { id, name, price, category, department, image, description, sizes, badge, colors, inventory, costPrice, priority, brand } = body;
         
         if (!id) {
           sendJsonResponse(res, { error: "Missing product ID" }, 400);
@@ -1437,6 +1440,7 @@ const server = http.createServer(async (req, res) => {
         if (badge !== undefined) currentProduct.badge = badge;
         if (costPrice !== undefined) currentProduct.costPrice = parseFloat(costPrice);
         if (priority !== undefined) currentProduct.priority = parseInt(priority);
+        if (brand) currentProduct.brand = brand;
 
         if (sizes) {
           currentProduct.sizes = Array.isArray(sizes) ? sizes : sizes.split(',').map(s=>s.trim());
