@@ -18,6 +18,8 @@ let adminActiveTab = "overview";
 let posCart = [];
 let isEditingProduct = false;
 let editingProductId = null;
+let isEditingBrand = false;
+let editingBrandOldName = "";
 
 // Customer Accounts State
 let currentUser = null;
@@ -3208,7 +3210,6 @@ function renderAdminBrands() {
     const brandBody = document.getElementById("adminBrandsTableBody");
     if (!brandBody) return;
 
-    // Render Brands Table
     brandBody.innerHTML = "";
     if (BRANDS.length === 0) {
         brandBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO BRANDS FOUND.</td></tr>`;
@@ -3221,9 +3222,14 @@ function renderAdminBrands() {
                 </td>
                 <td><strong>${b.name.toUpperCase()}</strong></td>
                 <td style="text-align: center;">
-                    <button class="delete-btn" onclick="deleteBrand('${b.name}')" aria-label="Delete brand">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                    <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
+                        <button class="admin-edit-btn" onclick="openEditBrand('${b.name}', '${b.img}')" style="background: none; border: none; color: var(--color-accent); font-size: 1.4rem; cursor: pointer;" aria-label="Edit brand">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </button>
+                        <button class="delete-btn" onclick="deleteBrand('${b.name}')" aria-label="Delete brand" style="background: none; border: none; color: var(--color-error); font-size: 1.4rem; cursor: pointer;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             brandBody.appendChild(tr);
@@ -3384,30 +3390,112 @@ async function handleAddBrand(event) {
             alert("Error reading image file.");
             return;
         }
-    } else {
+    } else if (isEditingBrand) {
+        const previewDiv = document.getElementById("newBrandImgPreview");
+        const previewImg = previewDiv ? previewDiv.querySelector("img") : null;
+        if (previewImg) {
+            img = previewImg.src;
+        }
+    }
+
+    if (!img && !isEditingBrand) {
         alert("PLEASE SELECT A BRAND LOGO FILE.");
         return;
     }
 
-    fetch('/api/brands', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, img: img })
-    })
-    .then(async res => {
-        if (res.ok) {
-            BRANDS = await res.json();
-            nameInput.value = "";
-            fileInput.value = "";
-            const previewDiv = document.getElementById("newBrandImgPreview");
-            if (previewDiv) previewDiv.style.display = "none";
-            renderBrandSlider();
-            renderAdminBrands();
-        } else {
-            alert("FAILED TO ADD BRAND.");
-        }
-    })
-    .catch(err => console.error("Error adding brand:", err));
+    if (isEditingBrand) {
+        fetch('/api/brands', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldName: editingBrandOldName, name: name, img: img })
+        })
+        .then(async res => {
+            if (res.ok) {
+                BRANDS = await res.json();
+                cancelBrandEdit();
+                renderBrandSlider();
+                renderAdminBrands();
+                
+                await loadProductsFromServer();
+                renderProducts();
+            } else {
+                alert("FAILED TO UPDATE BRAND.");
+            }
+        })
+        .catch(err => console.error("Error updating brand:", err));
+    } else {
+        fetch('/api/brands', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, img: img })
+        })
+        .then(async res => {
+            if (res.ok) {
+                BRANDS = await res.json();
+                nameInput.value = "";
+                fileInput.value = "";
+                const previewDiv = document.getElementById("newBrandImgPreview");
+                if (previewDiv) previewDiv.style.display = "none";
+                renderBrandSlider();
+                renderAdminBrands();
+            } else {
+                alert("FAILED TO ADD BRAND.");
+            }
+        })
+        .catch(err => console.error("Error adding brand:", err));
+    }
+}
+
+function openEditBrand(name, img) {
+    isEditingBrand = true;
+    editingBrandOldName = name;
+
+    const titleEl = document.getElementById("brandFormTitle");
+    const submitBtn = document.getElementById("brandSubmitBtn");
+    const cancelBtn = document.getElementById("cancelBrandEditBtn");
+    const nameInput = document.getElementById("newBrandNameInput");
+    const fileInput = document.getElementById("newBrandImgFileInput");
+    const previewDiv = document.getElementById("newBrandImgPreview");
+    const previewImg = previewDiv ? previewDiv.querySelector("img") : null;
+
+    if (titleEl) titleEl.textContent = "EDIT BRAND";
+    if (submitBtn) submitBtn.textContent = "UPDATE BRAND";
+    if (cancelBtn) cancelBtn.style.display = "block";
+    if (nameInput) nameInput.value = name;
+    if (fileInput) {
+        fileInput.value = "";
+        fileInput.removeAttribute("required");
+    }
+    if (previewDiv && previewImg) {
+        previewImg.src = img;
+        previewDiv.style.display = "block";
+    }
+}
+
+function cancelBrandEdit() {
+    isEditingBrand = false;
+    editingBrandOldName = "";
+
+    const titleEl = document.getElementById("brandFormTitle");
+    const submitBtn = document.getElementById("brandSubmitBtn");
+    const cancelBtn = document.getElementById("cancelBrandEditBtn");
+    const nameInput = document.getElementById("newBrandNameInput");
+    const fileInput = document.getElementById("newBrandImgFileInput");
+    const previewDiv = document.getElementById("newBrandImgPreview");
+
+    if (titleEl) titleEl.textContent = "ADD NEW BRAND";
+    if (submitBtn) submitBtn.textContent = "+ ADD BRAND";
+    if (cancelBtn) cancelBtn.style.display = "none";
+    if (nameInput) nameInput.value = "";
+    if (fileInput) {
+        fileInput.value = "";
+        fileInput.setAttribute("required", "required");
+    }
+    if (previewDiv) {
+        previewDiv.style.display = "none";
+        const previewImg = previewDiv.querySelector("img");
+        if (previewImg) previewImg.src = "";
+    }
 }
 
 function deleteBrand(name) {
