@@ -132,7 +132,9 @@
         
         <!-- Hero Section -->
         <section id="home" class="hero-section">
-            <div class="hero-background" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('assets/hero_bg.png');"></div>
+            <div class="hero-slider" id="heroSlider">
+                <div class="hero-slide active" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('assets/hero_bg.png');"></div>
+            </div>
             <div class="hero-content">
                 <span class="hero-subtitle">NEW ARRIVALS / COLLECTION 2026</span>
                 <h1 class="hero-title">REDEFINING LUXURY</h1>
@@ -1144,15 +1146,58 @@
                             </div>
                             
                             <div class="form-group">
-                                <label>Hero Banner Background Image</label>
-                                <div style="font-size: 1.1rem; color: var(--color-accent); margin-bottom: 0.8rem; font-weight: 500; letter-spacing: 0.05em;">
-                                    Recommended size: 1920 x 1080 px (Landscape, High Resolution)
-                                </div>
-                                <input type="file" id="settingsHeroImageFile" accept="image/*" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
-                                <div id="settingsHeroImagePreview" style="margin-top: 1.5rem; display: none; text-align: center;">
-                                    <img src="" style="max-height: 120px; border-radius: 4px; border: 1px solid var(--color-border); max-width: 100%;">
-                                </div>
-                            </div>
+                                 <label>Hero Banner Slideshow (5 Images Max)</label>
+                                 <div style="font-size: 1.1rem; color: var(--color-accent); margin-bottom: 1.5rem; font-weight: 500; letter-spacing: 0.05em;">
+                                     Recommended size: 1920 x 1080 px. Images will rotate with a premium cross-fade.
+                                 </div>
+                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;" id="heroSlidesList">
+                                     <!-- Slide 1 -->
+                                     <div class="hero-slide-card" style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; text-align: center; position: relative;">
+                                         <h4 style="font-size: 1.2rem; color: var(--color-accent); margin-bottom: 1rem;">IMAGE 1</h4>
+                                         <input type="file" class="hero-slide-input" data-index="0" accept="image/*" style="font-size: 1rem; width: 100%; margin-bottom: 1rem;">
+                                         <div class="hero-slide-preview-container" data-index="0" style="position: relative; display: none; margin-top: 1rem; height: 80px; overflow: hidden; border-radius: 4px; border: 1px solid var(--color-border);">
+                                             <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                             <button class="delete-slide-btn" onclick="clearHeroSlide(0)" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: var(--color-error); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                                         </div>
+                                     </div>
+                                     <!-- Slide 2 -->
+                                     <div class="hero-slide-card" style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; text-align: center; position: relative;">
+                                         <h4 style="font-size: 1.2rem; color: var(--color-accent); margin-bottom: 1rem;">IMAGE 2</h4>
+                                         <input type="file" class="hero-slide-input" data-index="1" accept="image/*" style="font-size: 1rem; width: 100%; margin-bottom: 1rem;">
+                                         <div class="hero-slide-preview-container" data-index="1" style="position: relative; display: none; margin-top: 1rem; height: 80px; overflow: hidden; border-radius: 4px; border: 1px solid var(--color-border);">
+                                             <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                             <button class="delete-slide-btn" onclick="clearHeroSlide(1)" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: var(--color-error); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                                         </div>
+                                     </div>
+                                     <!-- Slide 3 -->
+                                     <div class="hero-slide-card" style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; text-align: center; position: relative;">
+                                         <h4 style="font-size: 1.2rem; color: var(--color-accent); margin-bottom: 1rem;">IMAGE 3</h4>
+                                         <input type="file" class="hero-slide-input" data-index="2" accept="image/*" style="font-size: 1rem; width: 100%; margin-bottom: 1rem;">
+                                         <div class="hero-slide-preview-container" data-index="2" style="position: relative; display: none; margin-top: 1rem; height: 80px; overflow: hidden; border-radius: 4px; border: 1px solid var(--color-border);">
+                                             <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                             <button class="delete-slide-btn" onclick="clearHeroSlide(2)" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: var(--color-error); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                                         </div>
+                                     </div>
+                                     <!-- Slide 4 -->
+                                     <div class="hero-slide-card" style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; text-align: center; position: relative;">
+                                         <h4 style="font-size: 1.2rem; color: var(--color-accent); margin-bottom: 1rem;">IMAGE 4</h4>
+                                         <input type="file" class="hero-slide-input" data-index="3" accept="image/*" style="font-size: 1rem; width: 100%; margin-bottom: 1rem;">
+                                         <div class="hero-slide-preview-container" data-index="3" style="position: relative; display: none; margin-top: 1rem; height: 80px; overflow: hidden; border-radius: 4px; border: 1px solid var(--color-border);">
+                                             <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                             <button class="delete-slide-btn" onclick="clearHeroSlide(3)" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: var(--color-error); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                                         </div>
+                                     </div>
+                                     <!-- Slide 5 -->
+                                     <div class="hero-slide-card" style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; text-align: center; position: relative;">
+                                         <h4 style="font-size: 1.2rem; color: var(--color-accent); margin-bottom: 1rem;">IMAGE 5</h4>
+                                         <input type="file" class="hero-slide-input" data-index="4" accept="image/*" style="font-size: 1rem; width: 100%; margin-bottom: 1rem;">
+                                         <div class="hero-slide-preview-container" data-index="4" style="position: relative; display: none; margin-top: 1rem; height: 80px; overflow: hidden; border-radius: 4px; border: 1px solid var(--color-border);">
+                                             <img src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                             <button class="delete-slide-btn" onclick="clearHeroSlide(4)" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: var(--color-error); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
                             
                             <button onclick="saveAllGeneralSettings()" class="admin-action-btn" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> SAVE ALL SETTINGS</button>
                         </div>
