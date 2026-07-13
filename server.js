@@ -1487,6 +1487,38 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/brands') {
+        const { oldName, name, img } = body;
+        if (!oldName || !name) {
+          sendJsonResponse(res, { error: "Missing brand oldName or new name" }, 400);
+          return;
+        }
+
+        if (!db.brands) db.brands = [];
+        const brandIndex = db.brands.findIndex(b => b.name.toLowerCase() === oldName.toLowerCase());
+        
+        if (brandIndex > -1) {
+          db.brands[brandIndex].name = name;
+          if (img) {
+            db.brands[brandIndex].img = img;
+          }
+
+          if (db.products && Array.isArray(db.products)) {
+            db.products.forEach(p => {
+              if (p.brand && p.brand.toLowerCase() === oldName.toLowerCase()) {
+                p.brand = name;
+              }
+            });
+          }
+
+          writeDb(db);
+          sendJsonResponse(res, db.brands);
+        } else {
+          sendJsonResponse(res, { error: "Brand not found" }, 404);
+        }
+        return;
+      }
+
       if (pathname === '/api/orders') {
         const { id, status } = body;
         if (!id || !status) {
