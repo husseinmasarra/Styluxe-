@@ -503,23 +503,24 @@ function setupEventListeners() {
         });
     }
 
-    const heroImageFileInput = document.getElementById("settingsHeroImageFile");
-    if (heroImageFileInput) {
-        heroImageFileInput.addEventListener("change", function() {
+    document.querySelectorAll(".hero-slide-input").forEach(input => {
+        input.addEventListener("change", function() {
+            const idx = this.dataset.index;
             const file = this.files[0];
             if (file) {
                 getFileBase64(file).then(base64 => {
-                    const previewDiv = document.getElementById("settingsHeroImagePreview");
+                    const previewDiv = document.querySelector(`.hero-slide-preview-container[data-index="${idx}"]`);
                     const previewImg = previewDiv ? previewDiv.querySelector("img") : null;
                     if (previewDiv && previewImg) {
                         previewImg.src = base64;
                         previewDiv.style.display = "block";
                         previewDiv.dataset.base64 = base64;
+                        previewDiv.dataset.isChanged = "true";
                     }
                 });
             }
         });
-    }
+    });
 
     // SPA history back/forward control for admin tabs and overlay
     window.addEventListener("popstate", (event) => {
@@ -4939,18 +4940,25 @@ function populateSettingsFields() {
     if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
     if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
 
-    const heroPreviewDiv = document.getElementById("settingsHeroImagePreview");
-    const heroPreviewImg = heroPreviewDiv ? heroPreviewDiv.querySelector("img") : null;
-    const heroFileInput = document.getElementById("settingsHeroImageFile");
-    
-    if (heroFileInput) heroFileInput.value = "";
-    if (heroPreviewDiv) delete heroPreviewDiv.dataset.base64;
-    
-    if (STORE_SETTINGS.heroImage && heroPreviewDiv && heroPreviewImg) {
-        heroPreviewImg.src = STORE_SETTINGS.heroImage;
-        heroPreviewDiv.style.display = "block";
-    } else if (heroPreviewDiv) {
-        heroPreviewDiv.style.display = "none";
+    for (let i = 0; i < 5; i++) {
+        const previewDiv = document.querySelector(`.hero-slide-preview-container[data-index="${i}"]`);
+        const previewImg = previewDiv ? previewDiv.querySelector("img") : null;
+        const fileInput = document.querySelector(`.hero-slide-input[data-index="${i}"]`);
+
+        if (fileInput) fileInput.value = "";
+        if (previewDiv) {
+            delete previewDiv.dataset.base64;
+            delete previewDiv.dataset.isChanged;
+            delete previewDiv.dataset.isCleared;
+            
+            const savedImg = STORE_SETTINGS[`heroImage_${i}`];
+            if (savedImg && previewImg) {
+                previewImg.src = savedImg;
+                previewDiv.style.display = "block";
+            } else {
+                previewDiv.style.display = "none";
+            }
+        }
     }
 
     const suffixes = ["global", "men", "women", "kids"];
@@ -4970,10 +4978,50 @@ function populateSettingsFields() {
     });
 }
 
+let heroSliderInterval = null;
+
 function applyHeroBackgroundFromSettings() {
-    const heroBg = document.querySelector(".hero-background");
-    if (heroBg && STORE_SETTINGS && STORE_SETTINGS.heroImage) {
-        heroBg.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('${STORE_SETTINGS.heroImage}')`;
+    const sliderContainer = document.getElementById("heroSlider");
+    if (!sliderContainer) return;
+
+    const images = [];
+    for (let i = 0; i < 5; i++) {
+        const img = STORE_SETTINGS[`heroImage_${i}`];
+        if (img) {
+            images.push(img);
+        }
+    }
+
+    if (images.length === 0) {
+        if (STORE_SETTINGS.heroImage) {
+            images.push(STORE_SETTINGS.heroImage);
+        } else {
+            images.push('assets/hero_bg.png');
+        }
+    }
+
+    sliderContainer.innerHTML = "";
+    images.forEach((imgSrc, idx) => {
+        const slide = document.createElement("div");
+        slide.classList.add("hero-slide");
+        if (idx === 0) slide.classList.add("active");
+        slide.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('${imgSrc}')`;
+        sliderContainer.appendChild(slide);
+    });
+
+    if (heroSliderInterval) {
+        clearInterval(heroSliderInterval);
+        heroSliderInterval = null;
+    }
+
+    if (images.length > 1) {
+        let activeIdx = 0;
+        const slides = sliderContainer.querySelectorAll(".hero-slide");
+        heroSliderInterval = setInterval(() => {
+            if (slides[activeIdx]) slides[activeIdx].classList.remove("active");
+            activeIdx = (activeIdx + 1) % slides.length;
+            if (slides[activeIdx]) slides[activeIdx].classList.add("active");
+        }, 5000);
     }
 }
 
@@ -5005,9 +5053,17 @@ async function saveAllGeneralSettings() {
         if (tiktokInput) payload[`tiktok_${suffix}`] = tiktokInput.value.trim();
     });
 
-    const heroPreviewDiv = document.getElementById("settingsHeroImagePreview");
-    if (heroPreviewDiv && heroPreviewDiv.dataset.base64) {
-        payload.heroImage = heroPreviewDiv.dataset.base64;
+    for (let i = 0; i < 5; i++) {
+        const previewDiv = document.querySelector(`.hero-slide-preview-container[data-index="${i}"]`);
+        if (previewDiv) {
+            if (previewDiv.dataset.isCleared === "true") {
+                payload[`heroImage_${i}`] = "";
+            } else if (previewDiv.dataset.base64) {
+                payload[`heroImage_${i}`] = previewDiv.dataset.base64;
+            } else {
+                payload[`heroImage_${i}`] = STORE_SETTINGS[`heroImage_${i}`] || "";
+            }
+        }
     }
 
     try {
@@ -5031,6 +5087,17 @@ async function saveAllGeneralSettings() {
     } catch (e) {
         console.error("Error saving general settings:", e);
         alert("Failed to connect to server to save settings.");
+    }
+}
+
+function clearHeroSlide(index) {
+    const previewDiv = document.querySelector(`.hero-slide-preview-container[data-index="${index}"]`);
+    const fileInput = document.querySelector(`.hero-slide-input[data-index="${index}"]`);
+    if (fileInput) fileInput.value = "";
+    if (previewDiv) {
+        previewDiv.style.display = "none";
+        previewDiv.dataset.isCleared = "true";
+        delete previewDiv.dataset.base64;
     }
 }
 
