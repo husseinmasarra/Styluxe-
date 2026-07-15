@@ -25,7 +25,7 @@ const initialProducts = [
     category: "Hoodies",
     department: "Men",
     image: "assets/hoodie_black.png",
-    description: "Crafted from 500GSM ultra-heavyweight Egyptian cotton fleece. Features drop shoulders, a double-lined hood without drawstrings for a clean look, kangaroo pocket, and thick ribbed cuffs. Made for a premium relaxed silhouette.",
+    description: "Crafted from 500GSM ultra-heavyweight premium cotton fleece. Features drop shoulders, a double-lined hood without drawstrings for a clean look, kangaroo pocket, and thick ribbed cuffs. Made for a premium relaxed silhouette.",
     sizes: ["S", "M", "L", "XL", "XXL"],
     badge: "BESTSELLER"
   },
@@ -113,7 +113,7 @@ const initialProducts = [
     category: "Hoodies",
     department: "Kids",
     image: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=600",
-    description: "Junior edition of our signature oversized hoodie. Crafted from organic Egyptian cotton fleece to provide lightweight warmth and exceptional softness.",
+    description: "Junior edition of our signature oversized hoodie. Crafted from organic cotton fleece to provide lightweight warmth and exceptional softness.",
     sizes: ["4Y", "6Y", "8Y", "10Y", "12Y"],
     badge: "MINI-ME"
   },
