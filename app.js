@@ -957,6 +957,33 @@ function selectColor(color, clickedDot) {
     
     // Re-render sizes for the new color
     renderSizingButtons(activeModalProduct);
+
+    // Dynamic color-to-image gallery switching by index mapping
+    const colors = activeModalProduct.colors || ["Black", "Charcoal", "Grey"];
+    const colorIndex = colors.indexOf(color);
+    const galleryImages = getProductGalleryImages(activeModalProduct);
+    
+    if (galleryImages.length > 0) {
+        const selectedImg = galleryImages[colorIndex] || galleryImages[0];
+        const mainImg = document.getElementById("modalProductImg");
+        if (mainImg) {
+            mainImg.src = selectedImg;
+            mainImg.style.transform = "scale(1)"; // Reset zoom
+        }
+
+        // Highlight matching thumbnail in gallery
+        const thumbnailGrid = document.getElementById("thumbnailGrid");
+        if (thumbnailGrid) {
+            const thumbs = thumbnailGrid.querySelectorAll("img");
+            thumbs.forEach((t, idx) => {
+                if (idx === colorIndex || t.src === selectedImg) {
+                    t.classList.add("active");
+                } else {
+                    t.classList.remove("active");
+                }
+            });
+        }
+    }
 }
 
 // SELECT SIZE IN MODAL
