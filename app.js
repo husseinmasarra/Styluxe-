@@ -923,6 +923,14 @@ function renderProducts() {
     });
 }
 
+// OPEN LOOKBOOK PRODUCT FROM INSTAGRAM
+function openLookbookProduct(lookIndex) {
+    const product = PRODUCTS[lookIndex - 1] || PRODUCTS[0];
+    if (product) {
+        openProductModal(product.id);
+    }
+}
+
 // OPEN PRODUCT DETAILS MODAL
 function openProductModal(productId) {
     const product = PRODUCTS.find(p => p.id === productId);
@@ -1750,64 +1758,152 @@ function switchAdminTab(tab, pushState = true) {
 
 // 1. Overview Tab Render
 function renderAdminOverview() {
-    // Sales computation
     const totalSales = ordersList.reduce((sum, order) => sum + order.total, 0);
     const totalOrdersCount = ordersList.length;
-    
-    let deptSales = 0;
-    if (currentAdminDept === "Global") {
-        deptSales = totalSales;
-    } else {
-        deptSales = ordersList
-            .filter(o => o.department === currentAdminDept)
-            .reduce((sum, order) => sum + order.total, 0);
-    }
+    const avgOrderValue = totalOrdersCount > 0 ? (totalSales / totalOrdersCount) : 0;
+    const totalCustCount = usersList.length;
 
-    document.getElementById("statTotalSales").textContent = formatPrice(totalSales);
-    document.getElementById("statTotalOrders").textContent = totalOrdersCount;
-    document.getElementById("statDeptSales").textContent = formatPrice(deptSales);
-
-    // Render category bar sales percentage
-    const categoryBars = document.getElementById("categorySalesBars");
-    categoryBars.innerHTML = "";
-
-    const categories = ["Hoodies", "Jackets", "Jeans", "Footwear"];
-    
-    // Compute total sales across categories to get ratios
-    let catTotals = {};
-    categories.forEach(cat => catTotals[cat] = 0);
-
+    let totalCost = 0;
     ordersList.forEach(order => {
-        order.items.forEach(item => {
-            // Find category
+        (order.items || []).forEach(item => {
             const prod = PRODUCTS.find(p => p.id === item.id);
-            if (prod && categories.includes(prod.category)) {
-                if (currentAdminDept === "Global" || prod.department === currentAdminDept) {
-                    catTotals[prod.category] += (item.price * item.quantity);
+            const cost = prod && prod.costPrice !== undefined ? prod.costPrice : (item.price * 0.6);
+            totalCost += cost * item.quantity;
+        });
+    });
+    const totalProfit = totalSales - totalCost;
+
+    const salesEl = document.getElementById("statTotalSales");
+    const profitEl = document.getElementById("statTotalProfit");
+    const ordersEl = document.getElementById("statTotalOrders");
+    const aovEl = document.getElementById("statAvgOrderValue");
+    const custEl = document.getElementById("statTotalCustomers");
+
+    if (salesEl) salesEl.textContent = formatPrice(totalSales);
+    if (profitEl) profitEl.textContent = formatPrice(totalProfit);
+    if (ordersEl) ordersEl.textContent = totalOrdersCount;
+    if (aovEl) aovEl.textContent = formatPrice(avgOrderValue);
+    if (custEl) custEl.textContent = totalCustCount;
+
+    // --- Chart 1: Monthly Sales ---
+    const monthlySalesContainer = document.getElementById("monthlySalesChartContainer");
+    if (monthlySalesContainer) {
+        const monthlyTotals = {};
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthName = d.toLocaleString('default', { month: 'short' });
+            months.push(monthName);
+            monthlyTotals[monthName] = 0;
+        }
+
+        ordersList.forEach(o => {
+            if (o.status !== 'Cancelled' && o.date) {
+                const orderDate = new Date(o.date);
+                const mName = orderDate.toLocaleString('default', { month: 'short' });
+                if (monthlyTotals[mName] !== undefined) {
+                    monthlyTotals[mName] += parseFloat(o.total) || 0;
                 }
             }
         });
-    });
 
-    const maxSales = Math.max(...Object.values(catTotals), 1);
-
-    categories.forEach(cat => {
-        const sales = catTotals[cat];
-        const percent = (sales / maxSales) * 100;
-
-        const row = document.createElement("div");
-        row.classList.add("chart-bar-row");
-        row.innerHTML = `
-            <div class="chart-bar-label">
-                <span>${cat.toUpperCase()}</span>
-                <span>${formatPrice(sales)}</span>
-            </div>
-            <div class="chart-bar-track">
-                <div class="chart-bar-fill" style="width: ${percent}%;"></div>
-            </div>
+        const maxVal = Math.max(...Object.values(monthlyTotals), 1);
+        let barHtml = `<div style="display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 100%; padding: 0 1rem; position: relative;">`;
+        barHtml += `
+          <div style="position: absolute; left: 0; right: 0; bottom: 50px; height: 1px; background: rgba(255,255,255,0.05); z-index: 1;"></div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 100px; height: 1px; background: rgba(255,255,255,0.05); z-index: 1;"></div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 150px; height: 1px; background: rgba(255,255,255,0.05); z-index: 1;"></div>
         `;
-        categoryBars.appendChild(row);
-    });
+        months.forEach(m => {
+            const val = monthlyTotals[m];
+            const heightPercent = (val / maxVal) * 80;
+            barHtml += `
+                <div style="display: flex; flex-direction: column; align-items: center; width: 14%; z-index: 2; position: relative; height: 100%; justify-content: flex-end;">
+                    <div style="font-size: 1rem; font-weight: 700; color: var(--color-accent); margin-bottom: 0.5rem; opacity: 0; transition: opacity 0.2s; position: absolute; bottom: calc(${heightPercent}% + 35px); background: rgba(0,0,0,0.85); border: 1px solid var(--color-border); padding: 0.3rem 0.6rem; border-radius: 4px; white-space: nowrap; pointer-events: none;" class="bar-tooltip">${formatPrice(val)}</div>
+                    <div style="width: 100%; height: ${heightPercent}%; background: linear-gradient(to top, var(--color-accent), #b8912e); border-radius: 4px 4px 0 0; transition: height 0.5s ease-out; cursor: pointer;" onmouseover="this.previousElementSibling.style.opacity=1" onmouseout="this.previousElementSibling.style.opacity=0"></div>
+                </div>
+            `;
+        });
+        barHtml += `</div>`;
+        monthlySalesContainer.innerHTML = barHtml;
+
+        const labelsDiv = document.getElementById("monthlySalesLabels");
+        if (labelsDiv) {
+            labelsDiv.innerHTML = months.map(m => `<span style="width: 14%; text-align: center;">${m.toUpperCase()}</span>`).join('');
+        }
+    }
+
+    // --- Chart 2: Category Share ---
+    const donutContainer = document.getElementById("categoryDonutChartContainer");
+    const legendDiv = document.getElementById("categoryChartLegend");
+    if (donutContainer && legendDiv) {
+        const categories = ["Hoodies", "Jackets", "Jeans", "Footwear"];
+        const catTotals = {};
+        categories.forEach(cat => catTotals[cat] = 0);
+
+        ordersList.forEach(order => {
+            if (order.status !== 'Cancelled') {
+                order.items.forEach(item => {
+                    const prod = PRODUCTS.find(p => p.id === item.id);
+                    if (prod && categories.includes(prod.category)) {
+                        catTotals[prod.category] += item.quantity;
+                    }
+                });
+            }
+        });
+
+        const totalQty = Object.values(catTotals).reduce((a, b) => a + b, 0) || 1;
+        const colors = ["#c7a369", "#3498db", "#2ecc71", "#9b59b6"];
+        
+        let svgHtml = `<svg width="200" height="200" viewBox="0 0 200 200" style="transform: rotate(-90deg); width: 100%; height: 100%;">`;
+        svgHtml += `<circle cx="100" cy="100" r="70" fill="transparent" stroke="var(--color-border)" stroke-width="16" />`;
+        
+        let currentOffset = 0;
+        categories.forEach((cat, idx) => {
+            const qty = catTotals[cat];
+            const percent = qty / totalQty;
+            const strokeLength = percent * 439.8;
+            const strokeOffset = 439.8 - strokeLength + currentOffset;
+
+            svgHtml += `
+                <circle cx="100" cy="100" r="70" fill="transparent" 
+                    stroke="${colors[idx]}" 
+                    stroke-width="16" 
+                    stroke-dasharray="439.8" 
+                    stroke-dashoffset="${strokeOffset}" 
+                    style="transition: stroke-dashoffset 0.6s ease-out; cursor: pointer;"
+                    title="${cat}: ${qty} pcs (${Math.round(percent * 100)}%)" />
+            `;
+            currentOffset -= strokeLength;
+        });
+
+        svgHtml += `
+            <circle cx="100" cy="100" r="58" fill="var(--color-surface)" />
+            <text x="100" y="93" text-anchor="middle" font-family="var(--font-heading)" font-size="14" font-weight="700" fill="var(--color-text-muted)" transform="rotate(90 100 100)">TOTAL ITEMS</text>
+            <text x="100" y="115" text-anchor="middle" font-family="var(--font-heading)" font-size="20" font-weight="700" fill="var(--color-accent)" transform="rotate(90 100 100)">${totalQty}</text>
+        </svg>`;
+        donutContainer.innerHTML = svgHtml;
+
+        let legendHtml = "";
+        categories.forEach((cat, idx) => {
+            const qty = catTotals[cat];
+            const percent = Math.round((qty / totalQty) * 100);
+            legendHtml += `
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.02);">
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${colors[idx]}; flex-shrink: 0;"></div>
+                        <span style="font-weight: 600; font-size: 1rem;">${cat.toUpperCase()}</span>
+                    </div>
+                    <div style="text-align: right; font-weight: 700; font-size: 1rem;">
+                        <span>${qty} pcs</span>
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem; margin-left: 0.5rem;">(${percent}%)</span>
+                    </div>
+                </div>
+            `;
+        });
+        legendDiv.innerHTML = legendHtml;
+    }
 }
 
 // 2. Product Manager Tab Render
@@ -3215,74 +3311,6 @@ switchAdminTab = function(tab) {
         if (custBtn) custBtn.classList.remove("active");
     }
 };
-
-// 1. Upgraded Overview tab render (with AOV and total customer metrics)
-function renderAdminOverview() {
-    const totalSales = ordersList.reduce((sum, order) => sum + order.total, 0);
-    const totalOrdersCount = ordersList.length;
-    
-    // Average Order Value (AOV)
-    const avgOrderValue = totalOrdersCount > 0 ? (totalSales / totalOrdersCount) : 0;
-    
-    // Active Customers count
-    const totalCustCount = usersList.length;
-
-    // Calculate total net profit
-    let totalCost = 0;
-    ordersList.forEach(order => {
-        (order.items || []).forEach(item => {
-            const prod = PRODUCTS.find(p => p.id === item.id);
-            const cost = prod && prod.costPrice !== undefined ? prod.costPrice : (item.price * 0.6);
-            totalCost += cost * item.quantity;
-        });
-    });
-    const totalProfit = totalSales - totalCost;
-
-    document.getElementById("statTotalSales").textContent = formatPrice(totalSales);
-    document.getElementById("statTotalProfit").textContent = formatPrice(totalProfit);
-    document.getElementById("statTotalOrders").textContent = totalOrdersCount;
-    document.getElementById("statAvgOrderValue").textContent = formatPrice(avgOrderValue);
-    document.getElementById("statTotalCustomers").textContent = totalCustCount;
-
-    // Render Category Graph Sales bars
-    const categoryBars = document.getElementById("categorySalesBars");
-    categoryBars.innerHTML = "";
-
-    const categories = ["Hoodies", "Jackets", "Jeans", "Footwear"];
-    let catTotals = {};
-    categories.forEach(cat => catTotals[cat] = 0);
-
-    ordersList.forEach(order => {
-        order.items.forEach(item => {
-            const prod = PRODUCTS.find(p => p.id === item.id);
-            if (prod && categories.includes(prod.category)) {
-                if (currentAdminDept === "Global" || prod.department === currentAdminDept) {
-                    catTotals[prod.category] += (item.price * item.quantity);
-                }
-            }
-        });
-    });
-
-    const maxSales = Math.max(...Object.values(catTotals), 1);
-
-    categories.forEach(cat => {
-        const sales = catTotals[cat];
-        const percent = (sales / maxSales) * 100;
-
-        const row = document.createElement("div");
-        row.classList.add("chart-bar-row");
-        row.innerHTML = `
-            <div class="chart-bar-label">
-                <span>${cat.toUpperCase()}</span>
-                <span>${formatPrice(sales)}</span>
-            </div>
-            <div class="chart-bar-track">
-                <div class="chart-bar-fill" style="width: ${percent}%;"></div>
-            </div>
-        `;
-        categoryBars.appendChild(row);
-    });
-}
 
 // 2. Render Upgraded Customers List Tab
 function renderAdminCustomers() {
@@ -5573,30 +5601,171 @@ function closeInfoModal() {
 }
 
 function trackOrderSubmit() {
-    const inputVal = document.getElementById("trackOrderInput").value.trim().toUpperCase();
+    const inputVal = document.getElementById("trackOrderInput").value.trim();
     const resultEl = document.getElementById("trackResult");
     if (!resultEl) return;
 
     if (!inputVal) {
         resultEl.style.color = "var(--color-error)";
-        resultEl.innerHTML = "Please enter your Order ID first.";
+        resultEl.innerHTML = "Please enter your Order ID or phone number.";
         return;
     }
 
-    const order = ordersList.find(o => o.id.toUpperCase() === inputVal || `#${o.id.toUpperCase()}` === inputVal);
-    if (order) {
-        resultEl.style.color = "#2ecc71";
-        resultEl.innerHTML = `
-            <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.25); padding: 1.5rem; border-radius: 4px; text-align: left; margin-top: 1rem;">
-                <p><strong>Order ID:</strong> ${order.id}</p>
-                <p><strong>Status:</strong> <span style="text-transform: uppercase; font-weight: 700;">${order.status}</span></p>
-                <p><strong>Date:</strong> ${order.date}</p>
-                <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
+    resultEl.innerHTML = `<div style="text-align: center; margin-top: 1rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--color-accent);"></i> Searching...</div>`;
+
+    fetch(`/api/orders/track?query=${encodeURIComponent(inputVal)}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Order not found");
+            return res.json();
+        })
+        .then(orders => {
+            if (!orders || orders.length === 0) {
+                resultEl.style.color = "var(--color-error)";
+                resultEl.innerHTML = "No orders found. Please verify and try again.";
+                return;
+            }
+
+            if (orders.length === 1) {
+                renderSingleOrderTracking(orders[0]);
+            } else {
+                resultEl.style.color = "var(--color-text)";
+                let html = `<div style="text-align: left; margin-top: 2rem;">`;
+                html += `<h4 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--color-accent);">We found ${orders.length} orders matching this query:</h4>`;
+                html += `<div style="display: flex; flex-direction: column; gap: 1rem;">`;
+                orders.forEach(o => {
+                    html += `
+                        <div onclick="selectOrderToTrack('${o.id}')" style="background: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: 6px; cursor: pointer; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <strong style="font-size: 1.1rem; color: var(--color-text);">ORDER ID: #${o.id}</strong>
+                                <span style="font-size: 1rem; color: var(--color-text-muted);">${o.date}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 1.1rem; font-weight: 700; color: ${o.status === 'Cancelled' ? 'var(--color-error)' : '#2ecc71'}; text-transform: uppercase;">${o.status.toUpperCase()}</span>
+                                <strong style="font-size: 1.1rem;">${formatPrice(o.total)}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+                resultEl.innerHTML = html;
+            }
+        })
+        .catch(err => {
+            console.error("Error tracking order:", err);
+            resultEl.style.color = "var(--color-error)";
+            resultEl.innerHTML = "Failed to load tracking details. Please try again.";
+        });
+}
+
+function selectOrderToTrack(orderId) {
+    const resultEl = document.getElementById("trackResult");
+    if (!resultEl) return;
+    resultEl.innerHTML = `<div style="text-align: center; margin-top: 1rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--color-accent);"></i> Loading timeline...</div>`;
+    
+    fetch(`/api/orders/track?query=${encodeURIComponent(orderId)}`)
+        .then(res => res.json())
+        .then(orders => {
+            if (orders && orders[0]) {
+                renderSingleOrderTracking(orders[0]);
+            }
+        });
+}
+
+function renderSingleOrderTracking(order) {
+    const resultEl = document.getElementById("trackResult");
+    if (!resultEl) return;
+
+    let step = 1;
+    let statusText = "ORDER RECEIVED";
+    let linePercent = 0;
+
+    const statusUpper = (order.status || "").toLowerCase();
+    if (statusUpper === "processing" || statusUpper === "packaged") {
+        step = 2;
+        statusText = "PROCESSING & PACKAGING";
+        linePercent = 33.3;
+    } else if (statusUpper === "shipped" || statusUpper === "on the way") {
+        step = 3;
+        statusText = "SHIPPED & IN TRANSIT";
+        linePercent = 66.6;
+    } else if (statusUpper === "delivered" || statusUpper === "completed") {
+        step = 4;
+        statusText = "DELIVERED TO DESTINATION";
+        linePercent = 100;
+    } else if (statusUpper === "cancelled") {
+        step = 0;
+        statusText = "ORDER CANCELLED";
+    }
+
+    let stepperHtml = "";
+    if (step > 0) {
+        stepperHtml = `
+            <div class="tracking-stepper" style="display: flex; justify-content: space-between; position: relative; margin: 3rem 0 2rem; padding: 0 1rem;">
+                <div style="position: absolute; top: 15px; left: 0; right: 0; height: 4px; background: var(--color-border); z-index: 1;"></div>
+                <div style="position: absolute; top: 15px; left: 0; width: ${linePercent}%; height: 4px; background: var(--color-accent); z-index: 2; transition: width 0.5s ease;"></div>
+                
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 3; flex: 1;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${step >= 1 ? 'var(--color-accent)' : 'var(--color-surface)'}; border: 2px solid ${step >= 1 ? 'var(--color-accent)' : 'var(--color-border)'}; color: ${step >= 1 ? '#000' : 'var(--color-text-muted)'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;"><i class="fa-solid fa-check"></i></div>
+                    <span style="font-size: 0.95rem; margin-top: 0.8rem; font-weight: 600; color: ${step >= 1 ? 'var(--color-text)' : 'var(--color-text-muted)'};">PLACED</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 3; flex: 1;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${step >= 2 ? 'var(--color-accent)' : 'var(--color-surface)'}; border: 2px solid ${step >= 2 ? 'var(--color-accent)' : 'var(--color-border)'}; color: ${step >= 2 ? '#000' : 'var(--color-text-muted)'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;"><i class="fa-solid fa-box"></i></div>
+                    <span style="font-size: 0.95rem; margin-top: 0.8rem; font-weight: 600; color: ${step >= 2 ? 'var(--color-text)' : 'var(--color-text-muted)'};">PROCESSING</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 3; flex: 1;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${step >= 3 ? 'var(--color-accent)' : 'var(--color-surface)'}; border: 2px solid ${step >= 3 ? 'var(--color-accent)' : 'var(--color-border)'}; color: ${step >= 3 ? '#000' : 'var(--color-text-muted)'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;"><i class="fa-solid fa-truck"></i></div>
+                    <span style="font-size: 0.95rem; margin-top: 0.8rem; font-weight: 600; color: ${step >= 3 ? 'var(--color-text)' : 'var(--color-text-muted)'};">SHIPPED</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 3; flex: 1;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${step >= 4 ? 'var(--color-accent)' : 'var(--color-surface)'}; border: 2px solid ${step >= 4 ? 'var(--color-accent)' : 'var(--color-border)'}; color: ${step >= 4 ? '#000' : 'var(--color-text-muted)'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;"><i class="fa-solid fa-house-chimney"></i></div>
+                    <span style="font-size: 0.95rem; margin-top: 0.8rem; font-weight: 600; color: ${step >= 4 ? 'var(--color-text)' : 'var(--color-text-muted)'};">DELIVERED</span>
+                </div>
             </div>
         `;
     } else {
-        resultEl.style.color = "var(--color-error)";
-        resultEl.innerHTML = "Order not found. Please verify the ID and try again.";
+        stepperHtml = `
+            <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.25); padding: 1.5rem; border-radius: 4px; color: var(--color-error); text-align: center; margin: 2rem 0; font-weight: 700;">
+                <i class="fa-solid fa-ban" style="font-size: 2rem; margin-bottom: 0.8rem; display: block;"></i>
+                ORDER HAS BEEN CANCELLED
+            </div>
+        `;
     }
+
+    resultEl.style.color = "var(--color-text)";
+    resultEl.innerHTML = `
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); padding: 2.5rem; border-radius: 8px; text-align: left; margin-top: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="font-size: 1.4rem; font-weight: 700; color: var(--color-accent); margin: 0;">ORDER ID: #${order.id}</h4>
+                    <p style="font-size: 1rem; color: var(--color-text-muted); margin: 0.5rem 0 0;">Date: ${order.date}</p>
+                </div>
+                <div style="text-align: right;">
+                    <span style="background: ${order.status === 'Cancelled' ? 'rgba(231,76,60,0.1)' : 'rgba(46,204,113,0.1)'}; border: 1px solid ${order.status === 'Cancelled' ? 'rgba(231,76,60,0.25)' : 'rgba(46,204,113,0.25)'}; color: ${order.status === 'Cancelled' ? 'var(--color-error)' : '#2ecc71'}; padding: 0.5rem 1.2rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 0.95rem;">${order.status}</span>
+                </div>
+            </div>
+            
+            ${stepperHtml}
+
+            <div style="margin-top: 2.5rem;">
+                <h5 style="font-size: 1.2rem; font-weight: 700; border-bottom: 1px solid var(--color-border); padding-bottom: 0.8rem; margin-bottom: 1rem;">ITEMS ORDERED</h5>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    ${order.items.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-weight: 600; color: var(--color-text);">${item.name}</span>
+                                <span style="font-size: 0.95rem; color: var(--color-text-muted); display: block; margin-top: 0.2rem;">Size: ${item.size} | Qty: ${item.quantity}</span>
+                            </div>
+                            <span style="font-weight: 600;">${formatPrice(item.price * item.quantity)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1.5rem; font-weight: 700; font-size: 1.2rem;">
+                <span>GRAND TOTAL</span>
+                <span style="color: var(--color-accent);">${formatPrice(order.total)}</span>
+            </div>
+        </div>
+    `;
 }
 
