@@ -4554,3 +4554,11 @@ body[data-theme="light"] .size-chart-table th {
     background-color: var(--color-surface-hover) !important;
     border: 1px dashed var(--color-accent) !important;
 }
+
+.instagram-card:hover img {
+    transform: scale(1.06);
+}
+
+.instagram-card:hover .lookbook-overlay {
+    opacity: 1 !important;
+}
