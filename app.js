@@ -416,13 +416,98 @@ function setupEventListeners() {
         });
     };
 
+    window.updateColorImagesUploadContainer = function() {
+        const colorsInput = document.getElementById("newProdColors");
+        const container = document.getElementById("colorImagesUploadContainer");
+        if (!colorsInput || !container) return;
+
+        const colors = colorsInput.value.split(",")
+            .map(c => c.trim())
+            .filter(Boolean);
+
+        const currentImages = {};
+        container.querySelectorAll(".color-image-row").forEach(row => {
+            const color = row.dataset.color;
+            const imgPreview = row.querySelector("img");
+            if (imgPreview && imgPreview.style.display !== "none") {
+                currentImages[color] = imgPreview.src;
+            }
+        });
+
+        container.innerHTML = "";
+
+        if (colors.length === 0) {
+            container.innerHTML = `<div style="text-align: center; color: var(--color-text-muted); font-size: 1.2rem; padding: 1rem 0;">Enter colors first.</div>`;
+            return;
+        }
+
+        colors.forEach(color => {
+            const existingImg = currentImages[color] || "";
+
+            const row = document.createElement("div");
+            row.classList.add("color-image-row");
+            row.dataset.color = color;
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.justifyContent = "space-between";
+            row.style.gap = "1.5rem";
+            row.style.padding = "1.5rem";
+            row.style.backgroundColor = "var(--color-surface)";
+            row.style.border = "1px solid var(--color-border)";
+            row.style.borderRadius = "4px";
+
+            row.innerHTML = `
+                <div style="flex: 1;">
+                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--color-accent); display: block; margin-bottom: 0.5rem;">${color.toUpperCase()}</span>
+                    <input type="file" class="color-img-file-input" accept="image/*" style="width: 100%; font-size: 1.1rem; background: var(--color-background); border: 1px solid var(--color-border); padding: 0.5rem; color: var(--color-text); border-radius: 4px;">
+                </div>
+                <div class="color-img-preview" style="width: 60px; height: 60px; border-radius: 4px; border: 1px solid var(--color-border); overflow: hidden; background: var(--color-background); display: ${existingImg ? 'block' : 'none'}; position: relative; flex-shrink: 0;">
+                    <img src="${existingImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <button type="button" onclick="clearColorSpecificImage('${color}')" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.8); border: none; color: var(--color-error); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem;"><i class="fa-regular fa-trash-can"></i></button>
+                </div>
+            `;
+
+            const fileInput = row.querySelector(".color-img-file-input");
+            fileInput.addEventListener("change", function() {
+                const file = this.files[0];
+                if (file) {
+                    getFileBase64(file).then(base64 => {
+                        const previewDiv = row.querySelector(".color-img-preview");
+                        const previewImg = previewDiv.querySelector("img");
+                        previewImg.src = base64;
+                        previewDiv.style.display = "block";
+                    });
+                }
+            });
+
+            container.appendChild(row);
+        });
+    };
+
+    window.clearColorSpecificImage = function(color) {
+        const row = document.querySelector(`.color-image-row[data-color="${color}"]`);
+        if (row) {
+            const fileInput = row.querySelector(".color-img-file-input");
+            const previewDiv = row.querySelector(".color-img-preview");
+            if (fileInput) fileInput.value = "";
+            if (previewDiv) {
+                previewDiv.style.display = "none";
+                const img = previewDiv.querySelector("img");
+                if (img) img.src = "";
+            }
+        }
+    };
+
     const newProdSizesInput = document.getElementById("newProdSizes");
     const newProdColorsInput = document.getElementById("newProdColors");
     if (newProdSizesInput) {
         newProdSizesInput.addEventListener("input", window.updateDynamicInventoryGrid);
     }
     if (newProdColorsInput) {
-        newProdColorsInput.addEventListener("input", window.updateDynamicInventoryGrid);
+        newProdColorsInput.addEventListener("input", () => {
+            window.updateDynamicInventoryGrid();
+            window.updateColorImagesUploadContainer();
+        });
     }
 
     const brandImgFile = document.getElementById("newBrandImgFileInput");
@@ -1950,6 +2035,9 @@ function openAddProductModal() {
     if (window.updateDefaultSizesAndInventoryGrid) {
         window.updateDefaultSizesAndInventoryGrid();
     }
+    if (window.updateColorImagesUploadContainer) {
+        window.updateColorImagesUploadContainer();
+    }
     addProductModalBackdrop.classList.add("active");
 }
 
@@ -2030,6 +2118,26 @@ function openEditProductModal(productId) {
         }, 50);
     }
 
+    if (window.updateColorImagesUploadContainer) {
+        window.updateColorImagesUploadContainer();
+        const existingImages = prod.image ? prod.image.split(",").map(url => url.trim()) : [];
+        const colors = prod.colors || ["Black", "Charcoal", "Grey"];
+        colors.forEach((color, idx) => {
+            const imgUrl = existingImages[idx] || "";
+            if (imgUrl) {
+                const row = document.querySelector(`.color-image-row[data-color="${color}"]`);
+                if (row) {
+                    const previewDiv = row.querySelector(".color-img-preview");
+                    const img = previewDiv ? previewDiv.querySelector("img") : null;
+                    if (previewDiv && img) {
+                        img.src = imgUrl;
+                        previewDiv.style.display = "block";
+                    }
+                }
+            }
+        });
+    }
+
     addProductModalBackdrop.classList.add("active");
 }
 
@@ -2061,22 +2169,42 @@ async function handleNewProductSubmit(event) {
     const desc = document.getElementById("newProdDesc").value;
     const brand = document.getElementById("newProdBrand").value;
 
-    const fileInput = document.getElementById("newProdImgFile");
-    const previewDiv = document.getElementById("newProdImgPreviews");
-    let img = "";
+    const colorRows = document.querySelectorAll(".color-image-row");
+    const imgArray = [];
+    let hasAtLeastOneImg = false;
 
-    if (fileInput.files && fileInput.files.length > 0) {
-        try {
-            const base64Promises = Array.from(fileInput.files).map(file => getFileBase64(file));
-            const base64Array = await Promise.all(base64Promises);
-            img = base64Array.join(",");
-        } catch (e) {
-            alert("Error reading product image files.");
-            return;
+    for (let row of colorRows) {
+        const previewImg = row.querySelector(".color-img-preview img");
+        const previewDiv = row.querySelector(".color-img-preview");
+        if (previewDiv && previewDiv.style.display !== "none" && previewImg && previewImg.src) {
+            imgArray.push(previewImg.src);
+            hasAtLeastOneImg = true;
+        } else {
+            imgArray.push("");
         }
-    } else if (isEditingProduct && previewDiv && previewDiv.dataset.existingImages) {
-        img = previewDiv.dataset.existingImages;
+    }
+
+    let img = "";
+    if (hasAtLeastOneImg) {
+        img = imgArray.join(",");
     } else {
+        const fileInput = document.getElementById("newProdImgFile");
+        const previewDiv = document.getElementById("newProdImgPreviews");
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            try {
+                const base64Promises = Array.from(fileInput.files).map(file => getFileBase64(file));
+                const base64Array = await Promise.all(base64Promises);
+                img = base64Array.join(",");
+            } catch (e) {
+                alert("Error reading product image files.");
+                return;
+            }
+        } else if (isEditingProduct && previewDiv && previewDiv.dataset.existingImages) {
+            img = previewDiv.dataset.existingImages;
+        }
+    }
+
+    if (!img) {
         alert("PLEASE SELECT AT LEAST ONE PRODUCT IMAGE FILE.");
         return;
     }
