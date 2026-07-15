@@ -918,6 +918,94 @@ const server = http.createServer(async (req, res) => {
         }
         return;
       }
+
+      if (pathname === '/api/orders/track') {
+        const query = parsedUrl.query.query;
+        if (!query) {
+          sendJsonResponse(res, { error: "Missing query parameter" }, 400);
+          return;
+        }
+        const queryClean = query.trim().toLowerCase();
+        const matched = (db.orders || []).filter(o => {
+          const idMatches = String(o.id) === queryClean;
+          const phoneMatches = o.customerPhone && o.customerPhone.replace(/[\s\-\+\(\)]/g, '').includes(queryClean.replace(/[\s\-\+\(\)]/g, ''));
+          return idMatches || phoneMatches;
+        });
+        sendJsonResponse(res, matched);
+        return;
+      }
+
+      if (pathname === '/api/analytics') {
+        const orders = db.orders || [];
+        const products = db.products || [];
+
+        const validOrders = orders.filter(o => o.status !== 'Cancelled');
+        
+        let totalSales = 0;
+        let totalCost = 0;
+        let totalOrders = validOrders.length;
+
+        const categoryMap = {};
+        const monthlyMap = {};
+
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date();
+          d.setMonth(d.getMonth() - i);
+          const monthName = d.toLocaleString('default', { month: 'short' });
+          months.push(monthName);
+          monthlyMap[monthName] = 0;
+        }
+
+        validOrders.forEach(o => {
+          totalSales += parseFloat(o.total) || 0;
+
+          if (o.date) {
+            const orderDate = new Date(o.date);
+            const mName = orderDate.toLocaleString('default', { month: 'short' });
+            if (monthlyMap[mName] !== undefined) {
+              monthlyMap[mName] += parseFloat(o.total) || 0;
+            }
+          }
+
+          if (o.items && Array.isArray(o.items)) {
+            o.items.forEach(item => {
+              const qty = parseInt(item.quantity) || 1;
+              const itemPrice = parseFloat(item.price) || 0;
+              
+              const prod = products.find(p => p.id === parseInt(item.id));
+              const cost = prod && prod.costPrice ? parseFloat(prod.costPrice) : (itemPrice * 0.6);
+              totalCost += cost * qty;
+
+              const cat = item.category || (prod && prod.category) || 'Other';
+              categoryMap[cat] = (categoryMap[cat] || 0) + qty;
+            });
+          }
+        });
+
+        const totalProfit = totalSales - totalCost;
+        const aov = totalOrders > 0 ? (totalSales / totalOrders) : 0;
+
+        const categoryData = Object.keys(categoryMap).map(name => ({
+          name: name,
+          value: categoryMap[name]
+        }));
+
+        const monthlyData = months.map(m => monthlyMap[m] || 0);
+
+        sendJsonResponse(res, {
+          totalSales: Math.round(totalSales * 100) / 100,
+          totalProfit: Math.round(totalProfit * 100) / 100,
+          totalOrders,
+          aov: Math.round(aov * 100) / 100,
+          categoryShare: categoryData,
+          monthlySales: {
+            labels: months,
+            data: monthlyData
+          }
+        });
+        return;
+      }
     }
 
     // 2. POST Requests
