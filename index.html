@@ -1907,6 +1907,23 @@
          </div>
     </div>
 
+    <!-- Admin Order Details Modal -->
+    <div class="modal-backdrop" id="adminOrderDetailsModalBackdrop" style="z-index: 1100;">
+        <div class="checkout-modal" style="max-width: 750px; width: 95%; background-color: var(--color-surface); color: var(--color-text); padding: 3rem; border-radius: 8px; border: 1px solid var(--color-border);">
+            <button class="close-modal-btn" onclick="closeAdminOrderDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="checkout-title" style="margin-bottom: 2rem; letter-spacing: 0.1em; font-size: 2rem;">ORDER DETAILS</h2>
+            
+            <div id="adminOrderDetailsContent" style="text-align: left; max-height: 50vh; overflow-y: auto; padding-right: 1rem;">
+                <!-- Dynamically populated order details -->
+            </div>
+            
+            <div style="display: flex; gap: 1.5rem; margin-top: 3rem;">
+                <button class="place-order-btn" style="flex: 1;" onclick="printActiveOrderInvoice()">PRINT INVOICE</button>
+                <button class="continue-shopping-btn" style="flex: 1; margin: 0; padding: 1.2rem;" onclick="closeAdminOrderDetailsModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Admin Control Panel Quick-Return Button -->
     <button id="floatingAdminDashboardBtn" onclick="openAdminLoginModal()" style="display: none; position: fixed; bottom: 3rem; right: 3rem; z-index: 9999; background: linear-gradient(135deg, var(--color-accent), #b8912e); color: #000; font-weight: 700; border: none; padding: 1.2rem 2.2rem; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); align-items: center; gap: 0.8rem; font-size: 1.15rem; letter-spacing: 0.05em; transition: all 0.25s ease; text-transform: uppercase;">
         <i class="fa-solid fa-lock"></i> CONTROL PANEL
