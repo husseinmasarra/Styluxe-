@@ -286,21 +286,35 @@ let pool = null;
 
 // Initialize PostgreSQL connection pool if configured in config.json
 function initPgPool() {
-  const CONFIG_FILE = path.join(__dirname, 'config.json');
-  if (fs.existsSync(CONFIG_FILE)) {
-    try {
-      const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-      if (cfg.DATABASE_URL) {
-        const { Pool } = require('pg');
-        pool = new Pool({
-          connectionString: cfg.DATABASE_URL,
-          ssl: { rejectUnauthorized: false } // Required for cloud databases like Supabase/Neon/Render
-        });
-        console.log("Connected to PostgreSQL Database Pool successfully!");
+  if (pool) return; // Initialize only once to prevent connection leaks!
+
+  let dbUrl = process.env.DATABASE_URL;
+
+  if (!dbUrl) {
+    const CONFIG_FILE = path.join(__dirname, 'config.json');
+    if (fs.existsSync(CONFIG_FILE)) {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+        dbUrl = cfg.DATABASE_URL;
+      } catch (e) {
+        console.error("Failed to read DATABASE_URL from config.json:", e);
       }
+    }
+  }
+
+  if (dbUrl) {
+    try {
+      const { Pool } = require('pg');
+      pool = new Pool({
+        connectionString: dbUrl,
+        ssl: { rejectUnauthorized: false } // Required for cloud databases like Supabase/Neon/Render
+      });
+      console.log("Connected to PostgreSQL Database Pool successfully!");
     } catch (e) {
       console.error("Failed to initialize PostgreSQL pool:", e);
     }
+  } else {
+    console.log("No PostgreSQL DATABASE_URL configured. Running with local JSON file database.");
   }
 }
 
@@ -626,9 +640,16 @@ async function loadDatabaseIntoMemory() {
       });
 
       console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands, ${dbMemory.suppliers.length} suppliers, ${dbMemory.invoices.length} invoices, ${dbMemory.coupons.length} coupons.`);
+      
+      // Sync local file copy with loaded postgres data
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), 'utf-8');
+      } catch (e) {}
+      
       return;
     } catch (err) {
-      console.error("Failed to load PostgreSQL data, falling back to local JSON:", err);
+      console.error("FATAL: Failed to load PostgreSQL data:", err);
+      throw new Error("PostgreSQL database is configured but failed to load. Aborting server startup to prevent data loss.");
     }
   }
 
@@ -1854,13 +1875,19 @@ function verifyGoogleToken(token, clientId) {
 }
 
 (async () => {
-  // Load database from SQL or JSON into local memory cache
-  await loadDatabaseIntoMemory();
+  try {
+    // Load database from SQL or JSON into local memory cache
+    await loadDatabaseIntoMemory();
 
-  server.listen(PORT, () => {
-    console.log(`\n======================================================`);
-    console.log(`  STYLUXE Premium Store Server running at:`);
-    console.log(`  👉  http://localhost:${PORT}/`);
-    console.log(`======================================================\n`);
-  });
+    server.listen(PORT, () => {
+      console.log(`\n======================================================`);
+      console.log(`  STYLUXE Premium Store Server running at:`);
+      console.log(`  👉  http://localhost:${PORT}/`);
+      console.log(`======================================================\n`);
+    });
+  } catch (err) {
+    console.error("\n[CRITICAL STARTUP ERROR] " + err.message);
+    console.error("Server startup aborted to prevent accidental database wipe.\n");
+    process.exit(1);
+  }
 })();
