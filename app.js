@@ -2427,6 +2427,8 @@ function renderAdminOrders() {
         const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]${item.preorder ? ' <strong style="color: var(--color-accent);">(PRE-ORDER)</strong>' : ''}`).join("<br>");
         
         const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.onclick = () => openAdminOrderDetailsModal(o.id);
         tr.innerHTML = `
             <td><strong>#${o.id}</strong></td>
             <td>
@@ -3897,6 +3899,13 @@ function renderAdminOrders() {
         const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]${item.preorder ? ' <strong style="color: var(--color-accent);">(PRE-ORDER)</strong>' : ''}`).join("<br>");
         
         const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.onclick = (e) => {
+            if (e.target.closest("button") && e.target.closest("button").classList.contains("status-change-btn")) {
+                return;
+            }
+            openAdminOrderDetailsModal(o.id);
+        };
         tr.innerHTML = `
             <td><strong>#${o.id}</strong></td>
             <td>
@@ -5782,5 +5791,295 @@ function renderSingleOrderTracking(order) {
             </div>
         </div>
     `;
+}
+
+let activeAdminOrder = null;
+
+function openAdminOrderDetailsModal(orderId) {
+    const order = ordersList.find(o => o.id === orderId);
+    if (!order) return;
+
+    activeAdminOrder = order;
+
+    const contentDiv = document.getElementById("adminOrderDetailsContent");
+    
+    // Build items rows with product images!
+    let itemsHTML = "";
+    order.items.forEach(item => {
+        const prod = PRODUCTS.find(p => p.id === item.id);
+        const imgUrl = item.image || (prod ? getProductMainImage(prod) : 'assets/favicon.jpg');
+        const colorVal = item.color || "Black";
+        
+        itemsHTML += `
+            <div style="display: flex; align-items: center; gap: 1.5rem; padding: 1.2rem 0; border-bottom: 1px solid var(--color-border);">
+                <img src="${imgUrl}" alt="${item.name}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+                <div style="flex: 1;">
+                    <h4 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 0.4rem 0;">${item.name}</h4>
+                    <span style="font-size: 1.1rem; color: var(--color-text-muted);">SIZE: ${item.size} / COLOR: ${colorVal}</span>
+                    ${item.preorder ? '<span style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent); letter-spacing: 0.05em; display: inline-block; margin-left: 0.8rem;">PRE-ORDER</span>' : ''}
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; font-size: 1.3rem;">${formatPrice(item.price * item.quantity)}</div>
+                    <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.2rem;">${item.quantity} x ${formatPrice(item.price)}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = subtotal >= 150 ? 0 : 5;
+    const discount = Math.max(0, subtotal + shipping - order.total);
+
+    contentDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
+            <div>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: var(--color-accent); margin-bottom: 1rem;">ORDER INFO</h3>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Order ID:</strong> #${order.id}</p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Date:</strong> ${order.date}</p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Status:</strong> <span style="font-weight:700; color: ${order.status.includes("DELIVERED") ? "var(--color-success)" : order.status.includes("SHIPPED") ? "#5ac8fa" : "var(--color-accent)"};">${order.status.toUpperCase()}</span></p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Payment:</strong> COD (Cash on Delivery)</p>
+            </div>
+            <div>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: var(--color-accent); margin-bottom: 1rem;">CUSTOMER DETAILS</h3>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Name:</strong> ${order.customer || order.customerName}</p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Phone:</strong> ${order.phone || order.customerPhone}</p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Email:</strong> ${order.userEmail || order.customerEmail || 'N/A'}</p>
+                <p style="margin: 0.4rem 0; font-size: 1.2rem;"><strong>Address:</strong> ${order.address || order.customerAddress}</p>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1.4rem; font-weight: 700; color: var(--color-accent); margin-bottom: 1.5rem;">ORDER ITEMS</h3>
+        <div style="margin-bottom: 2.5rem;">
+            ${itemsHTML}
+        </div>
+
+        <div style="width: 280px; margin-left: auto; display: flex; flex-direction: column; gap: 0.8rem; font-size: 1.2rem; padding: 1.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--color-border); border-radius: 6px;">
+            <div style="display: flex; justify-content: space-between;">
+                <span>Subtotal:</span>
+                <span>${formatPrice(subtotal)}</span>
+            </div>
+            ${discount > 0 ? `
+            <div style="display: flex; justify-content: space-between; color: var(--color-error);">
+                <span>Discount:</span>
+                <span>-${formatPrice(discount)}</span>
+            </div>
+            ` : ''}
+            <div style="display: flex; justify-content: space-between;">
+                <span>Shipping:</span>
+                <span>${shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.4rem; border-top: 1px solid var(--color-border); padding-top: 0.8rem; color: var(--color-accent);">
+                <span>Total:</span>
+                <span>${formatPrice(order.total)}</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("adminOrderDetailsModalBackdrop").classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+function closeAdminOrderDetailsModal() {
+    document.getElementById("adminOrderDetailsModalBackdrop").classList.remove("active");
+    document.body.style.overflow = "";
+    activeAdminOrder = null;
+}
+
+function printActiveOrderInvoice() {
+    if (!activeAdminOrder) return;
+    const order = activeAdminOrder;
+
+    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = subtotal >= 150 ? 0 : 5;
+    const discount = Math.max(0, subtotal + shipping - order.total);
+
+    let itemsRows = "";
+    order.items.forEach(item => {
+        const colorVal = item.color || "Black";
+        itemsRows += `
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px; text-align: left;">
+                    <div style="font-weight: bold; font-size: 14px;">${item.name}</div>
+                    <div style="font-size: 12px; color: #666;">Size: ${item.size} / Color: ${colorVal} ${item.preorder ? '<strong>(PRE-ORDER)</strong>' : ''}</div>
+                </td>
+                <td style="padding: 12px; text-align: center;">${item.quantity}</td>
+                <td style="padding: 12px; text-align: right;">$${item.price.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; font-weight: bold;">$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const invoiceWindow = window.open("", "_blank");
+    invoiceWindow.document.write(\`
+        <html>
+        <head>
+            <title>Invoice - #\${order.id}</title>
+            <style>
+                body {
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    color: #333;
+                    padding: 40px;
+                    margin: 0;
+                    background-color: #fff;
+                }
+                .invoice-box {
+                    max-width: 800px;
+                    margin: auto;
+                    border: 1px solid #eee;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+                    padding: 30px;
+                    border-radius: 8px;
+                }
+                .invoice-header {
+                    display: flex;
+                    justify-content: space-between;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .logo {
+                    font-size: 32px;
+                    font-weight: bold;
+                    letter-spacing: 0.1em;
+                }
+                .details-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 30px;
+                    margin-bottom: 40px;
+                }
+                .details-block h3 {
+                    margin-top: 0;
+                    border-bottom: 1px solid #ddd;
+                    padding-bottom: 8px;
+                    font-size: 16px;
+                }
+                .details-block p {
+                    margin: 6px 0;
+                    font-size: 14px;
+                    line-height: 1.4;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 30px;
+                }
+                th {
+                    background-color: #f5f5f5;
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid #ddd;
+                }
+                .totals-box {
+                    width: 250px;
+                    margin-left: auto;
+                    font-size: 14px;
+                    line-height: 1.8;
+                }
+                .totals-box div {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 6px 0;
+                }
+                .totals-box .grand-total {
+                    font-size: 18px;
+                    font-weight: bold;
+                    border-top: 2px solid #333;
+                    padding-top: 10px;
+                    margin-top: 10px;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                    }
+                    .invoice-box {
+                        border: none;
+                        box-shadow: none;
+                        padding: 0;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice-box">
+                <div class="invoice-header">
+                    <div>
+                        <div class="logo">STYLUXE</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">Riad Al Solh Street, Beirut, Lebanon</div>
+                        <div style="font-size: 12px; color: #666;">Phone: +961 71 987 654</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <h2 style="margin: 0; font-size: 24px; color: #333;">INVOICE</h2>
+                        <div style="font-size: 14px; margin-top: 8px;">Order: <strong>#\${order.id}</strong></div>
+                        <div style="font-size: 14px; color: #666;">Date: \${order.date}</div>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="details-block">
+                        <h3>Customer Info</h3>
+                        <p><strong>Name:</strong> \${order.customer || order.customerName}</p>
+                        <p><strong>Phone:</strong> \${order.phone || order.customerPhone}</p>
+                        <p><strong>Email:</strong> \${order.userEmail || order.customerEmail || 'N/A'}</p>
+                        <p><strong>Address:</strong> \${order.address || order.customerAddress}</p>
+                    </div>
+                    <div class="details-block">
+                        <h3>Order Status & Payment</h3>
+                        <p><strong>Status:</strong> \${order.status.toUpperCase()}</p>
+                        <p><strong>Payment Method:</strong> Cash on Delivery (COD)</p>
+                        <p><strong>Shipping Carrier:</strong> Local Delivery Rider</p>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Item & Description</th>
+                            <th style="text-align: center; width: 80px;">Qty</th>
+                            <th style="text-align: right; width: 100px;">Price</th>
+                            <th style="text-align: right; width: 120px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        \${itemsRows}
+                    </tbody>
+                </table>
+
+                <div class="totals-box">
+                    <div>
+                        <span>Subtotal:</span>
+                        <span>$\${subtotal.toFixed(2)}</span>
+                    </div>
+                    \${discount > 0 ? \`
+                    <div style="color: #c0392b;">
+                        <span>Discount:</span>
+                        <span>-\$\${discount.toFixed(2)}</span>
+                    </div>
+                    \` : ''}
+                    <div>
+                        <span>Shipping:</span>
+                        <span>\${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                    </div>
+                    <div class="grand-total">
+                        <span>Total Due:</span>
+                        <span>$\${order.total.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+                    Thank you for shopping at STYLUXE!
+                </div>
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 500);
+                }
+            </script>
+        </body>
+        </html>
+    \`);
+    invoiceWindow.document.close();
 }
 
