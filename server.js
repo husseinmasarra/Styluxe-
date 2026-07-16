@@ -348,6 +348,10 @@ async function initPgDatabase() {
       status VARCHAR(50) NOT NULL,
       date VARCHAR(50)
     )`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255)`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(100)`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_address TEXT`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS department VARCHAR(50) DEFAULT 'Men'`);
 
     // Create staff table
     await pool.query(`CREATE TABLE IF NOT EXISTS staff (
@@ -564,11 +568,18 @@ async function loadDatabaseIntoMemory() {
       dbMemory.orders = ordersRes.rows.map(o => ({
         id: o.id,
         userEmail: o.user_email,
+        customerName: o.customer_name || 'N/A',
+        customerPhone: o.customer_phone || 'N/A',
+        customerAddress: o.customer_address || 'N/A',
+        customer: o.customer_name || 'N/A',
+        phone: o.customer_phone || 'N/A',
+        address: o.customer_address || 'N/A',
         items: JSON.parse(o.items || '[]'),
         total: o.total,
         paymentMethod: o.payment_method,
         status: o.status,
-        date: o.date
+        date: o.date,
+        department: o.department || 'Men'
       }));
 
       dbMemory.staff = staffRes.rows.map(s => ({
@@ -697,9 +708,12 @@ function writeDb(data) {
 
           // Sync orders
           await client.query('DELETE FROM orders');
-          const orderStmt = 'INSERT INTO orders (id, user_email, items, total, payment_method, status, date) VALUES ($1, $2, $3, $4, $5, $6, $7)';
+          const orderStmt = 'INSERT INTO orders (id, user_email, customer_name, customer_phone, customer_address, items, total, payment_method, status, date, department) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
           for (const o of data.orders) {
-            await client.query(orderStmt, [o.id, o.userEmail, JSON.stringify(o.items || []), o.total, o.paymentMethod, o.status, o.date]);
+            await client.query(orderStmt, [
+              o.id, o.userEmail, o.customerName || o.customer || 'N/A', o.customerPhone || o.phone || 'N/A', o.customerAddress || o.address || 'N/A',
+              JSON.stringify(o.items || []), o.total, o.paymentMethod || 'COD', o.status, o.date, o.department || 'Men'
+            ]);
           }
 
           // Sync staff
