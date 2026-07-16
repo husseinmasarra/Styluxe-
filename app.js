@@ -950,6 +950,12 @@ function openProductModal(productId) {
     modalProductPrice.textContent = formatPrice(product.price);
     modalProductDesc.textContent = product.description;
 
+    if (product.preorder) {
+        modalAddToCartBtn.textContent = "PRE-ORDER NOW";
+    } else {
+        modalAddToCartBtn.textContent = "ADD TO CART";
+    }
+
     // Render Color Swatches
     const colorSelectorGrid = document.getElementById("colorSelectorGrid");
     colorSelectorGrid.innerHTML = "";
@@ -1019,7 +1025,9 @@ function renderSizingButtons(product) {
             ? product.inventory[key] 
             : 10;
             
-        if (stock <= 0) {
+        const isPreorder = !!product.preorder;
+            
+        if (stock <= 0 && !isPreorder) {
             btn.classList.add("out-of-stock");
             btn.textContent = `${size} (OUT)`;
             btn.disabled = true;
@@ -1028,7 +1036,7 @@ function renderSizingButtons(product) {
             btn.onclick = () => selectSize(size, btn);
         }
         
-        if (selectedSize === size && stock > 0) {
+        if (selectedSize === size && (stock > 0 || isPreorder)) {
             btn.classList.add("active");
         }
         
@@ -1115,17 +1123,17 @@ function addProductFromModalToCart() {
         return;
     }
 
-    addToCart(activeModalProduct.id, selectedSize);
+    addToCart(activeModalProduct.id, selectedSize, 1, selectedColor, !!activeModalProduct.preorder);
     closeProductModal();
     toggleCartDrawer(true);
 }
 
-function addToCart(productId, size, quantity = 1) {
+function addToCart(productId, size, quantity = 1, color = "Black", preorder = false) {
     const product = PRODUCTS.find(p => p.id === productId);
     if (!product) return;
 
-    // Check if item already in cart with same size
-    const existingIndex = cart.findIndex(item => item.id === productId && item.size === size);
+    // Check if item already in cart with same size and color
+    const existingIndex = cart.findIndex(item => item.id === productId && item.size === size && (item.color || "Black") === color);
 
     if (existingIndex > -1) {
         cart[existingIndex].quantity += quantity;
@@ -1136,7 +1144,9 @@ function addToCart(productId, size, quantity = 1) {
             price: product.price,
             image: getProductMainImage(product),
             size: size,
-            quantity: quantity
+            color: color,
+            quantity: quantity,
+            preorder: preorder || !!product.preorder
         });
     }
 
@@ -1219,6 +1229,7 @@ function updateCartUI() {
             <div class="cart-item-info">
                 <h4 class="cart-item-name">${item.name}</h4>
                 <span class="cart-item-size">SIZE: ${item.size} / COLOR: ${colorVal}</span>
+                ${item.preorder ? '<span style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent); letter-spacing: 0.05em; display: block; margin-top: 0.4rem;">PRE-ORDER</span>' : ''}
                 <div class="cart-item-qty">
                     <button class="qty-btn" onclick="updateQuantity(${item.id}, '${item.size}', '${colorVal}', -1)">-</button>
                     <span class="qty-val">${item.quantity}</span>
@@ -1301,7 +1312,7 @@ function updateCheckoutSummary() {
         const row = document.createElement("div");
         row.classList.add("summary-item-row");
         row.innerHTML = `
-            <span>${item.name} (x${item.quantity}) [Size: ${item.size}]</span>
+            <span>${item.name} (x${item.quantity}) [Size: ${item.size}]${item.preorder ? ' <strong style="color: var(--color-accent); font-size: 0.85rem; letter-spacing: 0.05em;">(PRE-ORDER)</strong>' : ''}</span>
             <span>${formatPrice(item.price * item.quantity)}</span>
         `;
         checkoutOrderSummary.appendChild(row);
@@ -1930,7 +1941,7 @@ function renderAdminProducts() {
             <td><strong>#${p.id}</strong></td>
             <td><img src="${getProductMainImage(p)}" alt="${p.name}"></td>
             <td>
-                <strong>${p.name}</strong>
+                <strong>${p.name}</strong> ${p.preorder ? '<span style="background-color: var(--color-accent); color: #000; font-size: 0.9rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 3px; margin-left: 0.5rem; vertical-align: middle;">PRE-ORDER</span>' : ''}
                 <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem; display: flex; align-items: center; gap: 0.8rem;">
                     <span>Priority: ${p.priority !== undefined ? p.priority : 1000}</span>
                     <button onclick="moveProductToTop(${p.id})" style="background: none; color: var(--color-accent); border: none; cursor: pointer; font-size: 1.2rem; padding: 0.2rem;" title="Move to Top"><i class="fa-solid fa-angles-up"></i></button>
@@ -2175,6 +2186,7 @@ function openEditProductModal(productId) {
     document.getElementById("newProdSizes").value = prod.sizes ? prod.sizes.join(", ") : "";
     document.getElementById("newProdColors").value = prod.colors ? prod.colors.join(", ") : "";
     document.getElementById("newProdDesc").value = prod.description || "";
+    document.getElementById("newProdPreorder").checked = !!prod.preorder;
 
     const fileInput = document.getElementById("newProdImgFile");
     if (fileInput) {
@@ -2308,6 +2320,8 @@ async function handleNewProductSubmit(event) {
     const deptSelect = document.getElementById("newProdDept");
     const department = deptSelect ? deptSelect.value : (currentAdminDept === "Global" ? "Men" : currentAdminDept);
 
+    const preorder = document.getElementById("newProdPreorder").checked;
+
     const productData = {
         name: name.toUpperCase(),
         category: category,
@@ -2320,8 +2334,9 @@ async function handleNewProductSubmit(event) {
         sizes: sizes,
         colors: colors,
         inventory: inventory,
-        badge: "NEW",
-        brand: brand || "Styluxe"
+        badge: preorder ? "PRE-ORDER" : "NEW",
+        brand: brand || "Styluxe",
+        preorder: preorder
     };
 
     if (isEditingProduct) {
@@ -2409,7 +2424,7 @@ function renderAdminOrders() {
     }
 
     filtered.forEach(o => {
-        const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]`).join("<br>");
+        const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]${item.preorder ? ' <strong style="color: var(--color-accent);">(PRE-ORDER)</strong>' : ''}`).join("<br>");
         
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -3879,7 +3894,7 @@ function renderAdminOrders() {
     }
 
     filtered.forEach(o => {
-        const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]`).join("<br>");
+        const itemSummary = o.items.map(item => `${item.name} (x${item.quantity}) [${item.size}]${item.preorder ? ' <strong style="color: var(--color-accent);">(PRE-ORDER)</strong>' : ''}`).join("<br>");
         
         const tr = document.createElement("tr");
         tr.innerHTML = `
