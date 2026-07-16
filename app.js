@@ -5910,10 +5910,10 @@ function printActiveOrderInvoice() {
     });
 
     const invoiceWindow = window.open("", "_blank");
-    invoiceWindow.document.write(\`
+    invoiceWindow.document.write(`
         <html>
         <head>
-            <title>Invoice - #\${order.id}</title>
+            <title>Invoice - #${order.id}</title>
             <style>
                 body {
                     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -6011,22 +6011,22 @@ function printActiveOrderInvoice() {
                     </div>
                     <div style="text-align: right;">
                         <h2 style="margin: 0; font-size: 24px; color: #333;">INVOICE</h2>
-                        <div style="font-size: 14px; margin-top: 8px;">Order: <strong>#\${order.id}</strong></div>
-                        <div style="font-size: 14px; color: #666;">Date: \${order.date}</div>
+                        <div style="font-size: 14px; margin-top: 8px;">Order: <strong>#${order.id}</strong></div>
+                        <div style="font-size: 14px; color: #666;">Date: ${order.date}</div>
                     </div>
                 </div>
 
                 <div class="details-grid">
                     <div class="details-block">
                         <h3>Customer Info</h3>
-                        <p><strong>Name:</strong> \${order.customer || order.customerName}</p>
-                        <p><strong>Phone:</strong> \${order.phone || order.customerPhone}</p>
-                        <p><strong>Email:</strong> \${order.userEmail || order.customerEmail || 'N/A'}</p>
-                        <p><strong>Address:</strong> \${order.address || order.customerAddress}</p>
+                        <p><strong>Name:</strong> ${order.customer || order.customerName}</p>
+                        <p><strong>Phone:</strong> ${order.phone || order.customerPhone}</p>
+                        <p><strong>Email:</strong> ${order.userEmail || order.customerEmail || 'N/A'}</p>
+                        <p><strong>Address:</strong> ${order.address || order.customerAddress}</p>
                     </div>
                     <div class="details-block">
                         <h3>Order Status & Payment</h3>
-                        <p><strong>Status:</strong> \${order.status.toUpperCase()}</p>
+                        <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
                         <p><strong>Payment Method:</strong> Cash on Delivery (COD)</p>
                         <p><strong>Shipping Carrier:</strong> Local Delivery Rider</p>
                     </div>
@@ -6042,28 +6042,28 @@ function printActiveOrderInvoice() {
                         </tr>
                     </thead>
                     <tbody>
-                        \${itemsRows}
+                        ${itemsRows}
                     </tbody>
                 </table>
 
                 <div class="totals-box">
                     <div>
                         <span>Subtotal:</span>
-                        <span>$\${subtotal.toFixed(2)}</span>
+                        <span>$${subtotal.toFixed(2)}</span>
                     </div>
-                    \${discount > 0 ? \`
+                    ${discount > 0 ? `
                     <div style="color: #c0392b;">
                         <span>Discount:</span>
-                        <span>-\$\${discount.toFixed(2)}</span>
+                        <span>-$${discount.toFixed(2)}</span>
                     </div>
-                    \` : ''}
+                    ` : ''}
                     <div>
                         <span>Shipping:</span>
-                        <span>\${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                        <span>${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
                     </div>
                     <div class="grand-total">
                         <span>Total Due:</span>
-                        <span>$\${order.total.toFixed(2)}</span>
+                        <span>$${order.total.toFixed(2)}</span>
                     </div>
                 </div>
 
@@ -6079,7 +6079,7 @@ function printActiveOrderInvoice() {
             </script>
         </body>
         </html>
-    \`);
+    `);
     invoiceWindow.document.close();
 }
 
