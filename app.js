@@ -2610,6 +2610,8 @@ function addProdToPos(productId, size) {
             id: product.id,
             name: product.name,
             price: product.price,
+            originalPrice: product.price,
+            discount: 0,
             size: size,
             color: color,
             quantity: 1
@@ -2642,10 +2644,20 @@ function renderPosTicketItems() {
     posCart.forEach(item => {
         const div = document.createElement("div");
         div.classList.add("pos-ticket-item");
+        
+        if (item.discount === undefined) item.discount = 0;
+        if (item.originalPrice === undefined) item.originalPrice = item.price;
+
         div.innerHTML = `
             <div class="pos-ticket-info">
-                <h4>${item.name}</h4>
-                <span>SIZE: ${item.size} - ${formatPrice(item.price)}</span>
+                <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 0.3rem 0;">${item.name}</h4>
+                <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                    <span style="font-size: 1.1rem; color: var(--color-text-muted);">SIZE: ${item.size} / ${formatPrice(item.originalPrice)}</span>
+                    <span style="font-size: 1.1rem; color: var(--color-accent); display: flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem;">
+                        Hassm: $
+                        <input type="number" value="${item.discount}" min="0" max="${item.originalPrice}" onchange="updatePosItemDiscount(${item.id}, '${item.size}', this.value)" style="width: 55px; background: rgba(255,255,255,0.08); border: 1px solid var(--color-border); color: var(--color-text); padding: 0.15rem 0.3rem; font-size: 1.1rem; border-radius: 4px; text-align: center; font-weight: bold;">
+                    </span>
+                </div>
             </div>
             <div class="pos-ticket-price-del">
                 <div class="pos-ticket-qty">
@@ -2661,6 +2673,20 @@ function renderPosTicketItems() {
     });
 
     updatePosTotals();
+}
+
+function updatePosItemDiscount(productId, size, discountVal) {
+    const index = posCart.findIndex(item => item.id === productId && item.size === size);
+    if (index === -1) return;
+
+    const discount = Math.max(0, parseFloat(discountVal) || 0);
+    posCart[index].discount = discount;
+
+    const original = posCart[index].originalPrice || posCart[index].price;
+    posCart[index].originalPrice = original;
+    posCart[index].price = Math.max(0, original - discount);
+
+    renderPosTicketItems();
 }
 
 function updatePosQty(productId, size, change) {
@@ -4800,7 +4826,7 @@ function applyStaffPermissions() {
         btnStaff.style.display = perms.includes("manage_staff") ? "flex" : "none";
     }
     if (btnPos) {
-        btnPos.style.display = perms.includes("pos_access") ? "flex" : "none";
+        btnPos.style.display = "flex"; // Always show POS to all staff/managers
     }
 
     // Lock department selections for department managers
