@@ -366,6 +366,7 @@ async function initPgDatabase() {
     await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(100)`);
     await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_address TEXT`);
     await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS department VARCHAR(50) DEFAULT 'Men'`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS cashier_name VARCHAR(255)`);
 
     // Create staff table
     await pool.query(`CREATE TABLE IF NOT EXISTS staff (
@@ -466,7 +467,8 @@ async function initPgDatabase() {
         { key: "twitter_global", value: "https://twitter.com/styluxe" },
         { key: "tiktok_global", value: "https://tiktok.com/@styluxe" },
         { key: "show_twitter", value: "false" },
-        { key: "show_tiktok", value: "false" }
+        { key: "show_tiktok", value: "false" },
+        { key: "return_password", value: "admin123" }
       ];
       for (const s of defaultSettings) {
         await pool.query("INSERT INTO settings (key, value) VALUES ($1, $2)", [s.key, s.value]);
@@ -593,7 +595,8 @@ async function loadDatabaseIntoMemory() {
         paymentMethod: o.payment_method,
         status: o.status,
         date: o.date,
-        department: o.department || 'Men'
+        department: o.department || 'Men',
+        cashierName: o.cashier_name || 'SYSTEM ADMIN'
       }));
 
       dbMemory.staff = staffRes.rows.map(s => ({
@@ -729,11 +732,11 @@ function writeDb(data) {
 
           // Sync orders
           await client.query('DELETE FROM orders');
-          const orderStmt = 'INSERT INTO orders (id, user_email, customer_name, customer_phone, customer_address, items, total, payment_method, status, date, department) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
+          const orderStmt = 'INSERT INTO orders (id, user_email, customer_name, customer_phone, customer_address, items, total, payment_method, status, date, department, cashier_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
           for (const o of data.orders) {
             await client.query(orderStmt, [
               o.id, o.userEmail, o.customerName || o.customer || 'N/A', o.customerPhone || o.phone || 'N/A', o.customerAddress || o.address || 'N/A',
-              JSON.stringify(o.items || []), o.total, o.paymentMethod || 'COD', o.status, o.date, o.department || 'Men'
+              JSON.stringify(o.items || []), o.total, o.paymentMethod || 'COD', o.status, o.date, o.department || 'Men', o.cashierName || 'SYSTEM ADMIN'
             ]);
           }
 
@@ -1507,7 +1510,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/orders') {
-        const { id, date, customerEmail, customerName, customerPhone, customerAddress, items, total, status, department } = body;
+        const { id, date, customerEmail, customerName, customerPhone, customerAddress, items, total, status, department, cashierName } = body;
 
         if (!id || !customerEmail || !customerName || !items || !total) {
           sendJsonResponse(res, { error: "Missing required fields" }, 400);
@@ -1541,7 +1544,8 @@ const server = http.createServer(async (req, res) => {
           items,
           total: parseFloat(total),
           status: status || 'PENDING',
-          department: department || 'Men'
+          department: department || 'Men',
+          cashierName: cashierName || 'SYSTEM ADMIN'
         };
 
         db.orders.push(newOrder);
@@ -1683,7 +1687,8 @@ const server = http.createServer(async (req, res) => {
          }
 
          if (!authorized && managerPassword) {
-           if (managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
+           const configPassword = (db.settings && db.settings.return_password) || 'admin123';
+           if (managerPassword === configPassword || managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
              authorized = true;
            } else {
              const mgr = db.staff.find(s => s.password === managerPassword && (s.role === 'Manager' || s.role === 'Administrator'));
@@ -1739,7 +1744,7 @@ const server = http.createServer(async (req, res) => {
        }
 
         if (pathname === '/api/orders/pos-return') {
-          const { id, customerName, customerPhone, customerAddress, items, total, staffEmail, staffPassword, managerPassword } = body;
+          const { id, customerName, customerPhone, customerAddress, items, total, staffEmail, staffPassword, managerPassword, cashierName } = body;
 
           if (!id || !items || total === undefined) {
             sendJsonResponse(res, { error: "Missing required fields" }, 400);
@@ -1756,7 +1761,8 @@ const server = http.createServer(async (req, res) => {
           }
 
           if (!authorized && managerPassword) {
-            if (managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
+            const configPassword = (db.settings && db.settings.return_password) || 'admin123';
+            if (managerPassword === configPassword || managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
               authorized = true;
             } else {
               const mgr = db.staff.find(s => s.password === managerPassword && (s.role === 'Manager' || s.role === 'Administrator'));
@@ -1797,7 +1803,8 @@ const server = http.createServer(async (req, res) => {
             items: items.map(item => ({ ...item, returned: true })),
             total: parseFloat(total),
             status: 'REFUND (POS)',
-            department: 'Global'
+            department: 'Global',
+            cashierName: cashierName || 'SYSTEM ADMIN'
           };
 
           if (!db.orders) db.orders = [];
