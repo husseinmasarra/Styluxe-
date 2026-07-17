@@ -24,6 +24,18 @@ let editingProductId = null;
 let isEditingBrand = false;
 let editingBrandOldName = "";
 
+// Utility to get the primary image from a product (supports comma-separated multiple images)
+function getProductMainImage(product) {
+    if (product && product.image) {
+        if (product.image.includes(",")) {
+            return product.image.split(",")[0].trim();
+        }
+        return product.image;
+    }
+    return "";
+}
+window.getProductMainImage = getProductMainImage;
+
 // Customer Accounts State
 let currentUser = null;
 
@@ -349,16 +361,7 @@ function setupEventListeners() {
     closeDrawerBtn.addEventListener("click", toggleMobileDrawer);
     drawerBackdrop.addEventListener("click", toggleMobileDrawer);
 
-    // Utility to get the primary image from a product (supports comma-separated multiple images)
-    window.getProductMainImage = function(product) {
-        if (product && product.image) {
-            if (product.image.includes(",")) {
-                return product.image.split(",")[0].trim();
-            }
-            return product.image;
-        }
-        return "";
-    };
+
 
     // Live Image Upload Previews for Admin Panel
     const prodImgFile = document.getElementById("newProdImgFile");
