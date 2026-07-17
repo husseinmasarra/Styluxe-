@@ -16,6 +16,7 @@ let currentAdminDept = ""; // "Men", "Women", "Kids", "Global"
 let currentAdminStaff = null; // Active logged in staff details
 let currentAdminPassword = ""; // Active logged in staff password for returns auth
 let posMode = "sales"; // "sales" or "return"
+let dailyReportCashierFilter = "current"; // Cashier selection filter for daily report
 let adminActiveTab = "overview";
 let posCart = [];
 let isEditingProduct = false;
@@ -191,6 +192,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentUser = JSON.parse(savedUser);
         updateUserSessionUI();
         closeAuthModal(); // Auto-bypass login landing screen
+    }
+
+    // Auto-resume admin dashboard session from sessionStorage
+    const savedAdminStaff = sessionStorage.getItem("styluxe_admin_staff");
+    if (savedAdminStaff) {
+        currentAdminStaff = JSON.parse(savedAdminStaff);
+        currentAdminDept = sessionStorage.getItem("styluxe_admin_dept") || "Global";
+        currentAdminPassword = sessionStorage.getItem("styluxe_admin_password") || "";
+        
+        // Initialize dashboard overlay
+        adminPanelOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        
+        // Hide quick-return floating button when dashboard is open
+        const floatingBtn = document.getElementById("floatingAdminDashboardBtn");
+        if (floatingBtn) floatingBtn.style.display = "none";
+        
+        initAdminDashboard();
     }
     
     // Add event listener to filter out department selectors
@@ -1659,7 +1678,16 @@ async function initAdminDashboard() {
     // Switch to overview tab, or straight to POS if user is cashier only (pos_access only)
     const perms = currentAdminStaff ? currentAdminStaff.permissions || [] : [];
     const isCashierOnly = perms.includes("pos_access") && !perms.includes("manage_products") && !perms.includes("manage_orders");
-    const initialTab = isCashierOnly ? "pos" : "overview";
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTabFromUrl = urlParams.get("tab");
+    const initialTab = activeTabFromUrl || (isCashierOnly ? "pos" : "overview");
+    
+    if (currentAdminStaff) {
+        sessionStorage.setItem("styluxe_admin_staff", JSON.stringify(currentAdminStaff));
+        sessionStorage.setItem("styluxe_admin_dept", currentAdminDept);
+        sessionStorage.setItem("styluxe_admin_password", currentAdminPassword);
+    }
     
     // Push initial history state
     history.pushState({ admin: true, tab: initialTab }, "Admin Dashboard", `?admin=true&tab=${initialTab}`);
@@ -1671,6 +1699,11 @@ function logoutAdmin() {
     if (container) container.classList.remove("pos-mode");
     currentAdminDept = "";
     currentAdminStaff = null;
+    currentAdminPassword = "";
+    
+    sessionStorage.removeItem("styluxe_admin_staff");
+    sessionStorage.removeItem("styluxe_admin_dept");
+    sessionStorage.removeItem("styluxe_admin_password");
     
     history.pushState(null, "Styluxe", "?");
     window.dispatchEvent(new Event("popstate"));
@@ -2761,7 +2794,8 @@ function processPosSale() {
             total: total,
             staffEmail: currentAdminStaff ? currentAdminStaff.email : "",
             staffPassword: currentAdminPassword || "",
-            managerPassword
+            managerPassword,
+            cashierName: currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN"
         };
         
         fetch('/api/orders/pos-return', {
@@ -2801,7 +2835,8 @@ function processPosSale() {
         items: [...posCart],
         total: total,
         status: "PAID (POS)",
-        department: "Global"
+        department: "Global",
+        cashierName: currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN"
     };
 
     fetch('/api/orders', {
@@ -2908,12 +2943,62 @@ async function openDailyReportModal() {
     document.getElementById("dailyReportDate").textContent = today;
     
     const cashierName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
-    document.getElementById("dailyReportUser").textContent = cashierName;
+    
+    // Find all cashiers who made sales today
+    const cashiersToday = new Set();
+    ordersList.forEach(o => {
+        if (o.date === today && (o.status.includes("POS") || o.status.includes("REFUND (POS)"))) {
+            cashiersToday.add(o.cashierName || "SYSTEM ADMIN");
+        }
+    });
+
+    const selectEl = document.getElementById("dailyReportCashierSelect");
+    if (selectEl) {
+        selectEl.innerHTML = `
+            <option value="current">Current Cashier: ${cashierName}</option>
+            <option value="all">All Cashiers (Total Drawer)</option>
+        `;
+        cashiersToday.forEach(c => {
+            if (c !== cashierName) {
+                selectEl.innerHTML += `<option value="${c}">${c}</option>`;
+            }
+        });
+        selectEl.value = dailyReportCashierFilter;
+    }
+
+    const containerEl = document.getElementById("dailyReportCashierSelectContainer");
+    if (containerEl) {
+        const role = currentAdminStaff ? currentAdminStaff.role : "";
+        containerEl.style.display = (role === "Manager" || role === "Administrator") ? "block" : "none";
+    }
+
+    // Determine target cashier name for filtering
+    let targetCashier = cashierName;
+    if (dailyReportCashierFilter === "all") {
+        targetCashier = "all";
+    } else if (dailyReportCashierFilter !== "current") {
+        targetCashier = dailyReportCashierFilter;
+    }
+
+    // Set generated cashier name in report
+    document.getElementById("dailyReportUser").textContent = targetCashier === "all" ? "ALL CASHIERS" : targetCashier;
 
     // Filter today's POS orders
-    const todayOrders = ordersList.filter(o => o.date === today && o.status.includes("POS"));
+    const todayOrders = ordersList.filter(o => {
+        const isTodayPos = o.date === today && (o.status.includes("POS") || o.status.includes("REFUND (POS)"));
+        if (!isTodayPos) return false;
+        if (targetCashier === "all") return true;
+        return (o.cashierName || "SYSTEM ADMIN") === targetCashier;
+    });
+
     const totalOrders = todayOrders.length;
-    const grossSales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+    const grossSales = todayOrders.reduce((sum, o) => {
+        // If order was a return/refund (status starts with REFUND), count as negative sales!
+        if (o.status && o.status.includes("REFUND")) {
+            return sum - o.total;
+        }
+        return sum + o.total;
+    }, 0);
 
     document.getElementById("dailyReportTotalOrders").textContent = totalOrders;
     document.getElementById("dailyReportGrossSales").textContent = formatPrice(grossSales);
@@ -2987,6 +3072,7 @@ function printDailyReportOnly() {
 
 function closeDailyReportModal() {
     document.getElementById("posDailyReportModalBackdrop").classList.remove("active");
+    dailyReportCashierFilter = "current";
 }
 
 // ==========================================================================
@@ -5313,11 +5399,13 @@ async function resetAllStoreSales() {
 function populateSettingsFields() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
+    const returnPassInput = document.getElementById("settingsReturnPassword");
     const twitterCheck = document.getElementById("settingsShowTwitter");
     const tiktokCheck = document.getElementById("settingsShowTiktok");
 
     if (feeInput) feeInput.value = STORE_SETTINGS.shipping_fee || "5";
     if (thresholdInput) thresholdInput.value = STORE_SETTINGS.free_shipping_threshold || "150";
+    if (returnPassInput) returnPassInput.value = STORE_SETTINGS.return_password || "admin123";
     
     if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
     if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
@@ -5410,12 +5498,14 @@ function applyHeroBackgroundFromSettings() {
 async function saveAllGeneralSettings() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
+    const returnPassInput = document.getElementById("settingsReturnPassword");
     const twitterCheck = document.getElementById("settingsShowTwitter");
     const tiktokCheck = document.getElementById("settingsShowTiktok");
 
     const payload = {};
     if (feeInput) payload.shipping_fee = feeInput.value;
     if (thresholdInput) payload.free_shipping_threshold = thresholdInput.value;
+    if (returnPassInput) payload.return_password = returnPassInput.value.trim();
     if (twitterCheck) payload.show_twitter = String(twitterCheck.checked);
     if (tiktokCheck) payload.show_tiktok = String(tiktokCheck.checked);
 
@@ -6351,5 +6441,10 @@ function showPosReturnReceipt(order, subtotal, discount, total) {
     
     posCart = [];
     renderPosTicketItems();
+}
+
+function onDailyReportCashierChange(val) {
+    dailyReportCashierFilter = val;
+    openDailyReportModal();
 }
 
