@@ -2167,7 +2167,7 @@ function openAddProductModal() {
     const fileInput = document.getElementById("newProdImgFile");
     if (fileInput) {
         fileInput.value = "";
-        fileInput.required = true;
+        fileInput.required = false;
     }
 
     const previewDiv = document.getElementById("newProdImgPreviews");
