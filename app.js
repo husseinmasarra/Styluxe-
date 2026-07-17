@@ -14,6 +14,7 @@ let cart = [];
 // Admin Panel State
 let currentAdminDept = ""; // "Men", "Women", "Kids", "Global"
 let currentAdminStaff = null; // Active logged in staff details
+let currentAdminPassword = ""; // Active logged in staff password for returns auth
 let adminActiveTab = "overview";
 let posCart = [];
 let isEditingProduct = false;
@@ -1590,6 +1591,7 @@ async function handleAdminLogin(event) {
             loginError.style.display = "block";
             return;
         }
+        currentAdminPassword = pass;
         closeAdminLoginModal();
         initAdminDashboard();
         return;
@@ -1608,6 +1610,7 @@ async function handleAdminLogin(event) {
             if (data.isStaff) {
                 currentAdminDept = "Global";
                 currentAdminStaff = data;
+                currentAdminPassword = pass;
                 
                 closeAdminLoginModal();
                 initAdminDashboard();
@@ -5835,6 +5838,26 @@ function openAdminOrderDetailsModal(orderId) {
         const prod = PRODUCTS.find(p => p.id === item.id);
         const imgUrl = item.image || (prod ? getProductMainImage(prod) : 'assets/favicon.jpg');
         const colorVal = item.color || "Black";
+        const returnedQty = item.returnedQty || 0;
+        const availableToReturn = item.quantity - returnedQty;
+        
+        let returnBtnHTML = "";
+        if (availableToReturn > 0) {
+            returnBtnHTML = `
+                <button class="status-change-btn" style="background-color: var(--color-error); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.25s ease;" onclick="initiateItemReturn('${order.id}', ${item.id}, '${item.size}', '${colorVal}', ${availableToReturn})">
+                    RETURN ITEM
+                </button>
+            `;
+        }
+        
+        let returnStatusHTML = "";
+        if (returnedQty > 0) {
+            returnStatusHTML = `
+                <div style="font-size: 1.05rem; color: var(--color-error); font-weight: 700; margin-top: 0.3rem;">
+                    (Returned: ${returnedQty})
+                </div>
+            `;
+        }
         
         itemsHTML += `
             <div style="display: flex; align-items: center; gap: 1.5rem; padding: 1.2rem 0; border-bottom: 1px solid var(--color-border);">
@@ -5843,10 +5866,14 @@ function openAdminOrderDetailsModal(orderId) {
                     <h4 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 0.4rem 0;">${item.name}</h4>
                     <span style="font-size: 1.1rem; color: var(--color-text-muted);">SIZE: ${item.size} / COLOR: ${colorVal}</span>
                     ${item.preorder ? '<span style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent); letter-spacing: 0.05em; display: inline-block; margin-left: 0.8rem;">PRE-ORDER</span>' : ''}
+                    ${returnStatusHTML}
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 700; font-size: 1.3rem;">${formatPrice(item.price * item.quantity)}</div>
-                    <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.2rem;">${item.quantity} x ${formatPrice(item.price)}</div>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.3rem;">${formatPrice(item.price * item.quantity)}</div>
+                        <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.2rem;">${item.quantity} x ${formatPrice(item.price)}</div>
+                    </div>
+                    ${returnBtnHTML}
                 </div>
             </div>
         `;
@@ -6107,5 +6134,74 @@ function printActiveOrderInvoice() {
         </html>
     `);
     invoiceWindow.document.close();
+}
+
+async function initiateItemReturn(orderId, productId, size, color, maxQty) {
+    let qtyStr = prompt(`Enter quantity to return (Maximum: ${maxQty}):`, "1");
+    if (qtyStr === null) return;
+    
+    let qty = parseInt(qtyStr);
+    if (isNaN(qty) || qty <= 0 || qty > maxQty) {
+        alert(`Invalid quantity. Must be between 1 and ${maxQty}.`);
+        return;
+    }
+
+    let managerPassword = "";
+    
+    const role = currentAdminStaff ? currentAdminStaff.role : "";
+    if (role !== "Manager" && role !== "Administrator") {
+        managerPassword = prompt("UNAUTHORIZED: Manager authorization required. Please enter Manager Password to approve this return:");
+        if (managerPassword === null) return;
+        if (!managerPassword.trim()) {
+            alert("Manager password is required.");
+            return;
+        }
+    }
+
+    try {
+        const response = await fetch('/api/orders/return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId,
+                productId,
+                size,
+                color,
+                quantity: qty,
+                staffEmail: currentAdminStaff ? currentAdminStaff.email : "",
+                staffPassword: currentAdminPassword || "",
+                managerPassword
+            })
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert("Item returned successfully! Product inventory has been restocked.");
+            
+            // Refresh local order list and reopen/update the modal
+            if (typeof loadOrdersFromServer === 'function') {
+                await loadOrdersFromServer();
+            }
+            if (typeof loadProductsFromServer === 'function') {
+                await loadProductsFromServer();
+            }
+            
+            setTimeout(() => {
+                openAdminOrderDetailsModal(orderId);
+                if (typeof renderAdminOrders === 'function') {
+                    renderAdminOrders();
+                }
+                if (typeof renderAdminProducts === 'function') {
+                    renderAdminProducts();
+                }
+            }, 500);
+        } else {
+            alert(`Return failed: ${result.error}`);
+        }
+    } catch (err) {
+        console.error("Failed to process item return:", err);
+        alert("Failed to connect to server. Please try again.");
+    }
 }
 
