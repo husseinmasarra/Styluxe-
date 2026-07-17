@@ -284,15 +284,10 @@ function setupEventListeners() {
                 }
             }
         } else {
-            if (activeDepartment === "All") {
-                if (collectionsGridSec) collectionsGridSec.style.display = "block";
-                if (shopSec) shopSec.style.display = "none";
-                if (backBtnContainer) backBtnContainer.style.display = "none";
-            } else {
-                if (collectionsGridSec) collectionsGridSec.style.display = "none";
-                if (shopSec) shopSec.style.display = "block";
-                if (backBtnContainer) backBtnContainer.style.display = "block";
-            }
+            // Always keep shop-section visible; just hide collections and back button when All
+            if (collectionsGridSec) collectionsGridSec.style.display = "none";
+            if (shopSec) shopSec.style.display = "block";
+            if (backBtnContainer) backBtnContainer.style.display = activeDepartment !== "All" ? "block" : "none";
         }
         
         renderProducts();
@@ -749,14 +744,9 @@ function filterByDepartment(department) {
     const backBtnContainer = document.getElementById("backToCollectionsContainer");
 
     if (department === "All") {
-        if (collectionsGridSec) collectionsGridSec.style.display = "block";
-        if (shopSec) shopSec.style.display = "none";
+        if (collectionsGridSec) collectionsGridSec.style.display = "none";
+        if (shopSec) shopSec.style.display = "block";
         if (backBtnContainer) backBtnContainer.style.display = "none";
-        
-        // Smooth scroll back to collections section if we went back
-        if (collectionsGridSec) {
-            collectionsGridSec.scrollIntoView({ behavior: 'smooth' });
-        }
     } else {
         if (collectionsGridSec) collectionsGridSec.style.display = "none";
         if (shopSec) shopSec.style.display = "block";
