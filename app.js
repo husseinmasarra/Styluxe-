@@ -2000,7 +2000,6 @@ function renderAdminProducts() {
             <td>
                 <div style="display: flex; gap: 1rem; align-items: center;">
                     <button class="admin-edit-btn" onclick="openEditProductModal(${p.id})" aria-label="Edit product" style="background: none; border: none; color: var(--color-accent); font-size: 1.4rem; cursor: pointer;"><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button class="admin-delete-btn" onclick="deleteProduct(${p.id})" aria-label="Delete product" style="background: none; border: none; color: var(--color-error); font-size: 1.4rem; cursor: pointer;"><i class="fa-regular fa-trash-can"></i></button>
                 </div>
             </td>
         `;
@@ -2427,22 +2426,8 @@ async function reorderProduct(id, action) {
 }
 
 function deleteProduct(productId) {
-    if (confirm("ARE YOU SURE YOU WANT TO DELETE THIS PRODUCT FROM CATALOG?")) {
-        fetch(`/api/products?id=${productId}`, {
-            method: 'DELETE'
-        })
-        .then(async res => {
-            if (res.ok) {
-                await loadProductsFromServer(); // reload & sync
-                renderAdminProducts(); // Refresh admin table
-            } else {
-                alert("FAILED TO DELETE PRODUCT.");
-            }
-        })
-        .catch(err => {
-            console.error("Failed to delete product:", err);
-        });
-    }
+    // Product deletion is disabled to protect catalog integrity.
+    alert("حذف المنتجات معطّل لحماية الكتالوج. يمكنك تعديل المنتج بدلاً من حذفه.");
 }
 
 // 3. Orders Tab Render
