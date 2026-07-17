@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const nodemailer = require('nodemailer');
 
 const PORT = 8000;
 const DB_FILE = path.join(__dirname, 'styluxe_db.json');
@@ -281,7 +282,7 @@ const initialBrands = [
 ];
 
 // Global in-memory cache for ultra-fast, zero-latency synchronous reads
-let dbMemory = { products: [], users: [], orders: [], staff: [], categories: [], brands: [], coupons: [], settings: {} };
+let dbMemory = { products: [], users: [], orders: [], staff: [], categories: [], brands: [], coupons: [], settings: {}, subscribers: [] };
 let pool = null;
 
 // Initialize PostgreSQL connection pool if configured in config.json
@@ -439,6 +440,12 @@ async function initPgDatabase() {
       value TEXT NOT NULL
     )`);
 
+    // Create subscribers table
+    await pool.query(`CREATE TABLE IF NOT EXISTS subscribers (
+      email VARCHAR(255) PRIMARY KEY,
+      subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Seed default settings if empty
     const settingsCount = await pool.query("SELECT COUNT(*) FROM settings");
     if (parseInt(settingsCount.rows[0].count) === 0) {
@@ -552,6 +559,7 @@ async function loadDatabaseIntoMemory() {
       const invoicesRes = await pool.query('SELECT * FROM invoices ORDER BY id ASC');
       const couponsRes = await pool.query('SELECT * FROM coupons ORDER BY id ASC');
       const settingsRes = await pool.query('SELECT * FROM settings');
+      const subscribersRes = await pool.query('SELECT * FROM subscribers');
 
       dbMemory.users = usersRes.rows.map(u => ({
         id: u.id,
@@ -641,6 +649,8 @@ async function loadDatabaseIntoMemory() {
       settingsRes.rows.forEach(row => {
         dbMemory.settings[row.key] = row.value;
       });
+
+      dbMemory.subscribers = subscribersRes.rows.map(row => row.email);
 
       console.log(`RAM cache loaded successfully: ${dbMemory.products.length} products, ${dbMemory.categories.length} categories, ${dbMemory.brands.length} brands, ${dbMemory.suppliers.length} suppliers, ${dbMemory.invoices.length} invoices, ${dbMemory.coupons.length} coupons.`);
       
@@ -788,6 +798,15 @@ function writeDb(data) {
           if (data.settings) {
             for (const [key, val] of Object.entries(data.settings)) {
               await client.query(settingsStmt, [key, String(val)]);
+            }
+          }
+
+          // Sync subscribers
+          await client.query('DELETE FROM subscribers');
+          const subStmt = 'INSERT INTO subscribers (email) VALUES ($1)';
+          if (Array.isArray(data.subscribers)) {
+            for (const email of data.subscribers) {
+              await client.query(subStmt, [email]);
             }
           }
 
@@ -1422,6 +1441,24 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === '/api/newsletter/subscribe') {
+        const { email } = body;
+        if (!email || !email.includes('@')) {
+          sendJsonResponse(res, { error: "Invalid email format" }, 400);
+          return;
+        }
+
+        if (!db.subscribers) db.subscribers = [];
+        
+        if (!db.subscribers.includes(email)) {
+          db.subscribers.push(email);
+          writeDb(db);
+        }
+
+        sendJsonResponse(res, { success: true });
+        return;
+      }
+
       if (pathname === '/api/coupons') {
         const { code, discountType, discountValue } = body;
         if (!code || !discountType || discountValue === undefined) {
@@ -1506,6 +1543,7 @@ const server = http.createServer(async (req, res) => {
         db.products.push(newProduct);
         writeDb(db);
         sendJsonResponse(res, newProduct);
+        sendNewProductNotifications(newProduct).catch(err => console.error("Newsletter email error:", err));
         return;
       }
 
@@ -2041,3 +2079,72 @@ function verifyGoogleToken(token, clientId) {
     process.exit(1);
   }
 })();
+
+async function sendNewProductNotifications(product) {
+  const host = dbMemory.settings.smtp_host || process.env.SMTP_HOST;
+  const port = parseInt(dbMemory.settings.smtp_port || process.env.SMTP_PORT || '587');
+  const user = dbMemory.settings.smtp_user || process.env.SMTP_USER;
+  const pass = dbMemory.settings.smtp_pass || process.env.SMTP_PASS;
+  const sender = dbMemory.settings.smtp_sender || user || 'info@styluxelb.com';
+
+  if (!host || !user || !pass) {
+    console.warn("SMTP settings are not configured. Cannot send newsletter emails. Please configure them in Settings.");
+    return;
+  }
+
+  const subscribers = dbMemory.subscribers || [];
+  if (subscribers.length === 0) {
+    console.log("No newsletter subscribers to notify.");
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+
+  const subject = `🔥 NEW ARRIVAL: ${product.name.toUpperCase()} has been added to STYLUXE!`;
+  
+  const productUrl = `https://www.styluxelb.com/?product=${product.id}`;
+  const imgUrl = (product.images && product.images[0]) || (product.img) || 'https://www.styluxelb.com/assets/favicon.jpg';
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; background-color: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px; max-width: 600px; margin: 0 auto; border: 1px solid #c7a369;">
+      <h1 style="color: #c7a369; font-size: 28px; letter-spacing: 2px; margin-bottom: 20px;">STYLUXE</h1>
+      <p style="font-size: 16px; color: #ccc; line-height: 1.5; margin-bottom: 25px;">We are excited to announce a new addition to our collection!</p>
+      
+      <div style="background-color: #111; border: 1px solid #222; padding: 20px; border-radius: 6px; margin-bottom: 25px;">
+        <img src="${imgUrl}" alt="${product.name}" style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 15px; border: 1px solid #c7a369;">
+        <h2 style="color: #fff; font-size: 22px; margin: 10px 0;">${product.name}</h2>
+        <p style="color: #c7a369; font-size: 20px; font-weight: bold; margin: 5px 0;">$${product.price}</p>
+        <p style="color: #aaa; font-size: 14px; margin: 15px 0 0;">Department: ${product.department} | Sizes: ${(product.sizes || []).join(', ')}</p>
+      </div>
+
+      <a href="${productUrl}" style="background: linear-gradient(135deg, #c7a369, #9e7f4b); color: #000; text-decoration: none; padding: 12px 35px; border-radius: 40px; font-size: 16px; font-weight: bold; display: inline-block; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s;">SHOP NOW</a>
+      
+      <div style="margin-top: 40px; border-top: 1px solid #222; padding-top: 20px; font-size: 12px; color: #666;">
+        <p>You received this email because you subscribed to updates from STYLUXE.</p>
+        <p>&copy; 2026 STYLUXE. All Rights Reserved.</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const mailOptions = {
+      from: sender,
+      bcc: subscribers.join(', '),
+      subject,
+      html: htmlContent
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Newsletter emails sent successfully to ${subscribers.length} subscribers!`);
+  } catch (error) {
+    console.error("Failed to send newsletter emails:", error);
+  }
+}
