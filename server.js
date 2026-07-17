@@ -1657,14 +1657,87 @@ const server = http.createServer(async (req, res) => {
         const orderIndex = db.orders.findIndex(o => o.id === id);
         if (orderIndex > -1) {
           db.orders[orderIndex].status = status;
-          writeDb(db);
-          sendJsonResponse(res, { success: true });
-        } else {
-          sendJsonResponse(res, { error: "Order not found" }, 404);
-        }
-        return;
-      }
-    }
+           writeDb(db);
+           sendJsonResponse(res, { success: true });
+         } else {
+           sendJsonResponse(res, { error: "Order not found" }, 404);
+         }
+         return;
+       }
+
+       if (pathname === '/api/orders/return') {
+         const { orderId, productId, size, color, quantity, staffEmail, staffPassword, managerPassword } = body;
+         
+         if (!orderId || !productId || !size || !color || !quantity) {
+           sendJsonResponse(res, { error: "Missing required return fields" }, 400);
+           return;
+         }
+
+         let authorized = false;
+         
+         if (staffEmail && staffPassword) {
+           const staff = db.staff.find(s => s.email === staffEmail && s.password === staffPassword);
+           if (staff && (staff.role === 'Manager' || staff.role === 'Administrator')) {
+             authorized = true;
+           }
+         }
+
+         if (!authorized && managerPassword) {
+           if (managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
+             authorized = true;
+           } else {
+             const mgr = db.staff.find(s => s.password === managerPassword && (s.role === 'Manager' || s.role === 'Administrator'));
+             if (mgr) {
+               authorized = true;
+             }
+           }
+         }
+
+         if (!authorized) {
+           sendJsonResponse(res, { error: "UNAUTHORIZED: Manager authorization required for returns." }, 403);
+           return;
+         }
+
+         const qtyToReturn = parseInt(quantity);
+         if (isNaN(qtyToReturn) || qtyToReturn <= 0) {
+           sendJsonResponse(res, { error: "Invalid return quantity" }, 400);
+           return;
+         }
+
+         const order = db.orders.find(o => o.id === orderId);
+         if (!order) {
+           sendJsonResponse(res, { error: "Order not found" }, 404);
+           return;
+         }
+
+         const item = order.items.find(i => i.id === parseInt(productId) && i.size === size && (i.color || "Black") === color);
+         if (!item) {
+           sendJsonResponse(res, { error: "Item not found in order" }, 404);
+           return;
+         }
+
+         const currentReturned = item.returnedQty || 0;
+         if (currentReturned + qtyToReturn > item.quantity) {
+           sendJsonResponse(res, { error: `Cannot return more than purchased. Purchased: ${item.quantity}, Already Returned: ${currentReturned}` }, 400);
+           return;
+         }
+
+         const product = db.products.find(p => p.id === parseInt(productId));
+         if (product && product.inventory) {
+           const key = `${size}-${color}`;
+           if (product.inventory[key] !== undefined) {
+             product.inventory[key] += qtyToReturn;
+           }
+         }
+
+         item.returnedQty = currentReturned + qtyToReturn;
+         order.total = Math.max(0, order.total - (item.price * qtyToReturn));
+
+         writeDb(db);
+         sendJsonResponse(res, { success: true, order });
+         return;
+       }
+     }
 
     // 4. DELETE Requests
     if (req.method === 'DELETE') {
