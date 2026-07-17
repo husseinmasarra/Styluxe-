@@ -15,6 +15,7 @@ let cart = [];
 let currentAdminDept = ""; // "Men", "Women", "Kids", "Global"
 let currentAdminStaff = null; // Active logged in staff details
 let currentAdminPassword = ""; // Active logged in staff password for returns auth
+let posMode = "sales"; // "sales" or "return"
 let adminActiveTab = "overview";
 let posCart = [];
 let isEditingProduct = false;
@@ -2736,6 +2737,57 @@ function processPosSale() {
     const discount = (subtotal * discountPercent) / 100;
     const total = subtotal - discount;
     const randomId = Math.floor(10000 + Math.random() * 90000);
+
+    if (posMode === "return") {
+        const orderId = `REF-${randomId}`;
+        
+        let managerPassword = "";
+        const role = currentAdminStaff ? currentAdminStaff.role : "";
+        if (role !== "Manager" && role !== "Administrator") {
+            managerPassword = prompt("UNAUTHORIZED: Manager authorization required. Please enter Manager Password to approve this refund:");
+            if (managerPassword === null) return;
+            if (!managerPassword.trim()) {
+                alert("Manager password is required.");
+                return;
+            }
+        }
+        
+        const payload = {
+            id: orderId,
+            customerName: customer,
+            customerPhone: phone,
+            customerAddress: address,
+            items: [...posCart],
+            total: total,
+            staffEmail: currentAdminStaff ? currentAdminStaff.email : "",
+            staffPassword: currentAdminPassword || "",
+            managerPassword
+        };
+        
+        fetch('/api/orders/pos-return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (res.ok) {
+                alert("POS Return completed successfully! Products restocked.");
+                await loadOrdersFromServer();
+                await loadProductsFromServer();
+                showPosReturnReceipt(data.order, subtotal, discount, total);
+            } else {
+                alert(`POS Return failed: ${data.error}`);
+            }
+        })
+        .catch(err => {
+            console.error("POS return failed:", err);
+            alert("Connection error. Return failed.");
+        });
+        
+        return;
+    }
+
     const orderId = `POS-${randomId}`;
 
     // Register sale inside Database
@@ -2841,6 +2893,12 @@ function printBothReceiptAndLabel() {
 function closePosReceipt() {
     document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
     posReceiptModalBackdrop.classList.remove("active");
+    
+    const paper = document.getElementById("posReceiptPaper");
+    if (paper) {
+        const title = paper.querySelector("h2");
+        if (title) title.innerHTML = "STYLUXE";
+    }
 }
 
 async function openDailyReportModal() {
@@ -6203,5 +6261,95 @@ async function initiateItemReturn(orderId, productId, size, color, maxQty) {
         console.error("Failed to process item return:", err);
         alert("Failed to connect to server. Please try again.");
     }
+}
+
+function togglePosMode() {
+    const titleEl = document.getElementById("posTitleEl");
+    const toggleBtn = document.getElementById("posModeToggleBtn");
+    
+    if (posMode === "sales") {
+        posMode = "return";
+        if (titleEl) {
+            titleEl.innerHTML = `<i class="fa-solid fa-rotate-left"></i> RETURN TERMINAL`;
+            titleEl.style.color = "#e74c3c";
+        }
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fa-solid fa-cash-register"></i> SWITCH TO SALE`;
+            toggleBtn.style.backgroundColor = "rgba(46, 204, 113, 0.12)";
+            toggleBtn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+            toggleBtn.style.color = "#2ecc71";
+        }
+        const payBtn = document.querySelector(".pos-pay-btn");
+        if (payBtn) {
+            payBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> COMPLETE RETURN`;
+            payBtn.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+            payBtn.style.color = "#ffffff";
+        }
+    } else {
+        posMode = "sales";
+        if (titleEl) {
+            titleEl.innerHTML = `<i class="fa-solid fa-cash-register"></i> POS TERMINAL`;
+            titleEl.style.color = "";
+        }
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> SWITCH TO RETURN`;
+            toggleBtn.style.backgroundColor = "rgba(231, 76, 60, 0.12)";
+            toggleBtn.style.borderColor = "rgba(231, 76, 60, 0.3)";
+            toggleBtn.style.color = "#e74c3c";
+        }
+        const payBtn = document.querySelector(".pos-pay-btn");
+        if (payBtn) {
+            payBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> COMPLETE SALE`;
+            payBtn.style.background = "";
+            payBtn.style.color = "";
+        }
+    }
+    
+    posCart = [];
+    renderPosTicketItems();
+}
+
+function showPosReturnReceipt(order, subtotal, discount, total) {
+    document.getElementById("receiptDate").textContent = new Date().toISOString().split('T')[0] + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    document.getElementById("receiptCustomer").textContent = order.customerName;
+    
+    const cashierName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+    const cashierEl = document.getElementById("receiptCashier");
+    if (cashierEl) cashierEl.textContent = cashierName;
+    
+    const paper = document.getElementById("posReceiptPaper");
+    if (paper) {
+        const title = paper.querySelector("h2");
+        if (title) title.innerHTML = "STYLUXE - REFUND";
+    }
+    
+    const receiptItemsContainer = document.getElementById("receiptItems");
+    receiptItemsContainer.innerHTML = "";
+
+    order.items.forEach(item => {
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.justifyContent = "space-between";
+        div.innerHTML = `
+            <span>[RETURN] ${item.name} (x${item.quantity}) [${item.size}]</span>
+            <span>-${formatPrice(item.price * item.quantity)}</span>
+        `;
+        receiptItemsContainer.appendChild(div);
+    });
+
+    document.getElementById("receiptSubtotal").textContent = `-${formatPrice(subtotal)}`;
+    document.getElementById("receiptDiscount").textContent = `0.00`;
+    document.getElementById("receiptTotal").textContent = `-${formatPrice(total)}`;
+
+    document.getElementById("labelOrderId").textContent = order.id;
+    document.getElementById("labelName").textContent = order.customerName;
+    document.getElementById("labelPhone").textContent = order.customerPhone;
+    document.getElementById("labelAddress").textContent = order.customerAddress;
+    document.getElementById("labelItems").innerHTML = order.items.map(item => `[RETURN] ${item.name} (${item.size}) x${item.quantity}`).join("<br>");
+
+    document.getElementById("posReceiptModalBackdrop").classList.add("active");
+    
+    posCart = [];
+    renderPosTicketItems();
 }
 
