@@ -583,8 +583,8 @@
             <div class="footer-col newsletter-col">
                 <h3>NEWSLETTER</h3>
                 <p>Subscribe to receive early access to archives, restocks, and exclusive promotions.</p>
-                <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed successfully!'); this.reset();">
-                    <input type="email" placeholder="ENTER YOUR EMAIL..." required aria-label="Newsletter email">
+                <form class="newsletter-form" onsubmit="handleNewsletterSubscribe(event, this)">
+                    <input type="email" id="newsletterEmailInput" placeholder="ENTER YOUR EMAIL..." required aria-label="Newsletter email">
                     <button type="submit">JOIN</button>
                 </form>
             </div>
@@ -1130,6 +1130,33 @@
                             <div class="form-group">
                                 <label for="settingsReturnPassword">POS / Invoice Return Password (كلمة سر الاسترجاع)</label>
                                 <input type="text" id="settingsReturnPassword" value="admin123" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-envelope"></i> SMTP Email Configuration</h3>
+                            
+                            <div class="form-group">
+                                <label for="settingsSmtpHost">SMTP Server Host</label>
+                                <input type="text" id="settingsSmtpHost" placeholder="e.g. smtp.gmail.com" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsSmtpPort">SMTP Server Port</label>
+                                <input type="number" id="settingsSmtpPort" placeholder="e.g. 587" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsSmtpUser">SMTP Account Email</label>
+                                <input type="email" id="settingsSmtpUser" placeholder="e.g. info@styluxelb.com" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsSmtpPass">SMTP Account Password</label>
+                                <input type="password" id="settingsSmtpPass" placeholder="App Password" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsSmtpSender">SMTP Sender Name (Optional)</label>
+                                <input type="text" id="settingsSmtpSender" placeholder="e.g. STYLUXE &lt;info@styluxelb.com&gt;" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
                             </div>
 
                             <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-share-nodes"></i> Social Visibility</h3>
@@ -1953,6 +1980,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=1.1.2"></script>
+    <script src="app.js?v=1.1.3"></script>
 </body>
 </html>
