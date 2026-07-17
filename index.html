@@ -1356,8 +1356,9 @@
                          <!-- LEFT: Product Catalog -->
                          <div class="pos-catalog">
                              <div class="pos-catalog-top">
-                                 <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                     <h2 class="pos-title"><i class="fa-solid fa-cash-register"></i> POS TERMINAL</h2>
+                                 <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                                     <h2 class="pos-title" id="posTitleEl"><i class="fa-solid fa-cash-register"></i> POS TERMINAL</h2>
+                                     <button class="pos-exit-btn" id="posModeToggleBtn" onclick="togglePosMode()" style="background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.3); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 700; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-rotate-left"></i> SWITCH TO RETURN</button>
                                      <button class="pos-exit-btn" id="posExitBtn" onclick="exitPosMode()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-arrow-left-long"></i> DASHBOARD</button>
                                      <button class="pos-exit-btn" onclick="openDailyReportModal()" style="background: rgba(199, 163, 105, 0.1); border: 1px solid rgba(199, 163, 105, 0.25); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: var(--color-accent); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-chart-line"></i> DAILY REPORT</button>
                                      <button class="pos-exit-btn" onclick="logoutAdmin()" style="background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
@@ -1939,6 +1940,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=1.1.0"></script>
+    <script src="app.js?v=1.1.1"></script>
 </body>
 </html>
