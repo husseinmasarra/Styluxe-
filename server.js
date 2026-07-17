@@ -1737,7 +1737,77 @@ const server = http.createServer(async (req, res) => {
          sendJsonResponse(res, { success: true, order });
          return;
        }
-     }
+
+        if (pathname === '/api/orders/pos-return') {
+          const { id, customerName, customerPhone, customerAddress, items, total, staffEmail, staffPassword, managerPassword } = body;
+
+          if (!id || !items || total === undefined) {
+            sendJsonResponse(res, { error: "Missing required fields" }, 400);
+            return;
+          }
+
+          let authorized = false;
+          
+          if (staffEmail && staffPassword) {
+            const staff = db.staff.find(s => s.email === staffEmail && s.password === staffPassword);
+            if (staff && (staff.role === 'Manager' || staff.role === 'Administrator')) {
+              authorized = true;
+            }
+          }
+
+          if (!authorized && managerPassword) {
+            if (managerPassword === 'admin123' || managerPassword === 'men123' || managerPassword === 'women123' || managerPassword === 'kids123') {
+              authorized = true;
+            } else {
+              const mgr = db.staff.find(s => s.password === managerPassword && (s.role === 'Manager' || s.role === 'Administrator'));
+              if (mgr) {
+                authorized = true;
+              }
+            }
+          }
+
+          if (!authorized) {
+            sendJsonResponse(res, { error: "UNAUTHORIZED: Manager authorization required for returns." }, 403);
+            return;
+          }
+
+          if (Array.isArray(items)) {
+            items.forEach(item => {
+              const product = db.products.find(p => p.id === parseInt(item.id));
+              if (product && product.inventory) {
+                const size = item.size;
+                const color = item.color || (product.colors && product.colors[0]) || "Black";
+                const key = `${size}-${color}`;
+                
+                if (product.inventory[key] !== undefined) {
+                  const qty = parseInt(item.quantity) || 1;
+                  product.inventory[key] += qty;
+                }
+              }
+            });
+          }
+
+          const newReturnOrder = {
+            id,
+            date: new Date().toISOString().split('T')[0],
+            customerEmail: "pos-return@styluxe.com",
+            customerName: customerName || "WALK-IN CUSTOMER",
+            customerPhone: customerPhone || "",
+            customerAddress: customerAddress || "",
+            items: items.map(item => ({ ...item, returned: true })),
+            total: parseFloat(total),
+            status: 'REFUND (POS)',
+            department: 'Global'
+          };
+
+          if (!db.orders) db.orders = [];
+          db.orders.push(newReturnOrder);
+
+          writeDb(db);
+          sendJsonResponse(res, { success: true, order: newReturnOrder });
+          return;
+        }
+      }
 
     // 4. DELETE Requests
     if (req.method === 'DELETE') {
