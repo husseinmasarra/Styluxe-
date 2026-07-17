@@ -5400,12 +5400,22 @@ function populateSettingsFields() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
     const returnPassInput = document.getElementById("settingsReturnPassword");
+    const smtpHostInput = document.getElementById("settingsSmtpHost");
+    const smtpPortInput = document.getElementById("settingsSmtpPort");
+    const smtpUserInput = document.getElementById("settingsSmtpUser");
+    const smtpPassInput = document.getElementById("settingsSmtpPass");
+    const smtpSenderInput = document.getElementById("settingsSmtpSender");
     const twitterCheck = document.getElementById("settingsShowTwitter");
     const tiktokCheck = document.getElementById("settingsShowTiktok");
 
     if (feeInput) feeInput.value = STORE_SETTINGS.shipping_fee || "5";
     if (thresholdInput) thresholdInput.value = STORE_SETTINGS.free_shipping_threshold || "150";
     if (returnPassInput) returnPassInput.value = STORE_SETTINGS.return_password || "admin123";
+    if (smtpHostInput) smtpHostInput.value = STORE_SETTINGS.smtp_host || "";
+    if (smtpPortInput) smtpPortInput.value = STORE_SETTINGS.smtp_port || "";
+    if (smtpUserInput) smtpUserInput.value = STORE_SETTINGS.smtp_user || "";
+    if (smtpPassInput) smtpPassInput.value = STORE_SETTINGS.smtp_pass || "";
+    if (smtpSenderInput) smtpSenderInput.value = STORE_SETTINGS.smtp_sender || "";
     
     if (twitterCheck) twitterCheck.checked = (STORE_SETTINGS.show_twitter === "true");
     if (tiktokCheck) tiktokCheck.checked = (STORE_SETTINGS.show_tiktok === "true");
@@ -5499,6 +5509,11 @@ async function saveAllGeneralSettings() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
     const returnPassInput = document.getElementById("settingsReturnPassword");
+    const smtpHostInput = document.getElementById("settingsSmtpHost");
+    const smtpPortInput = document.getElementById("settingsSmtpPort");
+    const smtpUserInput = document.getElementById("settingsSmtpUser");
+    const smtpPassInput = document.getElementById("settingsSmtpPass");
+    const smtpSenderInput = document.getElementById("settingsSmtpSender");
     const twitterCheck = document.getElementById("settingsShowTwitter");
     const tiktokCheck = document.getElementById("settingsShowTiktok");
 
@@ -5506,6 +5521,11 @@ async function saveAllGeneralSettings() {
     if (feeInput) payload.shipping_fee = feeInput.value;
     if (thresholdInput) payload.free_shipping_threshold = thresholdInput.value;
     if (returnPassInput) payload.return_password = returnPassInput.value.trim();
+    if (smtpHostInput) payload.smtp_host = smtpHostInput.value.trim();
+    if (smtpPortInput) payload.smtp_port = smtpPortInput.value.trim();
+    if (smtpUserInput) payload.smtp_user = smtpUserInput.value.trim();
+    if (smtpPassInput) payload.smtp_pass = smtpPassInput.value.trim();
+    if (smtpSenderInput) payload.smtp_sender = smtpSenderInput.value.trim();
     if (twitterCheck) payload.show_twitter = String(twitterCheck.checked);
     if (tiktokCheck) payload.show_tiktok = String(tiktokCheck.checked);
 
@@ -6446,5 +6466,33 @@ function showPosReturnReceipt(order, subtotal, discount, total) {
 function onDailyReportCashierChange(val) {
     dailyReportCashierFilter = val;
     openDailyReportModal();
+}
+
+async function handleNewsletterSubscribe(event, form) {
+    event.preventDefault();
+    const emailInput = document.getElementById("newsletterEmailInput");
+    if (!emailInput) return;
+    
+    const email = emailInput.value.trim();
+    if (!email) return;
+
+    try {
+        const response = await fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        if (response.ok) {
+            alert("THANK YOU FOR SUBSCRIBING TO OUR NEWSLETTER!");
+            form.reset();
+        } else {
+            const data = await response.json();
+            alert(`Subscription failed: ${data.error}`);
+        }
+    } catch (err) {
+        console.error("Newsletter subscription error:", err);
+        alert("Subscription failed. Please check your connection.");
+    }
 }
 
