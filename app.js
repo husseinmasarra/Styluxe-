@@ -121,7 +121,7 @@ async function loadProductsFromServer() {
             fetchSafe('/api/coupons')
         ]);
 
-        if (Array.isArray(prods) && prods.length > 0) {
+        if (Array.isArray(prods)) {
             PRODUCTS = prods;
         }
         if (Array.isArray(cats)) CATEGORIES = cats;
