@@ -4686,23 +4686,7 @@ function renderSizeChartTable() {
 }
 
 /* 11.3 Customer Reviews System */
-const SEEDED_REVIEWS = {
-    1: [ // Oversized Cotton Hoodie
-        { name: "Lina K.", rating: 5, title: "INSANE FABRIC WEIGHT!", comment: "The thickness of this cotton is incredible. Definitely feels like a $300 designer hoodie. The double lining on the hood gives it a structured fit that is rare to find. Sized down for a slightly less baggy fit, and it's perfect.", date: "2026-06-20" },
-        { name: "Marc A.", rating: 5, title: "Best streetwear hoodie I own", comment: "Literally the perfect fit. Drop shoulders, clean pocket layout, no drawstrings. It matches beautifully with cargo pants. Will be purchasing in other colors if they drop.", date: "2026-06-18" },
-        { name: "Samer G.", rating: 4, title: "Very premium but heavy", comment: "The quality is outstanding. 500GSM is no joke, it's a very heavy hoodie. Extremely warm. Shipping took about 3 days. Recommend size M if you are around 175cm.", date: "2026-06-15" }
-    ],
-    2: [ // Leather Jacket
-        { name: "Rami H.", rating: 5, title: "Exceptional Leather Quality", comment: "Genuinely surprised by how good the matte finish looks in person. Calfskin is soft but has nice structure. The zipper hardware is heavy and feels durable. Great luxury staple.", date: "2026-06-25" },
-        { name: "Yasmin F.", rating: 5, title: "Bought for my husband - Stunning!", comment: "It fits him like a glove. The interior lining is very soft. Looks very expensive and pairs well with basic white tees.", date: "2026-06-22" }
-    ],
-    3: [ // Cargo Denim Jeans
-        { name: "Jad T.", rating: 5, title: "Perfect utility aesthetic", comment: "The pockets are secure and the straight cut fits perfectly over sneakers. The denim is heavy and rigid but has broken in nicely. Drawstring ankles are a great feature.", date: "2026-06-28" }
-    ],
-    4: [ // Core High-Top Sneakers
-        { name: "Nour M.", rating: 5, title: "Super comfortable Italian leather", comment: "Very comfortable right out of the box. Leather smells amazing. Highly recommended for daily wear.", date: "2026-06-29" }
-    ]
-};
+const SEEDED_REVIEWS = {};
 
 let formActiveRating = 0;
 
@@ -4754,13 +4738,18 @@ function getReviewsStore() {
     const store = localStorage.getItem("styluxe_reviews");
     if (store) {
         try {
-            return JSON.parse(store);
-        } catch (e) {
-            return SEEDED_REVIEWS;
-        }
+            const parsed = JSON.parse(store);
+            let hasFake = false;
+            Object.values(parsed).forEach(list => {
+                if (Array.isArray(list) && list.some(r => r.name === "Lina K." || r.name === "Marc A." || r.title === "INSANE FABRIC WEIGHT!")) {
+                    hasFake = true;
+                }
+            });
+            if (!hasFake) return parsed;
+        } catch (e) {}
     }
-    localStorage.setItem("styluxe_reviews", JSON.stringify(SEEDED_REVIEWS));
-    return SEEDED_REVIEWS;
+    localStorage.setItem("styluxe_reviews", JSON.stringify({}));
+    return {};
 }
 
 function saveReviewsStore(store) {
