@@ -3056,13 +3056,26 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
     const cleanDate = date || new Date().toISOString().split('T')[0];
     const cleanOrderId = String(orderId).startsWith('#') ? orderId : `#${orderId}`;
 
-    const printWindow = window.open('', '_blank', 'width=600,height=700');
-    if (!printWindow) {
-        alert("Please allow pop-ups for this site to enable sticker printing.");
-        return;
+    let iframe = document.getElementById("stickerPrintIframe");
+    if (iframe) {
+        iframe.remove();
     }
 
-    printWindow.document.write(`
+    iframe = document.createElement("iframe");
+    iframe.id = "stickerPrintIframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0px";
+    iframe.style.height = "0px";
+    iframe.style.border = "0px";
+    iframe.style.opacity = "0";
+    iframe.style.pointerEvents = "none";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -3076,8 +3089,8 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
                 html, body {
                     margin: 0;
                     padding: 0;
-                    background-color: #ffffff;
-                    color: #000000;
+                    background-color: #ffffff !important;
+                    color: #000000 !important;
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                     -webkit-print-color-adjust: exact;
                 }
@@ -3085,7 +3098,7 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
                     display: flex;
                     justify-content: center;
                     align-items: flex-start;
-                    padding: 30px 15px;
+                    padding: 25px 15px;
                 }
                 .sticker-card {
                     width: 100%;
@@ -3186,17 +3199,19 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
                     <div class="barcode-sim">||||| | |||| ||| |||</div>
                 </div>
             </div>
-            <script>
-                window.onload = function() {
-                    setTimeout(function() {
-                        window.print();
-                    }, 250);
-                };
-            </script>
         </body>
         </html>
     `);
-    printWindow.document.close();
+    doc.close();
+
+    setTimeout(() => {
+        try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch (e) {
+            console.error("Print iframe error:", e);
+        }
+    }, 350);
 }
 
 function printOrderSticker(orderId) {
