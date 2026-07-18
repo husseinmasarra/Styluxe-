@@ -818,17 +818,6 @@ function filterByCategory(category) {
         activeCategory = "All";
     } else {
         activeCategory = category;
-        // Smart switch: if selected category has products in catalog but 0 in current department, switch department to All
-        if (activeDepartment !== "All" && category !== "All") {
-            const matchesInCurrentDept = PRODUCTS.some(p => 
-                p.category && p.category.trim().toLowerCase() === category.trim().toLowerCase() && 
-                p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase()
-            );
-            if (!matchesInCurrentDept) {
-                activeDepartment = "All";
-                syncDepartmentControlsUI();
-            }
-        }
     }
     renderCategoryTags();
     renderProducts();
@@ -870,35 +859,20 @@ function getFilteredAndSortedProducts() {
 
     // Department Filter
     if (activeDepartment && activeDepartment !== "All") {
-        const filteredByDept = result.filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase());
-        if (filteredByDept.length > 0) {
-            result = filteredByDept;
-        }
+        result = result.filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase());
     }
 
     // Category Filter
     if (activeCategory && activeCategory !== "All") {
-        const filteredByCat = result.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
-        if (filteredByCat.length > 0) {
-            result = filteredByCat;
-        } else {
-            // Self-heal: If selected category has 0 products in current view, fallback to All
-            activeCategory = "All";
-        }
+        result = result.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
     }
 
     // Brand Filter
     if (activeBrand && activeBrand !== "All") {
-        const filteredByBrand = result.filter(p => {
+        result = result.filter(p => {
             const b = getProductBrand(p);
             return b && b.trim().toLowerCase() === activeBrand.trim().toLowerCase();
         });
-        if (filteredByBrand.length > 0) {
-            result = filteredByBrand;
-        } else {
-            // Self-heal: If selected brand has 0 products in current view, fallback to All
-            activeBrand = "All";
-        }
     }
 
     // Search Query Filter with Multi-Word Tokenized Scoring Relevance System
