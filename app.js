@@ -2025,14 +2025,83 @@ function renderAdminOverview() {
     }
 }
 
+let currentAdminCategoryFilter = "All";
+
+function filterAdminProductsByCategory(catName) {
+    currentAdminCategoryFilter = catName || "All";
+    
+    // Switch to Products Tab in Admin
+    if (typeof switchAdminTab === "function") {
+        switchAdminTab("products");
+    }
+    
+    const catSelect = document.getElementById("adminProductCategoryFilter");
+    if (catSelect) catSelect.value = currentAdminCategoryFilter;
+    
+    renderAdminProducts();
+}
+
+function onAdminCategoryFilterChange(val) {
+    currentAdminCategoryFilter = val;
+    renderAdminProducts();
+}
+
 // 2. Product Manager Tab Render
 function renderAdminProducts() {
     const tableBody = document.getElementById("adminProductsTableBody");
+    if (!tableBody) return;
     tableBody.innerHTML = "";
 
-    const filtered = currentAdminDept === "Global" 
+    // Populate Category filter dropdown in Admin Products header
+    const catSelect = document.getElementById("adminProductCategoryFilter");
+    if (catSelect) {
+        catSelect.innerHTML = `<option value="All">ALL CATEGORIES</option>`;
+        const availableCats = CATEGORIES
+            .filter(c => currentAdminDept === "Global" || (c.department && c.department.toLowerCase() === currentAdminDept.toLowerCase()))
+            .map(c => c.name);
+        
+        PRODUCTS.forEach(p => {
+            if (p.category && !availableCats.includes(p.category)) {
+                availableCats.push(p.category);
+            }
+        });
+
+        const uniqueCats = [...new Set(availableCats)];
+        uniqueCats.forEach(cName => {
+            if (cName) {
+                const opt = document.createElement("option");
+                opt.value = cName;
+                opt.textContent = cName.toUpperCase();
+                catSelect.appendChild(opt);
+            }
+        });
+        catSelect.value = currentAdminCategoryFilter || "All";
+    }
+
+    let filtered = currentAdminDept === "Global" 
         ? PRODUCTS 
-        : PRODUCTS.filter(p => p.department === currentAdminDept);
+        : PRODUCTS.filter(p => p.department && p.department.toLowerCase() === currentAdminDept.toLowerCase());
+
+    // Apply Smart Admin Category Filter
+    if (currentAdminCategoryFilter && currentAdminCategoryFilter !== "All") {
+        filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === currentAdminCategoryFilter.trim().toLowerCase());
+    }
+
+    if (filtered.length === 0) {
+        const catMsg = (currentAdminCategoryFilter && currentAdminCategoryFilter !== "All")
+            ? `NO PRODUCTS RECORDED IN CATEGORY "${currentAdminCategoryFilter.toUpperCase()}".`
+            : "NO PRODUCTS RECORDED YET.";
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; color: var(--color-text-muted); padding: 4rem 0;">
+                    <i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--color-accent); display: block;"></i>
+                    ${catMsg}
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     filtered.forEach(p => {
         const tr = document.createElement("tr");
@@ -3625,18 +3694,28 @@ function renderAdminCategories() {
     // Render Categories Table
     catBody.innerHTML = "";
     if (filtered.length === 0) {
-        catBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
+        catBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 2rem 0;">NO CATEGORIES FOUND.</td></tr>`;
     } else {
         filtered.forEach(cat => {
+            // Count products in this category
+            const count = PRODUCTS.filter(p => p.category && p.category.trim().toLowerCase() === cat.name.trim().toLowerCase() && (currentAdminDept === "Global" || (p.department && p.department.toLowerCase() === currentAdminDept.toLowerCase()))).length;
+
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><strong>#${cat.id}</strong></td>
                 <td style="width: 50px;">
-                    <img src="${cat.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200'}" alt="${cat.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+                    <img src="${cat.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200'}" alt="${cat.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border); cursor: pointer;" onclick="filterAdminProductsByCategory('${cat.name}')">
                 </td>
                 <td>
-                    <div><strong>${cat.name.toUpperCase()}</strong></div>
-                    <div style="font-size: 1.1rem; color: var(--color-text-muted);">${cat.department ? cat.department.toUpperCase() : 'MEN'}</div>
+                    <div style="cursor: pointer;" onclick="filterAdminProductsByCategory('${cat.name}')">
+                        <strong style="color: var(--color-accent); font-size: 1.1rem; letter-spacing: 0.05em;">${cat.name.toUpperCase()}</strong>
+                    </div>
+                    <div style="font-size: 1rem; color: var(--color-text-muted);">${cat.department ? cat.department.toUpperCase() : 'MEN'}</div>
+                </td>
+                <td>
+                    <button onclick="filterAdminProductsByCategory('${cat.name}')" style="background: ${count > 0 ? "rgba(199, 163, 105, 0.15)" : "rgba(255, 255, 255, 0.05)"}; color: ${count > 0 ? "var(--color-accent)" : "var(--color-text-muted)"}; border: 1px solid ${count > 0 ? "rgba(199, 163, 105, 0.35)" : "rgba(255, 255, 255, 0.1)"}; border-radius: 20px; padding: 0.4rem 1rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;" title="Click to view products in this category">
+                        <i class="fa-solid fa-boxes-stacked"></i> ${count} PRODUCTS
+                    </button>
                 </td>
                 <td>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
