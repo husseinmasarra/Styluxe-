@@ -482,21 +482,39 @@ async function initPgDatabase() {
       }
     }
 
-    // Seed defaults if tables are empty
-    const prodCount = await pool.query("SELECT COUNT(*) FROM products");
-    if (parseInt(prodCount.rows[0].count) === 0) {
-      console.log("Seeding products into PostgreSQL database...");
-      for (const p of initialProducts) {
-        const pFull = ensureProductInventory(p);
-        await pool.query(
-          `INSERT INTO products (name, price, category, department, image, description, sizes, colors, inventory, badge, cost_price) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-          [
-            pFull.name, pFull.price, pFull.category, pFull.department, pFull.image, pFull.description || "",
-            JSON.stringify(pFull.sizes || []), JSON.stringify(pFull.colors || []), JSON.stringify(pFull.inventory || {}), pFull.badge || "",
-            pFull.costPrice || 0
-          ]
-        );
+    // Seed default settings if empty
+    const settingsCount = await pool.query("SELECT COUNT(*) FROM settings");
+    if (parseInt(settingsCount.rows[0].count) === 0) {
+      console.log("Seeding default settings into PostgreSQL database...");
+      const defaultSettings = [
+        { key: "shipping_fee", value: "5" },
+        { key: "free_shipping_threshold", value: "150" },
+        { key: "whatsapp_men", value: "+961 70 123 456" },
+        { key: "whatsapp_women", value: "+961 70 123 456" },
+        { key: "whatsapp_kids", value: "+961 70 123 456" },
+        { key: "whatsapp_global", value: "+961 01 123 456" },
+        { key: "instagram_men", value: "https://instagram.com/styluxe.men" },
+        { key: "facebook_men", value: "https://facebook.com/styluxe.men" },
+        { key: "twitter_men", value: "https://twitter.com/styluxe.men" },
+        { key: "tiktok_men", value: "https://tiktok.com/@styluxe.men" },
+        { key: "instagram_women", value: "https://instagram.com/styluxe.women" },
+        { key: "facebook_women", value: "https://facebook.com/styluxe.women" },
+        { key: "twitter_women", value: "https://twitter.com/styluxe.women" },
+        { key: "tiktok_women", value: "https://tiktok.com/@styluxe.women" },
+        { key: "instagram_kids", value: "https://instagram.com/styluxe.kids" },
+        { key: "facebook_kids", value: "https://facebook.com/styluxe.kids" },
+        { key: "twitter_kids", value: "https://twitter.com/styluxe.kids" },
+        { key: "tiktok_kids", value: "https://tiktok.com/@styluxe.kids" },
+        { key: "instagram_global", value: "https://instagram.com/styluxe" },
+        { key: "facebook_global", value: "https://facebook.com/styluxe" },
+        { key: "twitter_global", value: "https://twitter.com/styluxe" },
+        { key: "tiktok_global", value: "https://tiktok.com/@styluxe" },
+        { key: "show_twitter", value: "false" },
+        { key: "show_tiktok", value: "false" },
+        { key: "return_password", value: "admin123" }
+      ];
+      for (const s of defaultSettings) {
+        await pool.query("INSERT INTO settings (key, value) VALUES ($1, $2)", [s.key, s.value]);
       }
     }
 
@@ -529,16 +547,8 @@ async function initPgDatabase() {
         await pool.query("INSERT INTO categories (id, name, img, department, priority) VALUES ($1, $2, $3, $4, $5)", [c.id, c.name, c.img, c.department, c.priority || 1000]);
       }
     }
-
-    const brandCount = await pool.query("SELECT COUNT(*) FROM brands");
-    if (parseInt(brandCount.rows[0].count) === 0) {
-      console.log("Seeding brands into PostgreSQL database...");
-      for (const b of initialBrands) {
-        await pool.query("INSERT INTO brands (name, img) VALUES ($1, $2)", [b.name, b.img]);
-      }
-    }
   } catch (err) {
-    console.error("Failed to initialize or seed PostgreSQL database tables:", err);
+    console.error("Failed to initialize PostgreSQL database tables:", err);
   }
 }
 
