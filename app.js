@@ -3056,6 +3056,9 @@ function processPosSale() {
     const lId = document.getElementById("labelOrderId");
     if (lId) lId.textContent = orderId;
 
+    // Trigger Dedicated Print Window for BOTH Delivery Sticker AND Sales Invoice WITH Product Thumbnails!
+    triggerPosCompleteSalePrint(posOrderData, posCart, subtotal, discount, total);
+
     // Reset customer info fields
     posCustomerName.value = "";
     posCustomerPhone.value = "";
@@ -3065,6 +3068,267 @@ function processPosSale() {
     // Clear POS cart
     posCart = [];
     renderPosTicketItems();
+}
+
+// Function to print BOTH Delivery Sticker AND Sales Invoice WITH Product Thumbnails on COMPLETE SALE
+function triggerPosCompleteSalePrint(orderData, cartItems, subtotal, discount, total) {
+    const cleanName = (orderData.customerName || "WALK-IN CUSTOMER").toUpperCase();
+    const cleanPhone = orderData.customerPhone || "N/A";
+    const cleanAddress = orderData.customerAddress || "N/A";
+    const cleanDate = orderData.date || new Date().toISOString().split('T')[0];
+    const cleanOrderId = String(orderData.id).startsWith('#') ? orderData.id : `#${orderData.id}`;
+    const cashierName = orderData.cashierName || "SYSTEM ADMIN";
+
+    // Build items table rows WITH PRODUCT THUMBNAILS
+    let itemsTableRows = "";
+    (cartItems || []).forEach(item => {
+        const prod = PRODUCTS.find(p => p.id === item.id);
+        const imgUrl = item.image || (prod ? getProductMainImage(prod) : 'assets/favicon.jpg');
+        itemsTableRows += `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px 4px; vertical-align: middle; width: 50px;">
+                    <img src="${imgUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; display: block;">
+                </td>
+                <td style="padding: 10px; vertical-align: middle;">
+                    <div style="font-weight: 800; font-size: 14px; color: #000; font-family: sans-serif;">${item.name}</div>
+                    <div style="font-size: 12px; color: #555; font-family: sans-serif; margin-top: 2px;">Size: <strong>${item.size}</strong> &bull; Qty: <strong>${item.quantity}</strong></div>
+                </td>
+                <td style="padding: 10px 4px; text-align: right; font-weight: 800; vertical-align: middle; font-size: 14px; color: #000; font-family: sans-serif;">
+                    $${(item.price * item.quantity).toFixed(2)}
+                </td>
+            </tr>
+        `;
+    });
+
+    // Open dedicated print popup window containing BOTH Delivery Sticker & Sales Invoice
+    const printWin = window.open('', '_blank', 'width=700,height=900,scrollbars=yes,resizable=yes');
+    if (printWin) {
+        printWin.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>STYLUXE Delivery Sticker & Invoice ${cleanOrderId}</title>
+                <style>
+                    @page { margin: 5mm; size: auto; }
+                    html, body {
+                        margin: 0; padding: 0;
+                        background-color: #ffffff !important;
+                        color: #000000 !important;
+                        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    }
+                    body {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        padding: 20px;
+                    }
+                    .print-container {
+                        width: 100%;
+                        max-width: 420px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 25px;
+                    }
+                    .sticker-card {
+                        border: 2px dashed #000;
+                        border-radius: 6px;
+                        padding: 24px 20px;
+                        background: #fff;
+                        box-sizing: border-box;
+                    }
+                    .invoice-card {
+                        border: 2px solid #000;
+                        border-radius: 6px;
+                        padding: 24px 20px;
+                        background: #fff;
+                        box-sizing: border-box;
+                    }
+                    .brand-header {
+                        text-align: center;
+                        border-bottom: 2px solid #000;
+                        padding-bottom: 12px;
+                        margin-bottom: 16px;
+                    }
+                    .brand-header h1 {
+                        font-size: 32px;
+                        margin: 0;
+                        letter-spacing: 4px;
+                        font-weight: 900;
+                    }
+                    .brand-header p {
+                        font-size: 12px;
+                        margin: 4px 0 0 0;
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                        font-weight: 700;
+                    }
+                    .info-group { margin-bottom: 12px; }
+                    .info-label {
+                        font-size: 11px;
+                        text-transform: uppercase;
+                        color: #555;
+                        font-weight: 700;
+                        display: block;
+                        margin-bottom: 2px;
+                    }
+                    .info-value {
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #000;
+                        word-break: break-word;
+                    }
+                    .sticker-footer {
+                        border-top: 2px solid #000;
+                        padding-top: 12px;
+                        margin-top: 16px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .barcode-sim {
+                        font-family: monospace;
+                        font-size: 20px;
+                        letter-spacing: -2px;
+                    }
+                    .invoice-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                    }
+                    .totals-table {
+                        width: 100%;
+                        border-top: 2px solid #000;
+                        padding-top: 12px;
+                        margin-top: 15px;
+                        font-size: 14px;
+                    }
+                    .totals-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 6px;
+                    }
+                    .totals-row.final {
+                        font-size: 18px;
+                        font-weight: 900;
+                        border-top: 1px solid #000;
+                        padding-top: 8px;
+                        margin-top: 8px;
+                    }
+                    @media print {
+                        .page-break { page-break-before: always; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-container">
+                    <!-- SECTION 1: DELIVERY STICKER -->
+                    <div class="sticker-card">
+                        <div class="brand-header">
+                            <h1>STYLUXE</h1>
+                            <p>DELIVERY STICKER</p>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Customer Name:</span>
+                            <div class="info-value">${cleanName}</div>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Phone Number:</span>
+                            <div class="info-value">${cleanPhone}</div>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Delivery Address:</span>
+                            <div class="info-value">${cleanAddress}</div>
+                        </div>
+                        <div class="sticker-footer">
+                            <div style="font-size: 12px; font-weight: 800;">
+                                <div>DATE: ${cleanDate}</div>
+                                <div>ORDER: ${cleanOrderId}</div>
+                            </div>
+                            <div class="barcode-sim">||||| | |||| ||| |||</div>
+                        </div>
+                    </div>
+
+                    <div class="page-break"></div>
+
+                    <!-- SECTION 2: SALES INVOICE WITH PRODUCT THUMBNAIL IMAGES -->
+                    <div class="invoice-card">
+                        <div class="brand-header">
+                            <h1>STYLUXE</h1>
+                            <p>OFFICIAL SALES RECEIPT / INVOICE</p>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 12px;">
+                            <div>
+                                <div>ORDER: <strong>${cleanOrderId}</strong></div>
+                                <div>DATE: <strong>${cleanDate}</strong></div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div>CASHIER: <strong>${cashierName}</strong></div>
+                                <div>PAYMENT: <strong>COD (CASH ON DELIVERY)</strong></div>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 12px; margin-bottom: 12px; background: #f9f9f9; padding: 8px 10px; border-radius: 4px; border: 1px solid #eee; color: #000;">
+                            <div>CUSTOMER: <strong>${cleanName}</strong></div>
+                            <div>PHONE: <strong>${cleanPhone}</strong></div>
+                            <div>ADDRESS: <strong>${cleanAddress}</strong></div>
+                        </div>
+
+                        <!-- ITEMS TABLE WITH PRODUCT THUMBNAILS -->
+                        <table class="invoice-table">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #000; text-align: left; font-size: 11px; text-transform: uppercase;">
+                                    <th style="padding: 6px 4px;">ITEM</th>
+                                    <th style="padding: 6px;">DETAILS</th>
+                                    <th style="padding: 6px 4px; text-align: right;">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsTableRows}
+                            </tbody>
+                        </table>
+
+                        <!-- TOTALS BREAKDOWN -->
+                        <div class="totals-table">
+                            <div class="totals-row">
+                                <span>Subtotal:</span>
+                                <span>$${subtotal.toFixed(2)}</span>
+                            </div>
+                            ${discount > 0 ? `
+                            <div class="totals-row" style="color: #c0392b;">
+                                <span>Discount:</span>
+                                <span>-$${discount.toFixed(2)}</span>
+                            </div>
+                            ` : ''}
+                            <div class="totals-row final">
+                                <span>TOTAL AMOUNT:</span>
+                                <span>$${total.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; font-size: 11px; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 12px; color: #555;">
+                            <p style="margin: 0; font-weight: 700;">THANK YOU FOR SHOPPING AT STYLUXE!</p>
+                            <p style="margin: 4px 0 0 0;">Returns & exchanges accepted within 14 days with original receipt.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.focus();
+                            window.print();
+                        }, 250);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+    } else {
+        window.print();
+    }
 }
 
 function triggerStickerPrint(name, phone, address, date, orderId) {
