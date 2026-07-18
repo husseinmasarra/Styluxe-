@@ -2098,20 +2098,9 @@ async function sendNewProductNotifications(product) {
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
-
   const subject = `🔥 NEW ARRIVAL: ${product.name.toUpperCase()} has been added to STYLUXE!`;
-  
   const productUrl = `https://www.styluxelb.com/?product=${product.id}`;
-  const imgUrl = (product.images && product.images[0]) || (product.img) || 'https://www.styluxelb.com/assets/favicon.jpg';
+  const imgUrl = (product.image && !product.image.startsWith("data:")) ? product.image : 'https://www.styluxelb.com/assets/favicon.jpg';
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; background-color: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px; max-width: 600px; margin: 0 auto; border: 1px solid #c7a369;">
@@ -2134,7 +2123,47 @@ async function sendNewProductNotifications(product) {
     </div>
   `;
 
+  // Method 1: Try Brevo HTTP API v3 if key matches API key format
+  if (pass.startsWith("xsmtpsib-") || pass.startsWith("xkeysib-")) {
+    try {
+      const cleanSenderEmail = sender.includes('<') ? sender.split('<')[1].replace('>', '').trim() : sender;
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': pass,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: 'STYLUXE', email: cleanSenderEmail },
+          to: subscribers.map(email => ({ email })),
+          subject,
+          htmlContent
+        })
+      });
+
+      if (response.ok) {
+        console.log(`Newsletter emails sent successfully via Brevo API to ${subscribers.length} subscribers!`);
+        return;
+      } else {
+        const errJson = await response.json();
+        console.warn("Brevo HTTP API returned error:", errJson);
+      }
+    } catch (e) {
+      console.warn("Brevo HTTP API error:", e);
+    }
+  }
+
+  // Method 2: Fallback to standard Nodemailer SMTP
   try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false }
+    });
+
     const mailOptions = {
       from: sender,
       bcc: subscribers.join(', '),
@@ -2143,7 +2172,7 @@ async function sendNewProductNotifications(product) {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Newsletter emails sent successfully to ${subscribers.length} subscribers!`);
+    console.log(`Newsletter emails sent successfully via Nodemailer SMTP to ${subscribers.length} subscribers!`);
   } catch (error) {
     console.error("Failed to send newsletter emails:", error);
   }
