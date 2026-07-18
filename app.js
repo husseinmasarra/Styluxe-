@@ -724,32 +724,10 @@ function filterByDepartment(department) {
     // Reset nested subcategory and brand filters
     activeCategory = "All";
     activeBrand = "All";
+    const select = document.getElementById("brandFilterSelect");
+    if (select) select.value = "All";
 
-    // Update active state in department buttons
-    const tags = departmentControls.querySelectorAll(".dept-tag");
-    tags.forEach(tag => {
-        const text = tag.textContent.trim().toLowerCase();
-        const compareText = department.toLowerCase();
-        
-        if (compareText === "all" && text === "all departments") {
-            tag.classList.add("active");
-        } else if (text === compareText) {
-            tag.classList.add("active");
-        } else {
-            tag.classList.remove("active");
-        }
-    });
-
-    // Update navbar active link highlight
-    const navLinks = document.getElementById("navLinks").querySelectorAll("a");
-    navLinks.forEach(link => {
-        const text = link.textContent.trim().toLowerCase();
-        if (text === department.toLowerCase()) {
-            link.classList.add("active");
-        } else {
-            link.classList.remove("active");
-        }
-    });
+    syncDepartmentControlsUI();
 
     // Render components and filter grid
     renderBrandSlider();
@@ -773,16 +751,58 @@ function filterByDepartment(department) {
     }
 }
 
+function syncDepartmentControlsUI() {
+    if (departmentControls) {
+        const tags = departmentControls.querySelectorAll(".dept-tag");
+        tags.forEach(tag => {
+            const text = tag.textContent.trim().toLowerCase();
+            const compareText = activeDepartment.toLowerCase();
+            
+            if (compareText === "all" && text === "all departments") {
+                tag.classList.add("active");
+            } else if (text === compareText) {
+                tag.classList.add("active");
+            } else {
+                tag.classList.remove("active");
+            }
+        });
+    }
+
+    const navLinksContainer = document.getElementById("navLinks");
+    if (navLinksContainer) {
+        const navLinks = navLinksContainer.querySelectorAll("a");
+        navLinks.forEach(link => {
+            const text = link.textContent.trim().toLowerCase();
+            if (text === activeDepartment.toLowerCase()) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
+    }
+}
+
 function showCollectionsGrid() {
     filterByDepartment("All");
 }
 
 // FILTER BY CATEGORY
 function filterByCategory(category) {
-    if (activeCategory === category) {
+    if (activeCategory.trim().toLowerCase() === category.trim().toLowerCase()) {
         activeCategory = "All";
     } else {
         activeCategory = category;
+        // Smart switch: if selected category has products in catalog but 0 in current department, switch department to All
+        if (activeDepartment !== "All" && category !== "All") {
+            const matchesInCurrentDept = PRODUCTS.some(p => 
+                p.category && p.category.trim().toLowerCase() === category.trim().toLowerCase() && 
+                p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase()
+            );
+            if (!matchesInCurrentDept) {
+                activeDepartment = "All";
+                syncDepartmentControlsUI();
+            }
+        }
     }
     renderCategoryTags();
     renderProducts();
@@ -4782,22 +4802,23 @@ function renderBrandSlider() {
 
     brandSlider.innerHTML = "";
 
-    // 1. Find unique brands associated with the active department's products
-    let availableProducts = [...PRODUCTS];
-    if (activeDepartment !== "All") {
-        availableProducts = availableProducts.filter(p => p.department.toLowerCase() === activeDepartment.toLowerCase());
-    }
-
-    // Set of brands present in current products
-    const activeDeptBrands = ["All", ...new Set(availableProducts.map(p => getProductBrand(p)))];
-
+    // Show ALL unique brands across entire catalog so no brand badge is hidden
+    const uniqueProductBrands = [...new Set(PRODUCTS.map(p => getProductBrand(p)))];
     const displayBrands = [{ name: "All", img: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=200" }, ...BRANDS];
-    const filteredBrandData = displayBrands.filter(b => activeDeptBrands.includes(b.name));
 
-    filteredBrandData.forEach(b => {
+    uniqueProductBrands.forEach(bName => {
+        if (bName && !displayBrands.some(b => b.name.trim().toLowerCase() === bName.trim().toLowerCase())) {
+            displayBrands.push({
+                name: bName,
+                img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=200"
+            });
+        }
+    });
+
+    displayBrands.forEach(b => {
         const card = document.createElement("div");
         card.classList.add("brand-circle-card");
-        if (activeBrand === b.name) card.classList.add("active");
+        if (activeBrand.trim().toLowerCase() === b.name.trim().toLowerCase()) card.classList.add("active");
 
         card.innerHTML = `
             <div class="brand-circle-logo" style="overflow: hidden; padding: 0;">
@@ -4815,10 +4836,21 @@ function renderBrandSlider() {
 }
 
 function selectBrand(brand) {
-    if (activeBrand === brand) {
+    if (activeBrand.trim().toLowerCase() === brand.trim().toLowerCase()) {
         activeBrand = "All";
     } else {
         activeBrand = brand;
+        // Smart switch: if selected brand has products in catalog but 0 in current department, switch department to All
+        if (activeDepartment !== "All" && brand !== "All") {
+            const matchesInCurrentDept = PRODUCTS.some(p => 
+                getProductBrand(p).trim().toLowerCase() === brand.trim().toLowerCase() && 
+                p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase()
+            );
+            if (!matchesInCurrentDept) {
+                activeDepartment = "All";
+                syncDepartmentControlsUI();
+            }
+        }
     }
     const select = document.getElementById("brandFilterSelect");
     if (select) select.value = activeBrand;
@@ -4827,9 +4859,7 @@ function selectBrand(brand) {
 }
 
 function filterByBrand(brand) {
-    activeBrand = brand;
-    renderBrandSlider();
-    renderProducts();
+    selectBrand(brand);
 }
 
 function populateBrandOptions() {
@@ -4853,7 +4883,7 @@ function populateBrandOptions() {
     const brandFilterSelect = document.getElementById("brandFilterSelect");
     if (brandFilterSelect) {
         brandFilterSelect.innerHTML = `<option value="All">ALL BRANDS</option>`;
-        const uniqueProductBrands = [...new Set(PRODUCTS.map(p => p.brand || "Styluxe"))];
+        const uniqueProductBrands = [...new Set(PRODUCTS.map(p => getProductBrand(p)))];
         const allBrandNames = new Set([
             "Styluxe", 
             ...BRANDS.map(b => b.name),
@@ -4874,25 +4904,12 @@ function renderCategoryTags() {
     const filterTags = document.getElementById("filterTags");
     if (!filterTags) return;
 
-    let deptCategories = [];
-    const dbCategories = CATEGORIES && CATEGORIES.length > 0 ? CATEGORIES : [];
-    const prodList = PRODUCTS && PRODUCTS.length > 0 ? PRODUCTS : [];
+    // Aggregate ALL categories from DB & PRODUCTS so all categories are ALWAYS visible
+    const dbCategories = CATEGORIES && CATEGORIES.length > 0 ? CATEGORIES.map(c => c.name) : [];
+    const prodCategories = PRODUCTS && PRODUCTS.length > 0 ? PRODUCTS.map(p => p.category) : [];
+    const allCatNames = [...dbCategories, ...prodCategories].filter(Boolean);
 
-    if (activeDepartment === "All") {
-        const catNamesFromDb = dbCategories.map(c => c.name).filter(Boolean);
-        const catNamesFromProds = prodList.map(p => p.category).filter(Boolean);
-        deptCategories = [...catNamesFromDb, ...catNamesFromProds];
-    } else {
-        const catNamesFromDb = dbCategories
-            .filter(c => c.department && c.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase())
-            .map(c => c.name);
-        const catNamesFromProds = prodList
-            .filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase())
-            .map(p => p.category);
-        deptCategories = [...catNamesFromDb, ...catNamesFromProds];
-    }
-
-    const uniqueCategories = ["All", ...new Set(deptCategories)];
+    const uniqueCategories = ["All", ...new Set(allCatNames)];
 
     filterTags.innerHTML = "";
     uniqueCategories.forEach(cat => {
