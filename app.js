@@ -3072,12 +3072,28 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
     const cleanPhone = phone || "N/A";
     const cleanAddress = address || "N/A";
     const cleanDate = date || new Date().toISOString().split('T')[0];
-    const cleanOrderId = String(orderId).startsWith('#') ? orderId : `#${orderId}`;
+    const cleanOrderId = String(orderId || "").startsWith('#') ? orderId : `#${orderId || "1001"}`;
 
+    // 1. Populate label elements in main page modal
+    const nameEl = document.getElementById("labelCustomerName");
+    const phoneEl = document.getElementById("labelCustomerPhone");
+    const addrEl = document.getElementById("labelCustomerAddress");
+    const dateEl = document.getElementById("labelDate");
+    const idEl = document.getElementById("labelOrderId");
+
+    if (nameEl) nameEl.textContent = cleanName;
+    if (phoneEl) phoneEl.textContent = cleanPhone;
+    if (addrEl) addrEl.textContent = cleanAddress;
+    if (dateEl) dateEl.textContent = cleanDate;
+    if (idEl) idEl.textContent = cleanOrderId;
+
+    // 2. Open modal so user sees label preview on screen
+    const modal = document.getElementById("posReceiptModalBackdrop");
+    if (modal) modal.classList.add("active");
+
+    // 3. Create isolated hidden iframe for printing
     let iframe = document.getElementById("stickerPrintIframe");
-    if (iframe) {
-        iframe.remove();
-    }
+    if (iframe) iframe.remove();
 
     iframe = document.createElement("iframe");
     iframe.id = "stickerPrintIframe";
@@ -3100,95 +3116,26 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
             <meta charset="utf-8">
             <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
             <style>
-                @page {
-                    margin: 0mm;
-                    size: auto;
-                }
+                @page { margin: 0mm; size: auto; }
                 html, body {
-                    margin: 0;
-                    padding: 0;
+                    margin: 0; padding: 0;
                     background-color: #ffffff !important;
                     color: #000000 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                    -webkit-print-color-adjust: exact;
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 }
-                body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                    padding: 25px 15px;
-                }
+                body { display: flex; justify-content: center; align-items: flex-start; padding: 20px 10px; }
                 .sticker-card {
-                    width: 100%;
-                    max-width: 380px;
-                    border: 2px dashed #000000;
-                    border-radius: 8px;
-                    padding: 24px 20px;
-                    box-sizing: border-box;
-                    background: #ffffff;
+                    width: 110mm; border: 2px dashed #000; border-radius: 6px; padding: 25px 20px; background: #fff; box-sizing: border-box;
                 }
-                .brand-header {
-                    text-align: center;
-                    border-bottom: 2px solid #000000;
-                    padding-bottom: 14px;
-                    margin-bottom: 18px;
-                }
-                .brand-header h1 {
-                    font-size: 30px;
-                    font-weight: 900;
-                    letter-spacing: 4px;
-                    margin: 0;
-                    color: #000000;
-                    font-family: 'Cinzel', Didot, 'Garamond', serif, sans-serif;
-                }
-                .brand-header p {
-                    font-size: 11px;
-                    font-weight: 700;
-                    letter-spacing: 2px;
-                    margin: 4px 0 0 0;
-                    text-transform: uppercase;
-                    color: #000000;
-                }
-                .info-group {
-                    margin-bottom: 14px;
-                }
-                .info-label {
-                    font-size: 10px;
-                    color: #555555;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    font-weight: 700;
-                    margin-bottom: 3px;
-                    display: block;
-                }
-                .info-value {
-                    font-size: 16px;
-                    font-weight: 800;
-                    color: #000000;
-                    line-height: 1.35;
-                    word-break: break-word;
-                }
-                .sticker-footer {
-                    margin-top: 22px;
-                    border-top: 1px solid #000000;
-                    padding-top: 12px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .meta-details {
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: #000000;
-                    line-height: 1.4;
-                }
-                .barcode-sim {
-                    font-family: monospace;
-                    font-size: 22px;
-                    letter-spacing: -2px;
-                    font-weight: 300;
-                    color: #000000;
-                }
+                .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
+                .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 3px; font-weight: 900; }
+                .brand-header p { font-size: 13px; margin: 4px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+                .info-group { margin-bottom: 14px; }
+                .info-label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 2px; }
+                .info-value { font-size: 16px; font-weight: 800; color: #000; word-break: break-word; }
+                .sticker-footer { border-top: 2px solid #000; padding-top: 12px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
+                .meta-details { font-size: 12px; font-weight: 800; }
+                .barcode-sim { font-family: monospace; font-size: 22px; letter-spacing: -2px; font-weight: 300; }
             </style>
         </head>
         <body>
@@ -3222,14 +3169,16 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
     `);
     doc.close();
 
+    // 4. Trigger print popup dialog
     setTimeout(() => {
         try {
             iframe.contentWindow.focus();
             iframe.contentWindow.print();
         } catch (e) {
-            console.error("Print iframe error:", e);
+            console.warn("Iframe print fallback to window.print()");
+            window.print();
         }
-    }, 350);
+    }, 250);
 }
 
 function printOrderSticker(orderId) {
@@ -3241,21 +3190,7 @@ function printOrderSticker(orderId) {
     const address = order.address || order.customerAddress || "N/A";
     const date = order.date || new Date().toISOString().split('T')[0];
 
-    // Populate preview modal HTML
-    const nameEl = document.getElementById("labelCustomerName");
-    const phoneEl = document.getElementById("labelCustomerPhone");
-    const addrEl = document.getElementById("labelCustomerAddress");
-    const dateEl = document.getElementById("labelDate");
-    const idEl = document.getElementById("labelOrderId");
-
-    if (nameEl) nameEl.textContent = name.toUpperCase();
-    if (phoneEl) phoneEl.textContent = phone;
-    if (addrEl) addrEl.textContent = address;
-    if (dateEl) dateEl.textContent = date;
-    if (idEl) idEl.textContent = `#${order.id}`;
-
-    const modal = document.getElementById("posReceiptModalBackdrop");
-    if (modal) modal.classList.add("active");
+    triggerStickerPrint(name, phone, address, date, order.id);
 }
 
 function printStickerOnly() {
@@ -3265,7 +3200,8 @@ function printStickerOnly() {
     const date = document.getElementById("labelDate")?.textContent || "";
     const orderId = document.getElementById("labelOrderId")?.textContent || "";
 
-    triggerStickerPrint(name, phone, address, date, orderId);
+    // Trigger main window print dialog directly if inside modal
+    window.print();
 }
 
 function closePosReceipt() {
