@@ -94,23 +94,35 @@ const drawerBackdrop = document.getElementById("drawerBackdrop");
 // DATABASE SYNC ACTIONS
 async function loadProductsFromServer() {
     try {
-        const [resProd, resCat, resBrand, resSupp, resInv, resSettings, resCoupons] = await Promise.all([
-            fetch('/api/products'),
-            fetch('/api/categories'),
-            fetch('/api/brands'),
-            fetch('/api/suppliers'),
-            fetch('/api/invoices'),
-            fetch('/api/settings'),
-            fetch('/api/coupons')
+        const fetchSafe = async (url) => {
+            try {
+                const res = await fetch(url);
+                if (res.ok) return await res.json();
+            } catch (e) {
+                console.warn(`Failed to fetch ${url}:`, e);
+            }
+            return null;
+        };
+
+        const [prods, cats, brands, supps, invs, settings, coupons] = await Promise.all([
+            fetchSafe('/api/products'),
+            fetchSafe('/api/categories'),
+            fetchSafe('/api/brands'),
+            fetchSafe('/api/suppliers'),
+            fetchSafe('/api/invoices'),
+            fetchSafe('/api/settings'),
+            fetchSafe('/api/coupons')
         ]);
-        
-        if (resProd.ok) PRODUCTS = await resProd.json();
-        if (resCat.ok) CATEGORIES = await resCat.json();
-        if (resBrand.ok) BRANDS = await resBrand.json();
-        if (resSupp.ok) SUPPLIERS = await resSupp.json();
-        if (resInv.ok) INVOICES = await resInv.json();
-        if (resSettings.ok) STORE_SETTINGS = await resSettings.json();
-        if (resCoupons.ok) COUPONS = await resCoupons.json();
+
+        if (Array.isArray(prods) && prods.length > 0) {
+            PRODUCTS = prods;
+        }
+        if (Array.isArray(cats)) CATEGORIES = cats;
+        if (Array.isArray(brands)) BRANDS = brands;
+        if (Array.isArray(supps)) SUPPLIERS = supps;
+        if (Array.isArray(invs)) INVOICES = invs;
+        if (settings && typeof settings === 'object') STORE_SETTINGS = settings;
+        if (Array.isArray(coupons)) COUPONS = coupons;
 
         updateCategoriesDatalist();
         populateBrandOptions();
