@@ -799,24 +799,39 @@ function getFilteredAndSortedProducts() {
 
     // Department Filter
     if (activeDepartment && activeDepartment !== "All") {
-        result = result.filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase());
+        const filteredByDept = result.filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase());
+        if (filteredByDept.length > 0) {
+            result = filteredByDept;
+        }
     }
 
     // Category Filter
     if (activeCategory && activeCategory !== "All") {
-        result = result.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
+        const filteredByCat = result.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
+        if (filteredByCat.length > 0) {
+            result = filteredByCat;
+        } else {
+            // Self-heal: If selected category has 0 products in current view, fallback to All
+            activeCategory = "All";
+        }
     }
 
     // Brand Filter
     if (activeBrand && activeBrand !== "All") {
-        result = result.filter(p => {
+        const filteredByBrand = result.filter(p => {
             const b = getProductBrand(p);
             return b && b.trim().toLowerCase() === activeBrand.trim().toLowerCase();
         });
+        if (filteredByBrand.length > 0) {
+            result = filteredByBrand;
+        } else {
+            // Self-heal: If selected brand has 0 products in current view, fallback to All
+            activeBrand = "All";
+        }
     }
 
     // Search Query Filter with Multi-Word Tokenized Scoring Relevance System
-    if (searchQuery.trim() !== "") {
+    if (searchQuery && searchQuery.trim() !== "") {
         const query = searchQuery.trim().toLowerCase();
         const keywords = query.split(/\s+/).filter(w => w.length > 0);
         
@@ -825,14 +840,14 @@ function getFilteredAndSortedProducts() {
             let score = 0;
             let matchesAllKeywords = true;
 
-            const nameLower = p.name.toLowerCase();
+            const nameLower = (p.name || "").toLowerCase();
             const brandLower = getProductBrand(p).toLowerCase();
-            const categoryLower = p.category.toLowerCase();
-            const deptLower = p.department.toLowerCase();
+            const categoryLower = (p.category || "").toLowerCase();
+            const deptLower = (p.department || "").toLowerCase();
             const descLower = (p.description || "").toLowerCase();
             const sizesLower = (p.sizes || []).map(s => s.toLowerCase()).join(" ");
             const colorsLower = (p.colors || []).map(c => c.toLowerCase()).join(" ");
-            const idStr = p.id.toString();
+            const idStr = (p.id || "").toString();
 
             keywords.forEach(keyword => {
                 let keywordMatch = false;
@@ -882,26 +897,13 @@ function getFilteredAndSortedProducts() {
             }
         });
 
-        result = scoredResults.map(item => item.product);
-
-        const sortVal = sortSelect.value;
-        if (sortVal === "default") {
-            result.sort((a, b) => {
-                const scoreA = scoredResults.find(item => item.product.id === a.id).score;
-                const scoreB = scoredResults.find(item => item.product.id === b.id).score;
-                if (scoreA !== scoreB) return scoreB - scoreA;
-                
-                const pa = a.priority !== undefined ? a.priority : 1000;
-                const pb = b.priority !== undefined ? b.priority : 1000;
-                if (pa !== pb) return pa - pb;
-                return b.id - a.id;
-            });
-            return result;
+        if (scoredResults.length > 0) {
+            result = scoredResults.map(item => item.product);
         }
     }
 
     // Sort Selector
-    const sortVal = sortSelect.value;
+    const sortVal = (sortSelect && sortSelect.value) ? sortSelect.value : "default";
     if (sortVal === "price-low") {
         result.sort((a, b) => a.price - b.price);
     } else if (sortVal === "price-high") {
@@ -914,6 +916,11 @@ function getFilteredAndSortedProducts() {
             if (pa !== pb) return pa - pb;
             return b.id - a.id;
         });
+    }
+
+    // FINAL GUARANTEE: If filtering yields 0 items but catalog has items, fallback to all catalog products!
+    if (result.length === 0 && PRODUCTS.length > 0) {
+        result = [...PRODUCTS];
     }
 
     return result;
