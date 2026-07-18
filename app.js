@@ -5920,7 +5920,7 @@ const INFO_PAGES = {
                 </div>
                 <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
                     <h4 style="color: var(--color-text); font-size: 1.4rem; margin-bottom: 0.6rem; font-weight: 600;">Q: What payment methods do you accept?</h4>
-                    <p style="color: var(--color-text-muted);">A: We currently support Cash on Delivery (COD) and major credit cards.</p>
+                    <p style="color: var(--color-text-muted);">A: We currently support Cash on Delivery (COD) for all orders.</p>
                 </div>
                 <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;">
                     <h4 style="color: var(--color-text); font-size: 1.4rem; margin-bottom: 0.6rem; font-weight: 600;">Q: Can I exchange sizes?</h4>
