@@ -53,7 +53,7 @@
 
             <!-- Navigation Links (Left) -->
             <nav class="nav-links" id="navLinks">
-                <a href="#home" class="active">HOME</a>
+                <a href="#collections" onclick="showHomePage()" class="active">HOME</a>
                 <a href="#shop-section" onclick="filterByDepartment('Men')">MEN</a>
                 <a href="#shop-section" onclick="filterByDepartment('Women')">WOMEN</a>
                 <a href="#shop-section" onclick="filterByDepartment('Kids')">KIDS</a>
@@ -62,7 +62,7 @@
 
             <!-- Brand Logo (Center) -->
             <div class="brand-logo">
-                <a href="#home">STYLUXE</a>
+                <a href="#collections" onclick="showHomePage()">STYLUXE</a>
             </div>
 
             <!-- Header Utilities (Right) -->
@@ -179,7 +179,7 @@
         </section>
 
          <!-- Shop & Catalog Section -->
-        <section id="shop-section" class="section-container catalog-section" style="display: block;">
+        <section id="shop-section" class="section-container catalog-section" style="display: none;">
             <!-- Back to Collections Button -->
             <div class="back-to-collections-container" style="margin-bottom: 2.5rem; text-align: left; display: none;" id="backToCollectionsContainer">
                 <button class="back-to-collections-btn" onclick="showCollectionsGrid()" style="background: none; border: 1px solid var(--color-border); padding: 1rem 2rem; color: var(--color-text); font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600; letter-spacing: 0.1em; cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast);">
@@ -1980,6 +1980,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=1.2.5"></script>
+    <script src="app.js?v=1.2.6"></script>
 </body>
 </html>
