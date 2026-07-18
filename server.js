@@ -899,6 +899,10 @@ const server = http.createServer(async (req, res) => {
 
     // 1. GET Requests
     if (req.method === 'GET') {
+      if (pathname === '/api/health') {
+        sendJsonResponse(res, { status: "ok", uptime: process.uptime(), timestamp: new Date().toISOString() });
+        return;
+      }
       if (pathname === '/api/config') {
         let currentConfig = { GOOGLE_CLIENT_ID: "" };
         if (fs.existsSync(CONFIG_FILE)) {
@@ -2082,6 +2086,21 @@ function verifyGoogleToken(token, clientId) {
       console.log(`  STYLUXE Premium Store Server running at:`);
       console.log(`  👉  http://localhost:${PORT}/`);
       console.log(`======================================================\n`);
+
+      // Keep-alive self ping every 5 minutes to prevent Render spin-down
+      setInterval(() => {
+        try {
+          const pingUrl = process.env.RENDER_EXTERNAL_URL || 'https://www.styluxelb.com';
+          const client = pingUrl.startsWith('https') ? require('https') : require('http');
+          client.get(`${pingUrl}/api/health`, (res) => {
+            console.log(`[KEEP-ALIVE] Ping sent to ${pingUrl}/api/health - Status: ${res.statusCode}`);
+          }).on('error', (err) => {
+            console.warn(`[KEEP-ALIVE] Ping warning: ${err.message}`);
+          });
+        } catch (e) {
+          console.warn("[KEEP-ALIVE] Ping catch error:", e.message);
+        }
+      }, 5 * 60 * 1000); // Ping every 5 minutes
     });
   } catch (err) {
     console.error("\n[CRITICAL STARTUP ERROR] " + err.message);
