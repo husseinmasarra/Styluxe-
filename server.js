@@ -4,7 +4,7 @@ const path = require('path');
 const url = require('url');
 const nodemailer = require('nodemailer');
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const DB_FILE = path.join(__dirname, 'styluxe_db.json');
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
@@ -2078,30 +2078,31 @@ function verifyGoogleToken(token, clientId) {
 
 (async () => {
   try {
-    // Load database from SQL or JSON into local memory cache
-    await loadDatabaseIntoMemory();
-
+    // 1. Listen immediately on PORT so Render connects to Node process in 0 seconds
     server.listen(PORT, () => {
       console.log(`\n======================================================`);
       console.log(`  STYLUXE Premium Store Server running at:`);
       console.log(`  👉  http://localhost:${PORT}/`);
       console.log(`======================================================\n`);
-
-      // Keep-alive self ping every 5 minutes to prevent Render spin-down
-      setInterval(() => {
-        try {
-          const pingUrl = process.env.RENDER_EXTERNAL_URL || 'https://www.styluxelb.com';
-          const client = pingUrl.startsWith('https') ? require('https') : require('http');
-          client.get(`${pingUrl}/api/health`, (res) => {
-            console.log(`[KEEP-ALIVE] Ping sent to ${pingUrl}/api/health - Status: ${res.statusCode}`);
-          }).on('error', (err) => {
-            console.warn(`[KEEP-ALIVE] Ping warning: ${err.message}`);
-          });
-        } catch (e) {
-          console.warn("[KEEP-ALIVE] Ping catch error:", e.message);
-        }
-      }, 5 * 60 * 1000); // Ping every 5 minutes
     });
+
+    // 2. Load database into RAM cache asynchronously
+    loadDatabaseIntoMemory().catch(err => console.error("Database async load error:", err));
+
+    // 3. Keep-alive self ping every 5 minutes to prevent Render spin-down
+    setInterval(() => {
+      try {
+        const pingUrl = process.env.RENDER_EXTERNAL_URL || 'https://www.styluxelb.com';
+        const client = pingUrl.startsWith('https') ? require('https') : require('http');
+        client.get(`${pingUrl}/api/health`, (res) => {
+          console.log(`[KEEP-ALIVE] Ping sent to ${pingUrl}/api/health - Status: ${res.statusCode}`);
+        }).on('error', (err) => {
+          console.warn(`[KEEP-ALIVE] Ping warning: ${err.message}`);
+        });
+      } catch (e) {
+        console.warn("[KEEP-ALIVE] Ping catch error:", e.message);
+      }
+    }, 5 * 60 * 1000);
   } catch (err) {
     console.error("\n[CRITICAL STARTUP ERROR] " + err.message);
     console.error("Server startup aborted to prevent accidental database wipe.\n");
