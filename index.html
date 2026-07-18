@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=2.0.0">
+    <link rel="stylesheet" href="style.css?v=2.7.0">
 
     <!-- Google & Apple Social Authentication SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -987,7 +987,7 @@
                                      <th>ITEMS</th>
                                      <th>TOTAL</th>
                                      <th>STATUS</th>
-                                     <th>ACTIONS</th>
+                                     <th style="text-align: center;">ACTIONS</th>
                                  </tr>
                              </thead>
                              <tbody id="adminOrdersTableBody">
@@ -1581,92 +1581,49 @@
          </div>
     </div>
 
-    <!-- POS Receipt & Label Modal Overlay -->
+    <!-- Order Delivery Sticker Modal Overlay -->
     <div class="modal-backdrop" id="posReceiptModalBackdrop" style="z-index: 1200;">
-         <div class="checkout-modal" style="max-width: 850px; width: 90%; padding: 4rem 3rem; background-color: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 10px;">
-             <div class="pos-print-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3rem;">
-                 
-                 <!-- LEFT Paper: Invoice Receipt -->
-                 <div id="posReceiptPaper" class="print-paper" style="background-color: #ffffff; color: #000000; padding: 2.5rem; font-family: monospace; font-size: 1.2rem; line-height: 1.5; border-radius: 4px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
-                     <div style="text-align: center; margin-bottom: 2rem;">
-                         <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading); letter-spacing: 0.1em; color: #000;">STYLUXE</h2>
-                         <p>Riad Al Solh Street, Beirut, LB</p>
-                         <p>Phone: +961 01 123 456</p>
-                         <p>-----------------------------</p>
-                         <h3 style="font-size: 1.4rem; font-weight: 700; margin: 1rem 0;">SALES RECEIPT</h3>
-                         <p>-----------------------------</p>
+         <div class="checkout-modal" style="max-width: 520px; width: 90%; padding: 3.5rem 3rem; background-color: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 10px; text-align: center;">
+             <h3 style="font-size: 1.8rem; font-weight: 700; color: var(--color-accent); margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem;">
+                 <i class="fa-solid fa-truck-fast"></i> DELIVERY STICKER
+             </h3>
+             
+             <!-- Shipping Sticker Label Paper ONLY -->
+             <div id="posLabelPaper" class="print-paper" style="background-color: #ffffff; color: #000000; padding: 3rem 2.5rem; font-family: sans-serif; font-size: 1.25rem; line-height: 1.6; border-radius: 6px; border: 2px dashed #000000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; min-height: 380px; margin-bottom: 2.5rem; text-align: left;">
+                 <div>
+                     <div style="text-align: center; margin-bottom: 2.2rem; border-bottom: 2px solid #000; padding-bottom: 1.2rem;">
+                         <h2 style="font-size: 2.6rem; font-weight: 800; font-family: var(--font-heading); letter-spacing: 0.15em; margin: 0; color: #000;">STYLUXE</h2>
+                         <p style="font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.3rem; color: #000;">DELIVERY STICKER</p>
                      </div>
-                     <div style="margin-bottom: 2rem;">
-                         <p>Date: <span id="receiptDate">2026-06-14</span></p>
-                         <p>Cashier: <span id="receiptCashier">SYSTEM ADMIN</span></p>
-                         <p>Customer: <span id="receiptCustomer">WALK-IN CUSTOMER</span></p>
-                         <p>-----------------------------</p>
-                     </div>
-                     <div id="receiptItems" style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.8rem;">
-                         <!-- Items -->
-                     </div>
-                     <div style="margin-bottom: 2.5rem;">
-                         <p>-----------------------------</p>
-                         <div style="display: flex; justify-content: space-between;">
-                             <span>SUBTOTAL:</span>
-                             <span id="receiptSubtotal">$0.00</span>
+                     <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                         <div>
+                             <strong style="font-size: 0.95rem; color: #555; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Customer Name:</strong>
+                             <span id="labelCustomerName" style="font-size: 1.5rem; font-weight: 700; color: #000;">-</span>
                          </div>
-                         <div style="display: flex; justify-content: space-between;">
-                             <span>DISCOUNT:</span>
-                             <span id="receiptDiscount">-$0.00</span>
+                         <div>
+                             <strong style="font-size: 0.95rem; color: #555; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Phone Number:</strong>
+                             <span id="labelCustomerPhone" style="font-size: 1.5rem; font-weight: 700; color: #000;">-</span>
                          </div>
-                         <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.4rem; margin-top: 0.8rem;">
-                             <span>GRAND TOTAL:</span>
-                             <span id="receiptTotal">$0.00</span>
+                         <div>
+                             <strong style="font-size: 0.95rem; color: #555; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Delivery Address:</strong>
+                             <span id="labelCustomerAddress" style="font-size: 1.35rem; font-weight: 600; color: #000; display: block; word-break: break-word;">-</span>
                          </div>
-                         <p>-----------------------------</p>
-                     </div>
-                     <div style="text-align: center; font-size: 1.1rem; color: #555555;">
-                         <p>THANK YOU FOR SHOPPING WITH US</p>
-                         <p>Exchange policy: 7 Days with receipt</p>
                      </div>
                  </div>
-
-                 <!-- RIGHT Paper: Shipping Sticker Label -->
-                 <div id="posLabelPaper" class="print-paper" style="background-color: #ffffff; color: #000000; padding: 3rem 2.5rem; font-family: sans-serif; font-size: 1.25rem; line-height: 1.6; border-radius: 4px; border: 2px dashed #000000; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; min-height: 400px;">
-                     <div>
-                         <div style="text-align: center; margin-bottom: 2.5rem; border-bottom: 2px solid #000; padding-bottom: 1.5rem;">
-                             <h2 style="font-size: 2.6rem; font-weight: 800; font-family: var(--font-heading); letter-spacing: 0.15em; margin: 0; color: #000;">STYLUXE</h2>
-                             <p style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.3rem; color: #000;">Delivery Sticker</p>
-                         </div>
-                         <div style="display: flex; flex-direction: column; gap: 1.2rem; text-align: left;">
-                             <div>
-                                 <strong style="font-size: 1rem; color: #666; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Customer Name:</strong>
-                                 <span id="labelCustomerName" style="font-size: 1.5rem; font-weight: 700; color: #000;">WALK-IN CUSTOMER</span>
-                             </div>
-                             <div>
-                                 <strong style="font-size: 1rem; color: #666; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Phone Number:</strong>
-                                 <span id="labelCustomerPhone" style="font-size: 1.5rem; font-weight: 700; color: #000;">+961 70 123 456</span>
-                             </div>
-                             <div>
-                                 <strong style="font-size: 1rem; color: #666; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Delivery Address:</strong>
-                                 <span id="labelCustomerAddress" style="font-size: 1.4rem; font-weight: 600; color: #000; display: block; word-break: break-word;">STORE PICKUP / WALK-IN</span>
-                             </div>
-                         </div>
+                 <div style="margin-top: 2.5rem; border-top: 1px solid #000; padding-top: 1.2rem; display: flex; justify-content: space-between; align-items: center;">
+                     <div style="text-align: left;">
+                         <p style="font-size: 0.9rem; color: #444; margin: 0; font-weight: 600;">DATE: <span id="labelDate">-</span></p>
+                         <p style="font-size: 0.9rem; color: #444; margin: 0; font-weight: 600;">ORDER: <span id="labelOrderId">-</span></p>
                      </div>
-                     <div style="margin-top: 3rem; border-top: 1px solid #000; padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                         <div style="text-align: left;">
-                             <p style="font-size: 0.9rem; color: #666; margin: 0;">DATE: <span id="labelDate">2026-07-10</span></p>
-                             <p style="font-size: 0.9rem; color: #666; margin: 0;">ORDER: <span id="labelOrderId">POS-12345</span></p>
-                         </div>
-                         <!-- Decorative Barcode Placeholder -->
-                         <div style="font-family: monospace; font-size: 1.8rem; letter-spacing: -2px; font-weight: 300; opacity: 0.8; color: #000;">||||| | |||| ||| ||| |||</div>
-                     </div>
+                     <!-- Decorative Barcode Placeholder -->
+                     <div style="font-family: monospace; font-size: 1.8rem; letter-spacing: -2px; font-weight: 300; opacity: 0.85; color: #000;">||||| | |||| ||| ||| |||</div>
                  </div>
-
              </div>
              
              <!-- Print Controls Buttons -->
-             <div class="no-print" style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
-                 <button class="checkout-btn" style="background-color: var(--color-accent); color: #000000; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printPosReceiptOnly()"><i class="fa-solid fa-print"></i> PRINT INVOICE</button>
-                 <button class="checkout-btn" style="background-color: #2ecc71; color: #ffffff; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printPosLabelOnly()"><i class="fa-solid fa-box-open"></i> PRINT STICKER LABEL</button>
-                 <button class="checkout-btn" style="background-color: #3498db; color: #ffffff; border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="printBothReceiptAndLabel()"><i class="fa-solid fa-paste"></i> PRINT BOTH</button>
-                 <button class="checkout-btn" style="background-color: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); font-weight: 700; cursor: pointer;" onclick="closePosReceipt()">CLOSE</button>
+             <div class="no-print" style="display: flex; gap: 1.2rem; justify-content: center;">
+                 <button class="checkout-btn" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: #ffffff; border: none; font-weight: 700; padding: 1rem 2.2rem; font-size: 1.1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 4px 14px rgba(46, 204, 113, 0.3);" onclick="printStickerOnly()"><i class="fa-solid fa-print"></i> PRINT STICKER</button>
+                 <button class="checkout-btn" style="background-color: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); font-weight: 700; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 6px; cursor: pointer;" onclick="closePosReceipt()">CLOSE</button>
              </div>
          </div>
     </div>
@@ -1997,6 +1954,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=2.6.0"></script>
+    <script src="app.js?v=2.7.0"></script>
 </body>
 </html>
