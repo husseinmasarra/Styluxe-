@@ -2628,6 +2628,11 @@ function renderAdminOrders() {
                     ${o.status.toUpperCase()}
                 </span>
             </td>
+            <td style="text-align: center;">
+                <button class="admin-sticker-btn" onclick="event.stopPropagation(); printOrderSticker('${o.id}')" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: #ffffff; border: none; font-weight: 700; padding: 0.55rem 1.1rem; border-radius: 4px; font-size: 1.05rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(46,204,113,0.3);" title="Print Delivery Sticker for Customer Order">
+                    <i class="fa-solid fa-print"></i> STICKER
+                </button>
+            </td>
         `;
         tableBody.appendChild(tr);
     });
@@ -3042,45 +3047,35 @@ function processPosSale() {
     // Clear POS cart
     posCart = [];
     renderPosTicketItems();
-
-    // Reset any print active styles
-    document.getElementById("posReceiptPaper").classList.remove("print-section-active");
-    document.getElementById("posLabelPaper").classList.remove("print-section-active");
-
-    // Show thermal receipt & label modal
-    posReceiptModalBackdrop.classList.add("active");
 }
 
-function printPosReceiptOnly() {
-    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
-    document.getElementById("posReceiptPaper").classList.add("print-section-active");
-    document.getElementById("posLabelPaper").classList.remove("print-section-active");
-    window.print();
+function printOrderSticker(orderId) {
+    const order = ordersList.find(o => String(o.id) === String(orderId));
+    if (!order) return;
+
+    const nameEl = document.getElementById("labelCustomerName");
+    const phoneEl = document.getElementById("labelCustomerPhone");
+    const addrEl = document.getElementById("labelCustomerAddress");
+    const dateEl = document.getElementById("labelDate");
+    const idEl = document.getElementById("labelOrderId");
+
+    if (nameEl) nameEl.textContent = (order.customer || order.customerName || "CUSTOMER").toUpperCase();
+    if (phoneEl) phoneEl.textContent = order.phone || order.customerPhone || "N/A";
+    if (addrEl) addrEl.textContent = order.address || order.customerAddress || "N/A";
+    if (dateEl) dateEl.textContent = order.date || new Date().toISOString().split('T')[0];
+    if (idEl) idEl.textContent = `#${order.id}`;
+
+    const modal = document.getElementById("posReceiptModalBackdrop");
+    if (modal) modal.classList.add("active");
 }
 
-function printPosLabelOnly() {
-    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
-    document.getElementById("posLabelPaper").classList.add("print-section-active");
-    document.getElementById("posReceiptPaper").classList.remove("print-section-active");
-    window.print();
-}
-
-function printBothReceiptAndLabel() {
-    document.getElementById("posReceiptModalBackdrop").classList.add("print-both-mode");
-    document.getElementById("posReceiptPaper").classList.add("print-section-active");
-    document.getElementById("posLabelPaper").classList.add("print-section-active");
+function printStickerOnly() {
     window.print();
 }
 
 function closePosReceipt() {
-    document.getElementById("posReceiptModalBackdrop").classList.remove("print-both-mode");
-    posReceiptModalBackdrop.classList.remove("active");
-    
-    const paper = document.getElementById("posReceiptPaper");
-    if (paper) {
-        const title = paper.querySelector("h2");
-        if (title) title.innerHTML = "STYLUXE";
-    }
+    const modal = document.getElementById("posReceiptModalBackdrop");
+    if (modal) modal.classList.remove("active");
 }
 
 async function openDailyReportModal() {
@@ -6241,6 +6236,12 @@ function openAdminOrderDetailsModal(orderId) {
                 <span>Total:</span>
                 <span>${formatPrice(order.total)}</span>
             </div>
+        </div>
+
+        <div style="margin-top: 2.5rem; text-align: center;">
+            <button onclick="printOrderSticker('${order.id}')" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: #ffffff; border: none; font-weight: 700; padding: 1.1rem 2.8rem; font-size: 1.2rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.8rem; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.35); transition: all 0.3s ease;">
+                <i class="fa-solid fa-print"></i> PRINT DELIVERY STICKER
+            </button>
         </div>
     `;
 
