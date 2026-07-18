@@ -4635,76 +4635,23 @@ body[data-theme="light"] .size-chart-table th {
         width: 100% !important;
     }
 
-    /* Hide the side-by-side grid template and make it vertical flow */
-    .pos-print-container {
-        display: block !important;
-        gap: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Hide controls buttons container */
-    .no-print {
+    /* Hide non-printable elements */
+    .no-print, .checkout-modal > h3 {
         display: none !important;
     }
 
-    /* Hide all papers by default */
-    .print-paper {
-        display: none !important;
-    }
-
-    /* Show only active print papers */
-    .print-section-active {
-        display: block !important;
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
+    /* Print Delivery Sticker label cleanly */
+    #posLabelPaper {
+        display: flex !important;
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100mm !important;
+        margin: 0 auto !important;
+        padding: 6mm !important;
+        border: 2px solid #000000 !important;
         background-color: #ffffff !important;
         color: #000000 !important;
-    }
-
-    /* Standard thermal receipt paper layout (80mm width) */
-    #posReceiptPaper.print-section-active,
-    #posDailyReportPaper.print-section-active {
-        width: 80mm !important;
-        padding: 10px !important;
-    }
-
-    /* Specific Porodo Lifestyle Super HD Thermal Printer Sticker roll format (50mm width) */
-    #posLabelPaper.print-section-active {
-        width: 50mm !important;
-        max-width: 50mm !important;
-        padding: 4mm !important;
-        font-size: 10pt !important;
-        line-height: 1.4 !important;
-        border: 2px dashed #000000 !important;
-    }
-    #posLabelPaper.print-section-active h2 {
-        font-size: 1.8rem !important;
-    }
-    #posLabelPaper.print-section-active span {
-        font-size: 1.15rem !important;
-    }
-
-    /* Handle sequential printing of receipt and sticker label with a page-break */
-    .print-both-mode #posReceiptPaper {
-        display: block !important;
-        position: relative !important;
-        width: 80mm !important;
-        margin: 0 0 20px 0 !important;
-        page-break-after: always !important;
-    }
-    
-    .print-both-mode #posLabelPaper {
-        display: block !important;
-        position: relative !important;
-        width: 50mm !important;
-        max-width: 50mm !important;
-        margin: 20px 0 0 0 !important;
-        border: 2px dashed #000000 !important;
-        page-break-before: always !important;
+        box-shadow: none !important;
     }
 }
 
