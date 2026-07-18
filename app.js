@@ -3049,20 +3049,176 @@ function processPosSale() {
     renderPosTicketItems();
 }
 
+function triggerStickerPrint(name, phone, address, date, orderId) {
+    const cleanName = (name || "CUSTOMER").toUpperCase();
+    const cleanPhone = phone || "N/A";
+    const cleanAddress = address || "N/A";
+    const cleanDate = date || new Date().toISOString().split('T')[0];
+    const cleanOrderId = String(orderId).startsWith('#') ? orderId : `#${orderId}`;
+
+    const printWindow = window.open('', '_blank', 'width=600,height=700');
+    if (!printWindow) {
+        alert("Please allow pop-ups for this site to enable sticker printing.");
+        return;
+    }
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
+            <style>
+                @page {
+                    margin: 0mm;
+                    size: auto;
+                }
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    background-color: #ffffff;
+                    color: #000000;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    -webkit-print-color-adjust: exact;
+                }
+                body {
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    padding: 30px 15px;
+                }
+                .sticker-card {
+                    width: 100%;
+                    max-width: 380px;
+                    border: 2px dashed #000000;
+                    border-radius: 8px;
+                    padding: 24px 20px;
+                    box-sizing: border-box;
+                    background: #ffffff;
+                }
+                .brand-header {
+                    text-align: center;
+                    border-bottom: 2px solid #000000;
+                    padding-bottom: 14px;
+                    margin-bottom: 18px;
+                }
+                .brand-header h1 {
+                    font-size: 30px;
+                    font-weight: 900;
+                    letter-spacing: 4px;
+                    margin: 0;
+                    color: #000000;
+                    font-family: 'Cinzel', Didot, 'Garamond', serif, sans-serif;
+                }
+                .brand-header p {
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 2px;
+                    margin: 4px 0 0 0;
+                    text-transform: uppercase;
+                    color: #000000;
+                }
+                .info-group {
+                    margin-bottom: 14px;
+                }
+                .info-label {
+                    font-size: 10px;
+                    color: #555555;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    font-weight: 700;
+                    margin-bottom: 3px;
+                    display: block;
+                }
+                .info-value {
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #000000;
+                    line-height: 1.35;
+                    word-break: break-word;
+                }
+                .sticker-footer {
+                    margin-top: 22px;
+                    border-top: 1px solid #000000;
+                    padding-top: 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .meta-details {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #000000;
+                    line-height: 1.4;
+                }
+                .barcode-sim {
+                    font-family: monospace;
+                    font-size: 22px;
+                    letter-spacing: -2px;
+                    font-weight: 300;
+                    color: #000000;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="sticker-card">
+                <div class="brand-header">
+                    <h1>STYLUXE</h1>
+                    <p>DELIVERY STICKER</p>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Customer Name:</span>
+                    <div class="info-value">${cleanName}</div>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Phone Number:</span>
+                    <div class="info-value">${cleanPhone}</div>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Delivery Address:</span>
+                    <div class="info-value">${cleanAddress}</div>
+                </div>
+                <div class="sticker-footer">
+                    <div class="meta-details">
+                        <div>DATE: ${cleanDate}</div>
+                        <div>ORDER: ${cleanOrderId}</div>
+                    </div>
+                    <div class="barcode-sim">||||| | |||| ||| |||</div>
+                </div>
+            </div>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 250);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
 function printOrderSticker(orderId) {
     const order = ordersList.find(o => String(o.id) === String(orderId));
     if (!order) return;
 
+    const name = order.customer || order.customerName || "CUSTOMER";
+    const phone = order.phone || order.customerPhone || "N/A";
+    const address = order.address || order.customerAddress || "N/A";
+    const date = order.date || new Date().toISOString().split('T')[0];
+
+    // Populate preview modal HTML
     const nameEl = document.getElementById("labelCustomerName");
     const phoneEl = document.getElementById("labelCustomerPhone");
     const addrEl = document.getElementById("labelCustomerAddress");
     const dateEl = document.getElementById("labelDate");
     const idEl = document.getElementById("labelOrderId");
 
-    if (nameEl) nameEl.textContent = (order.customer || order.customerName || "CUSTOMER").toUpperCase();
-    if (phoneEl) phoneEl.textContent = order.phone || order.customerPhone || "N/A";
-    if (addrEl) addrEl.textContent = order.address || order.customerAddress || "N/A";
-    if (dateEl) dateEl.textContent = order.date || new Date().toISOString().split('T')[0];
+    if (nameEl) nameEl.textContent = name.toUpperCase();
+    if (phoneEl) phoneEl.textContent = phone;
+    if (addrEl) addrEl.textContent = address;
+    if (dateEl) dateEl.textContent = date;
     if (idEl) idEl.textContent = `#${order.id}`;
 
     const modal = document.getElementById("posReceiptModalBackdrop");
@@ -3070,7 +3226,13 @@ function printOrderSticker(orderId) {
 }
 
 function printStickerOnly() {
-    window.print();
+    const name = document.getElementById("labelCustomerName")?.textContent || "CUSTOMER";
+    const phone = document.getElementById("labelCustomerPhone")?.textContent || "N/A";
+    const address = document.getElementById("labelCustomerAddress")?.textContent || "N/A";
+    const date = document.getElementById("labelDate")?.textContent || "";
+    const orderId = document.getElementById("labelOrderId")?.textContent || "";
+
+    triggerStickerPrint(name, phone, address, date, orderId);
 }
 
 function closePosReceipt() {
