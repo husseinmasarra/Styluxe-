@@ -4593,87 +4593,70 @@ body[data-theme="light"] .size-chart-table th {
     background: linear-gradient(135deg, #b8912e, var(--color-accent)) !important;
 }
 
-/* Print Overrides for thermal printers and stickers */
+/* Print Page Margins (Strips browser header and footer: URL, date, page numbers) */
+@page {
+    margin: 0mm;
+    size: auto;
+}
+
+/* Print Overrides for Delivery Sticker */
 @media print {
-    /* Hide everything in the body except the active print backdrop */
-    body > *:not(#posReceiptModalBackdrop):not(#posDailyReportModalBackdrop) {
-        display: none !important;
-    }
-    
-    /* Reset body background & overflow for print */
-    body {
+    /* Reset body background & margins for print */
+    html, body {
         background-color: #ffffff !important;
         color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         overflow: visible !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* Target modal backdrop to fill page, be 100% opaque and visible */
-    #posReceiptModalBackdrop, #posDailyReportModalBackdrop {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
         width: 100% !important;
-        height: auto !important;
-        background: #ffffff !important;
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-        z-index: 999999 !important;
+        height: 100% !important;
     }
 
-    /* Target checkout modal inner card to clear styling */
-    #posReceiptModalBackdrop .checkout-modal,
-    #posDailyReportModalBackdrop .checkout-modal {
-        background: #ffffff !important;
+    /* 1. Hide all elements on page by default */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* 2. Show ONLY the Delivery Sticker paper container and all of its children */
+    #posLabelPaper,
+    #posLabelPaper * {
+        visibility: visible !important;
+        opacity: 1 !important;
         color: #000000 !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 auto !important;
-        max-width: 100% !important;
-        width: 100% !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: block !important;
     }
 
-    /* Hide non-printable elements */
-    .no-print, 
-    .checkout-modal > h3 {
-        display: none !important;
-    }
-
-    /* Print Delivery Sticker label cleanly */
+    /* 3. Position the Delivery Sticker clearly in the center/top of paper */
     #posLabelPaper {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        position: relative !important;
-        width: 100% !important;
-        max-width: 110mm !important;
+        position: fixed !important;
+        top: 10mm !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 110mm !important;
+        max-width: 95% !important;
         min-height: 140mm !important;
-        margin: 5mm auto !important;
+        margin: 0 !important;
         padding: 8mm 6mm !important;
         border: 2px dashed #000000 !important;
         border-radius: 6px !important;
         background-color: #ffffff !important;
-        color: #000000 !important;
         box-shadow: none !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+        z-index: 9999999 !important;
+        page-break-inside: avoid !important;
     }
 
-    #posLabelPaper * {
+    #posLabelPaper h2 {
+        font-size: 2.4rem !important;
         color: #000000 !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+        font-weight: 800 !important;
+    }
+
+    #posLabelPaper span, 
+    #posLabelPaper strong, 
+    #posLabelPaper p {
+        color: #000000 !important;
     }
 }
 
