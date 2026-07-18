@@ -760,7 +760,11 @@ function showCollectionsGrid() {
 
 // FILTER BY CATEGORY
 function filterByCategory(category) {
-    activeCategory = category;
+    if (activeCategory === category) {
+        activeCategory = "All";
+    } else {
+        activeCategory = category;
+    }
     renderCategoryTags();
     renderProducts();
 }
@@ -775,18 +779,21 @@ function getFilteredAndSortedProducts() {
     let result = [...PRODUCTS];
 
     // Department Filter
-    if (activeDepartment !== "All") {
-        result = result.filter(p => p.department.toLowerCase() === activeDepartment.toLowerCase());
+    if (activeDepartment && activeDepartment !== "All") {
+        result = result.filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase());
     }
 
     // Category Filter
-    if (activeCategory !== "All") {
-        result = result.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+    if (activeCategory && activeCategory !== "All") {
+        result = result.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
     }
 
     // Brand Filter
-    if (activeBrand !== "All") {
-        result = result.filter(p => getProductBrand(p).toLowerCase() === activeBrand.toLowerCase());
+    if (activeBrand && activeBrand !== "All") {
+        result = result.filter(p => {
+            const b = getProductBrand(p);
+            return b && b.trim().toLowerCase() === activeBrand.trim().toLowerCase();
+        });
     }
 
     // Search Query Filter with Multi-Word Tokenized Scoring Relevance System
@@ -2383,8 +2390,15 @@ async function handleNewProductSubmit(event) {
     .then(async res => {
         if (res.ok) {
             closeAddProductModal();
+            // Reset active filters so newly created product is immediately visible
+            activeCategory = "All";
+            activeBrand = "All";
+            if (activeDepartment !== "All" && activeDepartment.toLowerCase() !== department.toLowerCase()) {
+                activeDepartment = "All";
+            }
             await loadProductsFromServer(); 
             renderAdminProducts(); 
+            renderProducts();
             event.target.reset();
             const previewDiv = document.getElementById("newProdImgPreviews");
             if (previewDiv) previewDiv.innerHTML = "";
@@ -4773,15 +4787,21 @@ function renderBrandSlider() {
 }
 
 function selectBrand(brand) {
-    activeBrand = brand;
+    if (activeBrand === brand) {
+        activeBrand = "All";
+    } else {
+        activeBrand = brand;
+    }
     const select = document.getElementById("brandFilterSelect");
-    if (select) select.value = brand;
+    if (select) select.value = activeBrand;
     renderBrandSlider();
     renderProducts();
 }
 
 function filterByBrand(brand) {
-    selectBrand(brand);
+    activeBrand = brand;
+    renderBrandSlider();
+    renderProducts();
 }
 
 function populateBrandOptions() {
