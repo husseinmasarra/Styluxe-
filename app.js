@@ -4869,35 +4869,27 @@ function populateBrandOptions() {
     }
 }
 
-// Renders the subcategory tabs dynamically based on selected department's products
+// Renders the subcategory tabs dynamically based on all categories in DB and Products
 function renderCategoryTags() {
     const filterTags = document.getElementById("filterTags");
     if (!filterTags) return;
 
     let deptCategories = [];
-    if (CATEGORIES && CATEGORIES.length > 0) {
-        // Sort CATEGORIES copy by priority ASC, id ASC
-        const sortedCats = [...CATEGORIES].sort((a, b) => {
-            const pa = a.priority !== undefined ? a.priority : 1000;
-            const pb = b.priority !== undefined ? b.priority : 1000;
-            if (pa !== pb) return pa - pb;
-            return a.id - b.id;
-        });
+    const dbCategories = CATEGORIES && CATEGORIES.length > 0 ? CATEGORIES : [];
+    const prodList = PRODUCTS && PRODUCTS.length > 0 ? PRODUCTS : [];
 
-        if (activeDepartment === "All") {
-            deptCategories = sortedCats.map(c => c.name);
-        } else {
-            deptCategories = sortedCats
-                .filter(c => c.department && c.department.toLowerCase() === activeDepartment.toLowerCase())
-                .map(c => c.name);
-        }
+    if (activeDepartment === "All") {
+        const catNamesFromDb = dbCategories.map(c => c.name).filter(Boolean);
+        const catNamesFromProds = prodList.map(p => p.category).filter(Boolean);
+        deptCategories = [...catNamesFromDb, ...catNamesFromProds];
     } else {
-        // Fallback to product categories
-        let availableProducts = [...PRODUCTS];
-        if (activeDepartment !== "All") {
-            availableProducts = availableProducts.filter(p => p.department.toLowerCase() === activeDepartment.toLowerCase());
-        }
-        deptCategories = availableProducts.map(p => p.category);
+        const catNamesFromDb = dbCategories
+            .filter(c => c.department && c.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase())
+            .map(c => c.name);
+        const catNamesFromProds = prodList
+            .filter(p => p.department && p.department.trim().toLowerCase() === activeDepartment.trim().toLowerCase())
+            .map(p => p.category);
+        deptCategories = [...catNamesFromDb, ...catNamesFromProds];
     }
 
     const uniqueCategories = ["All", ...new Set(deptCategories)];
@@ -4906,7 +4898,7 @@ function renderCategoryTags() {
     uniqueCategories.forEach(cat => {
         const btn = document.createElement("button");
         btn.classList.add("filter-tag");
-        if (activeCategory === cat) {
+        if (activeCategory.trim().toLowerCase() === cat.trim().toLowerCase()) {
             btn.classList.add("active");
         }
         
