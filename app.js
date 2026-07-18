@@ -2093,7 +2093,8 @@ function renderAdminProducts() {
             </td>
             <td>
                 <div style="display: flex; gap: 1rem; align-items: center;">
-                    <button class="admin-edit-btn" onclick="openEditProductModal(${p.id})" aria-label="Edit product" style="background: none; border: none; color: var(--color-accent); font-size: 1.4rem; cursor: pointer;"><i class="fa-regular fa-pen-to-square"></i></button>
+                    <button class="admin-edit-btn" onclick="openEditProductModal(${p.id})" aria-label="Edit product" style="background: none; border: none; color: var(--color-accent); font-size: 1.4rem; cursor: pointer;" title="Edit Product"><i class="fa-regular fa-pen-to-square"></i></button>
+                    <button class="admin-delete-btn" onclick="deleteProduct(${p.id})" aria-label="Delete product" style="background: none; border: none; color: #ff4d4d; font-size: 1.4rem; cursor: pointer;" title="Delete Product"><i class="fa-regular fa-trash-can"></i></button>
                 </div>
             </td>
         `;
@@ -2526,9 +2527,23 @@ async function reorderProduct(id, action) {
     }
 }
 
-function deleteProduct(productId) {
-    // Product deletion is disabled to protect catalog integrity.
-    alert("حذف المنتجات معطّل لحماية الكتالوج. يمكنك تعديل المنتج بدلاً من حذفه.");
+async function deleteProduct(productId) {
+    if (!confirm("ARE YOU SURE YOU WANT TO DELETE THIS PRODUCT PERMANENTLY?")) return;
+
+    try {
+        const response = await fetch(`/api/products?id=${productId}`, {
+            method: "DELETE"
+        });
+        if (response.ok) {
+            await loadProductsFromServer();
+            renderAdminProducts();
+            renderProducts();
+        } else {
+            alert("FAILED TO DELETE PRODUCT.");
+        }
+    } catch (err) {
+        console.error("Error deleting product:", err);
+    }
 }
 
 // 3. Orders Tab Render
