@@ -839,6 +839,31 @@ function sortProducts() {
     renderProducts();
 }
 
+// SMART SEARCH HANDLERS
+function onSmartSearchInput(val) {
+    searchQuery = val.toLowerCase();
+    
+    // Sync header navbar search input if present
+    const navInput = document.getElementById("searchInput");
+    if (navInput) navInput.value = val;
+
+    const collectionsGridSec = document.getElementById("collections");
+    const shopSec = document.getElementById("shop-section");
+    if (searchQuery.trim() !== "") {
+        if (collectionsGridSec) collectionsGridSec.style.display = "none";
+        if (shopSec) shopSec.style.display = "block";
+    }
+
+    renderProducts();
+}
+
+function executeSmartSearch() {
+    const smartInput = document.getElementById("smartSearchInput");
+    if (smartInput) {
+        onSmartSearchInput(smartInput.value);
+    }
+}
+
 // FILTER AND SORT PRODUCTS COMBINED
 function getFilteredAndSortedProducts() {
     let result = [...PRODUCTS];
