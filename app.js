@@ -3091,8 +3091,80 @@ function triggerStickerPrint(name, phone, address, date, orderId) {
     const modal = document.getElementById("posReceiptModalBackdrop");
     if (modal) modal.classList.add("active");
 
-    // 3. Trigger native print dialog synchronously
-    window.print();
+    // 3. Open dedicated print popup window
+    const printWin = window.open('', '_blank', 'width=650,height=750,scrollbars=yes,resizable=yes');
+    if (printWin) {
+        printWin.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
+                <style>
+                    @page { margin: 0mm; size: auto; }
+                    html, body {
+                        margin: 0; padding: 0;
+                        background-color: #ffffff !important;
+                        color: #000000 !important;
+                        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    }
+                    body { display: flex; justify-content: center; align-items: flex-start; padding: 25px 15px; }
+                    .sticker-card {
+                        width: 100%; max-width: 380px; border: 2px dashed #000; border-radius: 6px; padding: 25px 20px; background: #fff; box-sizing: border-box;
+                    }
+                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
+                    .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 3px; font-weight: 900; }
+                    .brand-header p { font-size: 12px; margin: 4px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+                    .info-group { margin-bottom: 14px; }
+                    .info-label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 2px; }
+                    .info-value { font-size: 16px; font-weight: 800; color: #000; word-break: break-word; }
+                    .sticker-footer { border-top: 2px solid #000; padding-top: 12px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
+                    .meta-details { font-size: 12px; font-weight: 800; }
+                    .barcode-sim { font-family: monospace; font-size: 22px; letter-spacing: -2px; font-weight: 300; }
+                </style>
+            </head>
+            <body>
+                <div class="sticker-card">
+                    <div class="brand-header">
+                        <h1>STYLUXE</h1>
+                        <p>DELIVERY STICKER</p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Customer Name:</span>
+                        <div class="info-value">${cleanName}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Phone Number:</span>
+                        <div class="info-value">${cleanPhone}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Delivery Address:</span>
+                        <div class="info-value">${cleanAddress}</div>
+                    </div>
+                    <div class="sticker-footer">
+                        <div class="meta-details">
+                            <div>DATE: ${cleanDate}</div>
+                            <div>ORDER: ${cleanOrderId}</div>
+                        </div>
+                        <div class="barcode-sim">||||| | |||| ||| |||</div>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.focus();
+                            window.print();
+                        }, 200);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+    } else {
+        // Fallback to main window print
+        window.print();
+    }
 }
 
 function printOrderSticker(orderId) {
@@ -3108,7 +3180,13 @@ function printOrderSticker(orderId) {
 }
 
 function printStickerOnly() {
-    window.print();
+    const name = document.getElementById("labelCustomerName")?.textContent || "CUSTOMER";
+    const phone = document.getElementById("labelCustomerPhone")?.textContent || "N/A";
+    const address = document.getElementById("labelCustomerAddress")?.textContent || "N/A";
+    const date = document.getElementById("labelDate")?.textContent || "";
+    const orderId = document.getElementById("labelOrderId")?.textContent || "";
+
+    triggerStickerPrint(name, phone, address, date, orderId);
 }
 
 function closePosReceipt() {
