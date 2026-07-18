@@ -482,42 +482,6 @@ async function initPgDatabase() {
       }
     }
 
-    // Seed default settings if empty
-    const settingsCount = await pool.query("SELECT COUNT(*) FROM settings");
-    if (parseInt(settingsCount.rows[0].count) === 0) {
-      console.log("Seeding default settings into PostgreSQL database...");
-      const defaultSettings = [
-        { key: "shipping_fee", value: "5" },
-        { key: "free_shipping_threshold", value: "150" },
-        { key: "whatsapp_men", value: "+961 70 123 456" },
-        { key: "whatsapp_women", value: "+961 70 123 456" },
-        { key: "whatsapp_kids", value: "+961 70 123 456" },
-        { key: "whatsapp_global", value: "+961 01 123 456" },
-        { key: "instagram_men", value: "https://instagram.com/styluxe.men" },
-        { key: "facebook_men", value: "https://facebook.com/styluxe.men" },
-        { key: "twitter_men", value: "https://twitter.com/styluxe.men" },
-        { key: "tiktok_men", value: "https://tiktok.com/@styluxe.men" },
-        { key: "instagram_women", value: "https://instagram.com/styluxe.women" },
-        { key: "facebook_women", value: "https://facebook.com/styluxe.women" },
-        { key: "twitter_women", value: "https://twitter.com/styluxe.women" },
-        { key: "tiktok_women", value: "https://tiktok.com/@styluxe.women" },
-        { key: "instagram_kids", value: "https://instagram.com/styluxe.kids" },
-        { key: "facebook_kids", value: "https://facebook.com/styluxe.kids" },
-        { key: "twitter_kids", value: "https://twitter.com/styluxe.kids" },
-        { key: "tiktok_kids", value: "https://tiktok.com/@styluxe.kids" },
-        { key: "instagram_global", value: "https://instagram.com/styluxe" },
-        { key: "facebook_global", value: "https://facebook.com/styluxe" },
-        { key: "twitter_global", value: "https://twitter.com/styluxe" },
-        { key: "tiktok_global", value: "https://tiktok.com/@styluxe" },
-        { key: "show_twitter", value: "false" },
-        { key: "show_tiktok", value: "false" },
-        { key: "return_password", value: "admin123" }
-      ];
-      for (const s of defaultSettings) {
-        await pool.query("INSERT INTO settings (key, value) VALUES ($1, $2)", [s.key, s.value]);
-      }
-    }
-
     const userCount = await pool.query("SELECT COUNT(*) FROM users");
     if (parseInt(userCount.rows[0].count) === 0) {
       console.log("Seeding users into PostgreSQL database...");
