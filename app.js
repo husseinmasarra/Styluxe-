@@ -3005,38 +3005,56 @@ function processPosSale() {
         console.error("POS order logging failed:", err);
     });
 
-    // Populate Receipt Modal HTML
-    document.getElementById("receiptDate").textContent = new Date().toISOString().split('T')[0] + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    document.getElementById("receiptCustomer").textContent = customer;
+    // Populate Receipt Modal HTML safely
+    const rDate = document.getElementById("receiptDate");
+    if (rDate) rDate.textContent = new Date().toISOString().split('T')[0] + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    const rCust = document.getElementById("receiptCustomer");
+    if (rCust) rCust.textContent = customer;
     
     const cashierName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
     const cashierEl = document.getElementById("receiptCashier");
     if (cashierEl) cashierEl.textContent = cashierName;
     
     const receiptItemsContainer = document.getElementById("receiptItems");
-    receiptItemsContainer.innerHTML = "";
+    if (receiptItemsContainer) {
+        receiptItemsContainer.innerHTML = "";
+        posCart.forEach(item => {
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.innerHTML = `
+                <span>${item.name} (x${item.quantity}) [${item.size}]</span>
+                <span>${formatPrice(item.price * item.quantity)}</span>
+            `;
+            receiptItemsContainer.appendChild(div);
+        });
+    }
 
-    posCart.forEach(item => {
-        const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.justifyContent = "space-between";
-        div.innerHTML = `
-            <span>${item.name} (x${item.quantity}) [${item.size}]</span>
-            <span>${formatPrice(item.price * item.quantity)}</span>
-        `;
-        receiptItemsContainer.appendChild(div);
-    });
+    const rSub = document.getElementById("receiptSubtotal");
+    if (rSub) rSub.textContent = formatPrice(subtotal);
+    
+    const rDisc = document.getElementById("receiptDiscount");
+    if (rDisc) rDisc.textContent = `-${formatPrice(discount)}`;
+    
+    const rTot = document.getElementById("receiptTotal");
+    if (rTot) rTot.textContent = formatPrice(total);
 
-    document.getElementById("receiptSubtotal").textContent = formatPrice(subtotal);
-    document.getElementById("receiptDiscount").textContent = `-${formatPrice(discount)}`;
-    document.getElementById("receiptTotal").textContent = formatPrice(total);
-
-    // Populate Shipping Label Sticker Modal HTML
-    document.getElementById("labelCustomerName").textContent = customer;
-    document.getElementById("labelCustomerPhone").textContent = phone;
-    document.getElementById("labelCustomerAddress").textContent = address;
-    document.getElementById("labelDate").textContent = new Date().toISOString().split('T')[0];
-    document.getElementById("labelOrderId").textContent = orderId;
+    // Populate Shipping Label Sticker Modal HTML safely
+    const lName = document.getElementById("labelCustomerName");
+    if (lName) lName.textContent = customer;
+    
+    const lPhone = document.getElementById("labelCustomerPhone");
+    if (lPhone) lPhone.textContent = phone;
+    
+    const lAddr = document.getElementById("labelCustomerAddress");
+    if (lAddr) lAddr.textContent = address;
+    
+    const lDate = document.getElementById("labelDate");
+    if (lDate) lDate.textContent = new Date().toISOString().split('T')[0];
+    
+    const lId = document.getElementById("labelOrderId");
+    if (lId) lId.textContent = orderId;
 
     // Reset customer info fields
     posCustomerName.value = "";
@@ -3411,16 +3429,22 @@ const myOrdersTableBody = document.getElementById("myOrdersTableBody");
 
 // Toggle user menu dropdown in navbar
 function toggleUserMenu(event) {
-    event.stopPropagation();
-    userMenuDropdown.classList.toggle("active");
+    if (event) event.stopPropagation();
+    if (typeof userMenuDropdown !== 'undefined' && userMenuDropdown) {
+        userMenuDropdown.classList.toggle("active");
+    }
     
     // Close currency dropdown
-    currencyDropdown.classList.remove("active");
+    if (typeof currencyDropdown !== 'undefined' && currencyDropdown) {
+        currencyDropdown.classList.remove("active");
+    }
 }
 
 // Click outside to close dropdowns
 document.addEventListener("click", () => {
-    userMenuDropdown.classList.remove("active");
+    if (typeof userMenuDropdown !== 'undefined' && userMenuDropdown) {
+        userMenuDropdown.classList.remove("active");
+    }
 });
 
 function openAuthModal(view) {
