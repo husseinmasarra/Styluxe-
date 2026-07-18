@@ -4609,49 +4609,71 @@ body[data-theme="light"] .size-chart-table th {
         padding: 0 !important;
     }
 
-    /* Target modal backdrop to fill page and be completely transparent */
+    /* Target modal backdrop to fill page, be 100% opaque and visible */
     #posReceiptModalBackdrop, #posDailyReportModalBackdrop {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
         width: 100% !important;
         height: auto !important;
-        background: transparent !important;
+        background: #ffffff !important;
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
         display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        z-index: 999999 !important;
     }
 
     /* Target checkout modal inner card to clear styling */
-    .checkout-modal {
-        background: transparent !important;
+    #posReceiptModalBackdrop .checkout-modal,
+    #posDailyReportModalBackdrop .checkout-modal {
+        background: #ffffff !important;
+        color: #000000 !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         max-width: 100% !important;
         width: 100% !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
     }
 
     /* Hide non-printable elements */
-    .no-print, .checkout-modal > h3 {
+    .no-print, 
+    .checkout-modal > h3 {
         display: none !important;
     }
 
     /* Print Delivery Sticker label cleanly */
     #posLabelPaper {
         display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
         position: relative !important;
         width: 100% !important;
-        max-width: 100mm !important;
-        margin: 0 auto !important;
-        padding: 6mm !important;
-        border: 2px solid #000000 !important;
+        max-width: 110mm !important;
+        min-height: 140mm !important;
+        margin: 5mm auto !important;
+        padding: 8mm 6mm !important;
+        border: 2px dashed #000000 !important;
+        border-radius: 6px !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         box-shadow: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    #posLabelPaper * {
+        color: #000000 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 }
 
