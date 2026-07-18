@@ -949,8 +949,16 @@
 
                 <!-- Tab: Products -->
                 <div class="admin-tab-content" id="adminTabProducts">
-                    <div class="tab-header-actions">
-                         <h2 class="admin-tab-title">MANAGE PRODUCTS</h2>
+                    <div class="tab-header-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                         <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                             <h2 class="admin-tab-title" style="margin-bottom: 0;">MANAGE PRODUCTS</h2>
+                             <div class="sort-selector" style="margin: 0;">
+                                 <label for="adminProductCategoryFilter" class="sr-only">Filter Products by Category</label>
+                                 <select id="adminProductCategoryFilter" onchange="onAdminCategoryFilterChange(this.value)" aria-label="Filter products by category">
+                                     <option value="All">ALL CATEGORIES</option>
+                                 </select>
+                             </div>
+                         </div>
                          <button class="admin-action-btn" onclick="openAddProductModal()">+ ADD NEW PRODUCT</button>
                     </div>
                     <div class="admin-table-container">
@@ -963,7 +971,7 @@
                                      <th>NAME</th>
                                      <th>CATEGORY</th>
                                      <th>PRICE</th>
-                                     <th>SIZES</th>
+                                     <th>SIZES & INVENTORY</th>
                                      <th>ACTIONS</th>
                                  </tr>
                              </thead>
@@ -1075,6 +1083,7 @@
                                         <th>ID</th>
                                         <th>IMAGE</th>
                                         <th>CATEGORY NAME</th>
+                                        <th>PRODUCTS COUNT</th>
                                         <th>PRIORITY</th>
                                         <th style="width: 80px; text-align: center;">ACTIONS</th>
                                     </tr>
@@ -1996,6 +2005,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=2.3.0"></script>
+    <script src="app.js?v=2.4.0"></script>
 </body>
 </html>
