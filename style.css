@@ -643,14 +643,21 @@ img {
 }
 
 /* 7. Shop Catalog Section */
+/* 7. Shop Catalog Section */
 .department-controls {
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 2rem;
+    gap: 0.8rem;
+    margin: 0 auto 2.5rem auto;
+    padding: 0.5rem;
+    justify-content: center;
+    align-items: center;
     overflow-x: auto;
     scrollbar-width: none;
+    background: rgba(15, 15, 15, 0.85);
+    border: 1px solid rgba(199, 163, 105, 0.25);
+    border-radius: 50px;
+    max-width: fit-content;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .department-controls::-webkit-scrollbar {
@@ -658,34 +665,50 @@ img {
 }
 
 .dept-tag {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 1.2rem 3rem;
-    border: 1px solid var(--color-border);
-    transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+    letter-spacing: 0.12em;
+    padding: 1rem 2.8rem;
+    border-radius: 40px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-.dept-tag.active,
 .dept-tag:hover {
-    border-color: var(--color-accent);
+    color: #c7a369;
+    background: rgba(199, 163, 105, 0.1);
+}
+
+.dept-tag.active {
+    border-color: #c7a369;
     color: #000000;
-    background-color: var(--color-accent);
+    background: linear-gradient(135deg, #c7a369 0%, #a38148 100%);
+    box-shadow: 0 4px 18px rgba(199, 163, 105, 0.4);
+    transform: translateY(-1px);
 }
 
 .filter-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4rem;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 2rem;
+    margin-bottom: 3.5rem;
+    padding: 1.2rem 2rem;
+    background: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(199, 163, 105, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    gap: 1.5rem;
 }
 
 .filter-tags {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     overflow-x: auto;
     scrollbar-width: none; /* Firefox */
 }
@@ -695,29 +718,53 @@ img {
 }
 
 .filter-tag {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    letter-spacing: 0.15em;
-    padding: 1rem 2rem;
-    border: 1px solid var(--color-border);
-    transition: border-color var(--transition-fast), color var(--transition-fast);
+    letter-spacing: 0.12em;
+    padding: 0.8rem 1.8rem;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-text-muted);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-.filter-tag.active,
 .filter-tag:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
+    border-color: #c7a369;
+    color: #c7a369;
+    background: rgba(199, 163, 105, 0.08);
+}
+
+.filter-tag.active {
+    border-color: #c7a369;
+    color: #c7a369;
+    background: rgba(199, 163, 105, 0.18);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(199, 163, 105, 0.25);
 }
 
 .sort-selector select {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     letter-spacing: 0.1em;
-    padding: 1rem 2rem;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-bg);
+    padding: 0.85rem 2.2rem;
+    border-radius: 30px;
+    border: 1px solid rgba(199, 163, 105, 0.3);
+    background-color: rgba(12, 12, 12, 0.9);
+    color: #c7a369;
     cursor: pointer;
     text-transform: uppercase;
+    transition: all 0.3s ease;
+    outline: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sort-selector select:hover,
+.sort-selector select:focus {
+    border-color: #c7a369;
+    box-shadow: 0 0 16px rgba(199, 163, 105, 0.35);
 }
 
 /* Product Grid */
@@ -4227,16 +4274,20 @@ body[data-theme="light"] .size-chart-table th {
 .brand-slider-container {
     width: 100%;
     overflow: hidden;
-    padding: 2.5rem 0;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--color-border);
+    padding: 2.2rem 1.5rem;
+    margin-bottom: 2.5rem;
+    background: rgba(20, 20, 20, 0.45);
+    border: 1px solid rgba(199, 163, 105, 0.2);
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .brand-slider {
     display: flex;
-    gap: 2rem 2.5rem;
+    gap: 2rem 2.8rem;
     flex-wrap: wrap;
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1rem;
     justify-content: center;
 }
 
@@ -4247,52 +4298,55 @@ body[data-theme="light"] .size-chart-table th {
     gap: 1rem;
     cursor: pointer;
     flex-shrink: 0;
-    width: 85px;
-    transition: transform var(--transition-fast);
+    width: 90px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .brand-circle-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px) scale(1.05);
 }
 
 .brand-circle-logo {
-    width: 70px;
-    height: 70px;
+    width: 76px;
+    height: 76px;
     border-radius: 50%;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-surface);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background-color: rgba(10, 10, 10, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     color: var(--color-text-muted);
-    transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
-    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     text-transform: uppercase;
+    padding: 3px;
 }
 
 .brand-circle-card:hover .brand-circle-logo,
 .brand-circle-card.active .brand-circle-logo {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); /* Custom golden glow */
+    border-color: #c7a369;
+    color: #c7a369;
+    box-shadow: 0 0 22px rgba(199, 163, 105, 0.5);
+    transform: scale(1.06);
 }
 
 .brand-circle-name {
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.65);
     text-transform: uppercase;
     text-align: center;
-    transition: color var(--transition-fast);
+    transition: all 0.3s ease;
 }
 
 .brand-circle-card:hover .brand-circle-name,
 .brand-circle-card.active .brand-circle-name {
-    color: var(--color-text);
+    color: #c7a369;
+    text-shadow: 0 0 10px rgba(199, 163, 105, 0.3);
 }
 
 /* 11.5 Floating WhatsApp Contact Pill */
