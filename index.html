@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=1.2.3">
+    <link rel="stylesheet" href="style.css?v=1.2.7">
 
     <!-- Google & Apple Social Authentication SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -208,28 +208,44 @@
             </div>
 
             <!-- Categories and Search Filter Controls -->
-            <div class="filter-controls">
-                <div class="filter-tags" id="filterTags">
-                    <button class="filter-tag active" onclick="filterByCategory('All')">ALL PRODUCTS</button>
-                    <button class="filter-tag" onclick="filterByCategory('Hoodies')">HOODIES</button>
-                    <button class="filter-tag" onclick="filterByCategory('Jackets')">JACKETS</button>
-                    <button class="filter-tag" onclick="filterByCategory('Jeans')">JEANS</button>
-                    <button class="filter-tag" onclick="filterByCategory('Footwear')">FOOTWEAR</button>
-                </div>
-                <div style="display: flex; gap: 1.5rem; align-items: center;">
-                    <div class="sort-selector">
-                        <label for="brandFilterSelect" class="sr-only">Filter by Brand</label>
-                        <select id="brandFilterSelect" onchange="filterByBrand(this.value)" aria-label="Filter by Brand">
-                            <option value="All">ALL BRANDS</option>
-                        </select>
+            <div class="filter-controls-container">
+                <!-- Row 1: Category Tags -->
+                <div class="filter-tags-row">
+                    <div class="filter-tags" id="filterTags">
+                        <button class="filter-tag active" onclick="filterByCategory('All')">ALL PRODUCTS</button>
+                        <button class="filter-tag" onclick="filterByCategory('Hoodies')">HOODIES</button>
+                        <button class="filter-tag" onclick="filterByCategory('Jackets')">JACKETS</button>
+                        <button class="filter-tag" onclick="filterByCategory('Jeans')">JEANS</button>
+                        <button class="filter-tag" onclick="filterByCategory('Footwear')">FOOTWEAR</button>
                     </div>
-                    <div class="sort-selector">
-                        <label for="sortSelect" class="sr-only">Sort By</label>
-                        <select id="sortSelect" onchange="sortProducts()" aria-label="Sort products">
-                            <option value="default">SORT BY: FEATURED</option>
-                            <option value="price-low">PRICE: LOW TO HIGH</option>
-                            <option value="price-high">PRICE: HIGH TO LOW</option>
-                        </select>
+                </div>
+
+                <!-- Row 2: Secondary Filters & Smart Search -->
+                <div class="filter-secondary-row">
+                    <div class="filter-dropdowns-group">
+                        <div class="sort-selector">
+                            <label for="brandFilterSelect" class="sr-only">Filter by Brand</label>
+                            <select id="brandFilterSelect" onchange="filterByBrand(this.value)" aria-label="Filter by Brand">
+                                <option value="All">ALL BRANDS</option>
+                            </select>
+                        </div>
+                        <div class="sort-selector">
+                            <label for="sortSelect" class="sr-only">Sort By</label>
+                            <select id="sortSelect" onchange="sortProducts()" aria-label="Sort products">
+                                <option value="default">SORT BY: FEATURED</option>
+                                <option value="price-low">PRICE: LOW TO HIGH</option>
+                                <option value="price-high">PRICE: HIGH TO LOW</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Smart Search Bar -->
+                    <div class="smart-search-container">
+                        <i class="fa-solid fa-magnifying-glass smart-search-icon"></i>
+                        <input type="text" id="smartSearchInput" placeholder="SEARCH PRODUCTS / BRANDS..." aria-label="Smart Search" oninput="onSmartSearchInput(this.value)">
+                        <button class="smart-search-btn" onclick="executeSmartSearch()">
+                            <span>SEARCH</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1980,6 +1996,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=1.2.6"></script>
+    <script src="app.js?v=1.2.7"></script>
 </body>
 </html>
