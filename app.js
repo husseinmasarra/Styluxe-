@@ -24,13 +24,20 @@ let editingProductId = null;
 let isEditingBrand = false;
 let editingBrandOldName = "";
 
-// Utility to get the primary image from a product (supports comma-separated multiple images)
+function splitProductImages(imgStr) {
+    if (!imgStr || typeof imgStr !== "string") return [];
+    if (imgStr.startsWith("data:image/")) {
+        return imgStr.split(/,(?=data:image\/|https?:\/\/|\/assets\/|assets\/)/i).map(p => p.trim()).filter(Boolean);
+    }
+    return imgStr.split(",").map(url => url.trim()).filter(Boolean);
+}
+window.splitProductImages = splitProductImages;
+
+// Utility to get the primary image from a product (supports comma-separated multiple images & Base64 data URLs)
 function getProductMainImage(product) {
     if (product && product.image) {
-        if (product.image.includes(",")) {
-            return product.image.split(",")[0].trim();
-        }
-        return product.image;
+        const imgs = splitProductImages(product.image);
+        return imgs.length > 0 ? imgs[0] : product.image;
     }
     return "";
 }
@@ -2276,7 +2283,7 @@ function openEditProductModal(productId) {
 
     if (window.updateColorImagesUploadContainer) {
         window.updateColorImagesUploadContainer();
-        const existingImages = prod.image ? prod.image.split(",").map(url => url.trim()) : [];
+        const existingImages = prod.image ? splitProductImages(prod.image) : [];
         const colors = prod.colors || ["Black", "Charcoal", "Grey"];
         colors.forEach((color, idx) => {
             const imgUrl = existingImages[idx] || "";
@@ -4165,15 +4172,17 @@ const GALLERY_MOCKS = {
 // Returns an array of gallery images for the specified product
 function getProductGalleryImages(product) {
     if (!product || !product.image) return [];
-    if (product.image.includes(",")) {
-        return product.image.split(",").map(url => url.trim()).filter(Boolean);
+    const imgs = splitProductImages(product.image);
+    if (imgs.length > 1) {
+        return imgs;
     }
     if (GALLERY_MOCKS[product.id]) {
         return GALLERY_MOCKS[product.id];
     }
     // Dynamic fallbacks based on category to maintain premium feel
+    const mainImg = imgs[0] || product.image;
     return [
-        product.image,
+        mainImg,
         "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=600", // Minimalist clothing hanger
         "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&q=80&w=600"  // Cotton styling display
     ];
