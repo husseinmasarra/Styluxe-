@@ -4,7 +4,7 @@ const path = require('path');
 const url = require('url');
 const nodemailer = require('nodemailer');
 
-const PORT = process.env.PORT || 8000;
+const PORT = parseInt(process.env.PORT || '8000', 10);
 const DB_FILE = path.join(__dirname, 'styluxe_db.json');
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
@@ -2078,11 +2078,10 @@ function verifyGoogleToken(token, clientId) {
 
 (async () => {
   try {
-    // 1. Listen immediately on PORT so Render connects to Node process in 0 seconds
-    server.listen(PORT, () => {
+    // 1. Listen immediately on 0.0.0.0 and PORT so Render connects to Node process in 0 seconds
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`\n======================================================`);
-      console.log(`  STYLUXE Premium Store Server running at:`);
-      console.log(`  👉  http://localhost:${PORT}/`);
+      console.log(`  STYLUXE Premium Store Server running on 0.0.0.0:${PORT}`);
       console.log(`======================================================\n`);
     });
 
