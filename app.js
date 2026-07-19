@@ -3197,7 +3197,7 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     }
 }
 
-// Print ONLY Sales Invoice WITH Product Thumbnails (Full A4 Page Format)
+// Print ONLY Sales Invoice WITH Product Thumbnails (100% Full A4 Sheet Format)
 function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
     const cleanName = (orderData.customerName || orderData.customer || "CUSTOMER").toUpperCase();
     const cleanPhone = orderData.customerPhone || orderData.phone || "N/A";
@@ -3216,21 +3216,21 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
         const imgUrl = item.image || (prod ? getProductMainImage(prod) : 'assets/favicon.jpg');
         itemsTableRows += `
             <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 12px 6px; vertical-align: middle; width: 65px;">
-                    <img src="${imgUrl}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; display: block;">
+                <td style="padding: 14px 8px; vertical-align: middle; width: 70px;">
+                    <img src="${imgUrl}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc; display: block;">
                 </td>
-                <td style="padding: 12px 10px; vertical-align: middle;">
-                    <div style="font-weight: 800; font-size: 16px; color: #000; font-family: sans-serif;">${item.name}</div>
-                    <div style="font-size: 13px; color: #555; font-family: sans-serif; margin-top: 3px;">Size: <strong>${item.size}</strong> &bull; Qty: <strong>${item.quantity}</strong></div>
+                <td style="padding: 14px 12px; vertical-align: middle;">
+                    <div style="font-weight: 800; font-size: 17px; color: #000; font-family: sans-serif;">${item.name}</div>
+                    <div style="font-size: 14px; color: #555; font-family: sans-serif; margin-top: 3px;">Size: <strong>${item.size}</strong> &bull; Qty: <strong>${item.quantity}</strong></div>
                 </td>
-                <td style="padding: 12px 6px; text-align: right; font-weight: 800; vertical-align: middle; font-size: 16px; color: #000; font-family: sans-serif;">
+                <td style="padding: 14px 8px; text-align: right; font-weight: 800; vertical-align: middle; font-size: 18px; color: #000; font-family: sans-serif;">
                     $${(item.price * item.quantity).toFixed(2)}
                 </td>
             </tr>
         `;
     });
 
-    const printWin = window.open('', '_blank', 'width=800,height=950,scrollbars=yes,resizable=yes');
+    const printWin = window.open('', '_blank', 'width=900,height=1000,scrollbars=yes,resizable=yes');
     if (printWin) {
         printWin.document.write(`
             <!DOCTYPE html>
@@ -3244,45 +3244,103 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         margin: 0;
                         size: A4 portrait;
                     }
+                    * {
+                        box-sizing: border-box;
+                    }
                     html, body {
-                        margin: 0; padding: 0;
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                     }
                     body {
-                        display: flex;
-                        justify-content: center;
-                        align-items: flex-start;
-                        padding: 15mm;
-                        box-sizing: border-box;
+                        padding: 15mm 18mm;
                     }
-                    .invoice-card {
+                    .invoice-wrapper {
                         width: 100%;
-                        max-width: 180mm;
-                        border: 2px solid #000;
-                        border-radius: 8px;
-                        padding: 35px 30px;
                         background: #fff;
-                        box-sizing: border-box;
                     }
-                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 20px; }
-                    .brand-header h1 { font-size: 40px; margin: 0; letter-spacing: 5px; font-weight: 900; }
-                    .brand-header p { font-size: 14px; margin: 6px 0 0 0; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
-                    .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    .totals-table { width: 100%; border-top: 2px solid #000; padding-top: 14px; margin-top: 20px; font-size: 16px; }
-                    .totals-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-                    .totals-row.final { font-size: 22px; font-weight: 900; border-top: 2px solid #000; padding-top: 10px; margin-top: 10px; }
+                    .brand-header {
+                        text-align: center;
+                        border-bottom: 3px solid #000;
+                        padding-bottom: 18px;
+                        margin-bottom: 25px;
+                    }
+                    .brand-header h1 {
+                        font-size: 48px;
+                        margin: 0;
+                        letter-spacing: 6px;
+                        font-weight: 900;
+                        line-height: 1;
+                    }
+                    .brand-header p {
+                        font-size: 16px;
+                        margin: 8px 0 0 0;
+                        letter-spacing: 4px;
+                        text-transform: uppercase;
+                        font-weight: 800;
+                    }
+                    .meta-bar {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 15px;
+                        font-weight: 700;
+                        border-bottom: 2px solid #000;
+                        padding-bottom: 14px;
+                        margin-bottom: 20px;
+                    }
+                    .customer-info-box {
+                        font-size: 15px;
+                        margin-bottom: 25px;
+                        background: #f8f8f8;
+                        padding: 14px 18px;
+                        border-radius: 6px;
+                        border: 1px solid #ddd;
+                        color: #000;
+                        line-height: 1.6;
+                    }
+                    .invoice-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 25px 0;
+                    }
+                    .totals-table {
+                        width: 100%;
+                        border-top: 3px solid #000;
+                        padding-top: 18px;
+                        margin-top: 25px;
+                        font-size: 18px;
+                    }
+                    .totals-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 10px;
+                    }
+                    .totals-row.final {
+                        font-size: 26px;
+                        font-weight: 900;
+                        border-top: 2px solid #000;
+                        padding-top: 14px;
+                        margin-top: 14px;
+                    }
+                    .footer-note {
+                        text-align: center;
+                        margin-top: 45px;
+                        border-top: 2px solid #ccc;
+                        padding-top: 20px;
+                    }
                 </style>
             </head>
             <body>
-                <div class="invoice-card">
+                <div class="invoice-wrapper">
                     <div class="brand-header">
                         <h1>STYLUXE</h1>
                         <p>OFFICIAL SALES RECEIPT / INVOICE</p>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px;">
+                    <div class="meta-bar">
                         <div>
                             <div>ORDER: <strong>${cleanOrderId}</strong></div>
                             <div>DATE: <strong>${cleanDate}</strong></div>
@@ -3293,7 +3351,7 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         </div>
                     </div>
 
-                    <div style="font-size: 14px; margin-bottom: 16px; background: #f9f9f9; padding: 12px 16px; border-radius: 6px; border: 1px solid #eee; color: #000;">
+                    <div class="customer-info-box">
                         <div>CUSTOMER: <strong>${cleanName}</strong></div>
                         <div>PHONE: <strong>${cleanPhone}</strong></div>
                         <div>ADDRESS: <strong>${cleanAddress}</strong></div>
@@ -3301,10 +3359,10 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
 
                     <table class="invoice-table">
                         <thead>
-                            <tr style="border-bottom: 2px solid #000; text-align: left; font-size: 12px; text-transform: uppercase;">
-                                <th style="padding: 8px 6px;">ITEM</th>
-                                <th style="padding: 8px 10px;">DETAILS</th>
-                                <th style="padding: 8px 6px; text-align: right;">TOTAL</th>
+                            <tr style="border-bottom: 3px solid #000; text-align: left; font-size: 14px; text-transform: uppercase;">
+                                <th style="padding: 10px 8px;">ITEM</th>
+                                <th style="padding: 10px 12px;">DETAILS</th>
+                                <th style="padding: 10px 8px; text-align: right;">TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3329,8 +3387,8 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         </div>
                     </div>
 
-                    <div style="text-align: center; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 16px;">
-                        <p style="margin: 0; font-weight: 800; font-size: 14px; letter-spacing: 1px; color: #000;">THANK YOU FOR SHOPPING AT STYLUXE!</p>
+                    <div class="footer-note">
+                        <p style="margin: 0; font-weight: 900; font-size: 16px; letter-spacing: 2px; color: #000;">THANK YOU FOR SHOPPING AT STYLUXE!</p>
                     </div>
                 </div>
 
