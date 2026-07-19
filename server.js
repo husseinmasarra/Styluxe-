@@ -662,10 +662,11 @@ async function loadDatabaseIntoMemory() {
     if (!dbMemory.brands) dbMemory.brands = initialBrands;
     if (!dbMemory.suppliers) dbMemory.suppliers = [];
     if (!dbMemory.invoices) dbMemory.invoices = [];
+    if (!dbMemory.dailyRegisters) dbMemory.dailyRegisters = [];
     dbMemory.products = dbMemory.products.map(p => ensureProductInventory(p));
   } catch (err) {
     console.error("Error reading JSON file database, using mock memory fallbacks:", err);
-    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands, suppliers: [], invoices: [] };
+    dbMemory = { products: initialProducts, users: initialUsers, orders: initialOrders, staff: initialStaff, categories: initialCategories, brands: initialBrands, suppliers: [], invoices: [], dailyRegisters: [] };
   }
 }
 
@@ -922,6 +923,10 @@ const server = http.createServer(async (req, res) => {
       }
       if (pathname === '/api/invoices') {
         sendJsonResponse(res, db.invoices || []);
+        return;
+      }
+      if (pathname === '/api/daily-registers') {
+        sendJsonResponse(res, db.dailyRegisters || []);
         return;
       }
       if (pathname === '/api/users') {
@@ -1398,6 +1403,35 @@ const server = http.createServer(async (req, res) => {
           writeDb(db);
         }
         sendJsonResponse(res, db.invoices);
+        return;
+      }
+
+      if (pathname === '/api/daily-registers/close') {
+        const { closedBy, notes, closingDate, totalSales, totalOrders, totalReturns, netSales } = body;
+        
+        if (!db.dailyRegisters) db.dailyRegisters = [];
+        
+        const dateStr = closingDate || new Date().toISOString().split('T')[0];
+        const regId = `REG-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        const newRegister = {
+          id: regId,
+          date: dateStr,
+          closedAt: new Date().toISOString(),
+          closedBy: closedBy || "SYSTEM ADMIN",
+          totalSales: parseFloat(totalSales) || 0,
+          totalOrders: parseInt(totalOrders) || 0,
+          totalReturns: parseFloat(totalReturns) || 0,
+          netSales: parseFloat(netSales) || 0,
+          notes: notes || "",
+          status: "CLOSED"
+        };
+
+        db.dailyRegisters.unshift(newRegister);
+        db.lastClosedTimestamp = new Date().toISOString();
+        writeDb(db);
+
+        sendJsonResponse(res, { success: true, register: newRegister });
         return;
       }
 
