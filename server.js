@@ -1667,7 +1667,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      if (pathname === '/api/orders') {
+      if (pathname === '/api/orders/update-status') {
         const { id, status } = body;
         if (!id || !status) {
           sendJsonResponse(res, { error: "Missing id or status" }, 400);
@@ -1731,7 +1731,7 @@ const server = http.createServer(async (req, res) => {
            return;
          }
 
-         const item = order.items.find(i => i.id === parseInt(productId) && i.size === size && (i.color || "Black") === color);
+         const item = order.items.find(i => String(i.id) === String(productId) && i.size === size && (i.color || "Black") === color);
          if (!item) {
            sendJsonResponse(res, { error: "Item not found in order" }, 404);
            return;
@@ -1743,11 +1743,20 @@ const server = http.createServer(async (req, res) => {
            return;
          }
 
-         const product = db.products.find(p => p.id === parseInt(productId));
-         if (product && product.inventory) {
-           const key = `${size}-${color}`;
-           if (product.inventory[key] !== undefined) {
-             product.inventory[key] += qtyToReturn;
+         // Restock single item returned
+         const product = db.products.find(p => String(p.id) === String(productId));
+         if (product) {
+           if (typeof product.stock === 'number') product.stock += qtyToReturn;
+           if (typeof product.quantity === 'number') product.quantity += qtyToReturn;
+           
+           if (product.sizes && typeof product.sizes === 'object' && size) {
+             if (product.sizes[size] !== undefined) product.sizes[size] += qtyToReturn;
+           }
+
+           if (product.inventory) {
+             const key = `${size}-${color}`;
+             if (product.inventory[key] !== undefined) product.inventory[key] += qtyToReturn;
+             if (product.inventory[size] !== undefined) product.inventory[size] += qtyToReturn;
            }
          }
 
@@ -1793,17 +1802,27 @@ const server = http.createServer(async (req, res) => {
             return;
           }
 
+          // Restock inventory stock counts on POS Return
           if (Array.isArray(items)) {
             items.forEach(item => {
-              const product = db.products.find(p => p.id === parseInt(item.id));
-              if (product && product.inventory) {
-                const size = item.size;
-                const color = item.color || (product.colors && product.colors[0]) || "Black";
-                const key = `${size}-${color}`;
+              const product = db.products.find(p => String(p.id) === String(item.id));
+              if (product) {
+                const qty = parseInt(item.quantity) || 1;
                 
-                if (product.inventory[key] !== undefined) {
-                  const qty = parseInt(item.quantity) || 1;
-                  product.inventory[key] += qty;
+                if (typeof product.stock === 'number') product.stock += qty;
+                if (typeof product.quantity === 'number') product.quantity += qty;
+                
+                if (product.sizes && typeof product.sizes === 'object' && item.size) {
+                  if (product.sizes[item.size] !== undefined) product.sizes[item.size] += qty;
+                }
+
+                if (product.inventory) {
+                  const size = item.size || "M";
+                  const color = item.color || (product.colors && product.colors[0]) || "Black";
+                  const key = `${size}-${color}`;
+                  
+                  if (product.inventory[key] !== undefined) product.inventory[key] += qty;
+                  if (product.inventory[size] !== undefined) product.inventory[size] += qty;
                 }
               }
             });
