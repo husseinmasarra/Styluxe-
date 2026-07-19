@@ -1541,8 +1541,9 @@ function handleCheckoutSubmit(event) {
     })
     .then(async res => {
         if (res.ok) {
-            // Fetch latest orders to sync local state
+            // Fetch latest orders and products to sync local stock state
             await loadOrdersFromServer();
+            await loadProductsFromServer();
 
             // Clear Cart
             cart = [];
@@ -2999,6 +3000,7 @@ function processPosSale() {
     .then(async res => {
         if (res.ok) {
             await loadOrdersFromServer();
+            await loadProductsFromServer();
         }
     })
     .catch(err => {
