@@ -3239,16 +3239,32 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                 <meta charset="utf-8">
                 <title>STYLUXE Sales Invoice ${cleanOrderId}</title>
                 <style>
-                    @page { margin: 10mm; size: A4 portrait; }
+                    /* Strip browser header & footer (URL, Date, Page Numbers) */
+                    @page {
+                        margin: 0;
+                        size: A4 portrait;
+                    }
                     html, body {
                         margin: 0; padding: 0;
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                     }
-                    body { display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+                    body {
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        padding: 15mm;
+                        box-sizing: border-box;
+                    }
                     .invoice-card {
-                        width: 100%; max-width: 190mm; border: 2px solid #000; border-radius: 8px; padding: 35px 30px; background: #fff; box-sizing: border-box;
+                        width: 100%;
+                        max-width: 180mm;
+                        border: 2px solid #000;
+                        border-radius: 8px;
+                        padding: 35px 30px;
+                        background: #fff;
+                        box-sizing: border-box;
                     }
                     .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 20px; }
                     .brand-header h1 { font-size: 40px; margin: 0; letter-spacing: 5px; font-weight: 900; }
