@@ -1258,7 +1258,7 @@ function addToCart(productId, size, quantity = 1, color = "Black", preorder = fa
         const currentInCart = existingIndex > -1 ? cart[existingIndex].quantity : 0;
         
         if ((currentInCart + quantity) > avail) {
-            alert(`❌ لا يمكن إضافة المنتج للسلة!\n\nالكمية المطلوبة من (${product.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالمتوفر في المخزون حالياً: ${avail} قطعة فقط.`);
+            alert(`❌ Out of stock!\n\nRequested quantity for (${product.name} - Size ${size}) exceeds available stock.\n\nAvailable stock: ${avail} units.`);
             return;
         }
     }
@@ -1545,7 +1545,7 @@ function handleCheckoutSubmit(event) {
             if (prod) {
                 const avail = getItemAvailableStock(prod, item.size, item.color);
                 if (item.quantity > avail) {
-                    alert(`❌ لا يمكن إتمام الطلب!\n\nالكمية المطلوبة من (${item.name} - مقاس ${item.size}) غير متوفرة في المخزون.\n\nالكمية المطلوبة: ${item.quantity} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                    alert(`❌ Order cannot be placed!\n\nRequested quantity for (${item.name} - Size ${item.size}) exceeds available stock.\n\nRequested: ${item.quantity} | Available stock: ${avail} units.`);
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
                     return;
@@ -2847,7 +2847,7 @@ function addProdToPos(productId, size) {
     if (posMode !== "return") {
         const avail = getItemAvailableStock(product, size, color);
         if ((currentInCart + 1) > avail) {
-            alert(`❌ لا يمكن إضافة هذا المنتج للسلة!\n\nالكمية المطلوبة من (${product.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالمتوفر في المخزون حالياً: ${avail} قطعة فقط.`);
+            alert(`❌ Out of stock!\n\nRequested quantity for (${product.name} - Size ${size}) exceeds available stock.\n\nAvailable stock: ${avail} units.`);
             return;
         }
     }
@@ -2903,7 +2903,7 @@ function renderPosTicketItems() {
                 <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
                     <span style="font-size: 1.1rem; color: var(--color-text-muted);">SIZE: ${item.size} / ${formatPrice(item.originalPrice)}</span>
                     <span style="font-size: 1.1rem; color: var(--color-accent); display: flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem;">
-                        Hassm: $
+                        Disc: $
                         <input type="number" value="${item.discount}" min="0" max="${item.originalPrice}" onchange="updatePosItemDiscount(${item.id}, '${item.size}', this.value)" style="width: 55px; background: rgba(255,255,255,0.08); border: 1px solid var(--color-border); color: var(--color-text); padding: 0.15rem 0.3rem; font-size: 1.1rem; border-radius: 4px; text-align: center; font-weight: bold;">
                     </span>
                 </div>
@@ -2948,7 +2948,7 @@ function updatePosQty(productId, size, change) {
         if (prod) {
             const avail = getItemAvailableStock(prod, size, item.color);
             if ((item.quantity + change) > avail) {
-                alert(`❌ لا يمكن زيادة الكمية!\n\nالكمية المطلوبة من (${item.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالكمية المطلوبة: ${item.quantity + change} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                alert(`❌ Cannot increase quantity!\n\nRequested quantity for (${item.name} - Size ${size}) exceeds available stock.\n\nRequested: ${item.quantity + change} | Available stock: ${avail} units.`);
                 return;
             }
         }
@@ -3002,7 +3002,7 @@ function processPosSale() {
             if (prod) {
                 const avail = getItemAvailableStock(prod, item.size, item.color);
                 if (item.quantity > avail) {
-                    alert(`❌ لا يمكن إتمام عملية البيع!\n\nالكمية المطلوبة من (${item.name} - مقاس ${item.size}) أكبر من المتوفر في المخزون.\n\nالكمية المطلوبة: ${item.quantity} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                    alert(`❌ Cannot complete sale!\n\nRequested quantity for (${item.name} - Size ${item.size}) exceeds available stock.\n\nRequested: ${item.quantity} | Available stock: ${avail} units.`);
                     return;
                 }
             }
@@ -3360,7 +3360,7 @@ async function printArchivedRegister(regId) {
         const registers = await response.json();
         const reg = registers.find(r => r.id === regId);
         if (!reg) {
-            alert("لم يتم العثور على سجل اليومية.");
+            alert("Archived daily register report not found.");
             return;
         }
 
