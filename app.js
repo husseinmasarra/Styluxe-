@@ -1834,8 +1834,24 @@ function logoutAdmin() {
 
 function isManagerLoggedIn() {
     if (!currentAdminStaff) return true; // Default System Owner / Admin
+    
     const role = String(currentAdminStaff.role || "").toLowerCase();
-    return role === "manager" || role === "administrator" || role === "admin" || role === "owner" || currentAdminStaff.isOwner === true;
+    const perms = Array.isArray(currentAdminStaff.permissions) ? currentAdminStaff.permissions : [];
+
+    // Automatically allow if logged in as Manager, Administrator, Admin, Owner, Supervisor or has admin permissions
+    if (role.includes("manager") || 
+        role.includes("admin") || 
+        role.includes("owner") || 
+        role.includes("head") || 
+        role.includes("supervisor") || 
+        currentAdminStaff.isOwner === true ||
+        perms.includes("manage_staff") || 
+        perms.includes("manage_products") ||
+        perms.includes("manage_orders") ||
+        perms.includes("all")) {
+        return true;
+    }
+    return false;
 }
 
 function promptManagerPermission(actionName = "Access Manager Feature") {
