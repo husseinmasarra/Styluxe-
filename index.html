@@ -1410,6 +1410,8 @@
                                      <button class="pos-exit-btn" id="posModeToggleBtn" onclick="togglePosMode()" style="background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.3); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 700; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-rotate-left"></i> SWITCH TO RETURN</button>
                                      <button class="pos-exit-btn" id="posExitBtn" onclick="exitPosMode()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-arrow-left-long"></i> DASHBOARD</button>
                                      <button class="pos-exit-btn" onclick="openDailyReportModal()" style="background: rgba(199, 163, 105, 0.1); border: 1px solid rgba(199, 163, 105, 0.25); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: var(--color-accent); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-chart-line"></i> DAILY REPORT</button>
+                                     <button class="pos-exit-btn" onclick="openCloseRegisterModal()" style="background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.35); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 700; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-lock"></i> CLOSE REGISTER (إغلاق اليومية)</button>
+                                     <button class="pos-exit-btn" onclick="openPastRegistersModal()" style="background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.35); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 700; color: #3498db; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-box-archive"></i> ARCHIVE (أرشيف اليوميات)</button>
                                      <button class="pos-exit-btn" onclick="logoutAdmin()" style="background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); padding: 0.6rem 1.2rem; font-size: 1.1rem; font-weight: 600; color: #e74c3c; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
                                  </div>
                                  <div class="pos-dept-tabs">
@@ -1714,6 +1716,93 @@
          </div>
     </div>
 
+    <!-- POS Close Daily Register Modal Overlay -->
+    <div class="modal-backdrop" id="posCloseRegisterModalBackdrop" style="z-index: 1250;">
+         <div class="checkout-modal" style="max-width: 520px; padding: 3rem 2.5rem; background-color: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+             <button class="close-modal-btn" onclick="closeCloseRegisterModal()"><i class="fa-solid fa-xmark"></i></button>
+             
+             <div style="text-align: center; margin-bottom: 2rem;">
+                 <div style="font-size: 2.5rem; color: #e74c3c; margin-bottom: 0.5rem;"><i class="fa-solid fa-lock"></i></div>
+                 <h2 style="font-family: var(--font-heading); font-size: 1.8rem; margin: 0; letter-spacing: 0.05em; color: var(--color-text);">إغلاق اليومية (CLOSE REGISTER)</h2>
+                 <p style="font-size: 0.95rem; color: var(--color-text-muted); margin-top: 0.4rem;">تقرير ملخص المبيعات لليوم وإغلاق الشيفت لبدء يوم جديد</p>
+             </div>
+
+             <!-- Summary Cards -->
+             <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                 <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px; text-align: center;">
+                     <div style="font-size: 0.85rem; color: var(--color-text-muted); text-transform: uppercase;">تاريخ اليومية</div>
+                     <div id="closeRegDate" style="font-size: 1.1rem; font-weight: 700; color: var(--color-text); margin-top: 0.3rem;">-</div>
+                 </div>
+                 <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px; text-align: center;">
+                     <div style="font-size: 0.85rem; color: var(--color-text-muted); text-transform: uppercase;">عدد الطلبيات</div>
+                     <div id="closeRegOrdersCount" style="font-size: 1.1rem; font-weight: 700; color: var(--color-accent); margin-top: 0.3rem;">0</div>
+                 </div>
+                 <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px; text-align: center;">
+                     <div style="font-size: 0.85rem; color: var(--color-text-muted); text-transform: uppercase;">إجمالي المبيعات</div>
+                     <div id="closeRegTotalSales" style="font-size: 1.1rem; font-weight: 700; color: #2ecc71; margin-top: 0.3rem;">$0.00</div>
+                 </div>
+                 <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px; text-align: center;">
+                     <div style="font-size: 0.85rem; color: var(--color-text-muted); text-transform: uppercase;">إجمالي المرتجعات</div>
+                     <div id="closeRegTotalReturns" style="font-size: 1.1rem; font-weight: 700; color: #e74c3c; margin-top: 0.3rem;">$0.00</div>
+                 </div>
+             </div>
+
+             <!-- Net Total Highlighting -->
+             <div style="background: linear-gradient(135deg, rgba(199, 163, 105, 0.15) 0%, rgba(168, 132, 72, 0.15) 100%); border: 1px solid rgba(199, 163, 105, 0.4); padding: 1.2rem; border-radius: 8px; text-align: center; margin-bottom: 1.5rem;">
+                 <div style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase;">صافي النقدية بالصندوق (NET SHIFT CASH)</div>
+                 <div id="closeRegNetSales" style="font-size: 2.2rem; font-weight: 900; color: var(--color-accent); margin-top: 0.2rem;">$0.00</div>
+             </div>
+
+             <!-- Closed by & Notes -->
+             <div style="margin-bottom: 1.5rem;">
+                 <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">المسؤول عن الإغلاق: <strong id="closeRegStaffName" style="color: var(--color-text);">SYSTEM ADMIN</strong></p>
+                 <textarea id="closeRegNotes" placeholder="ملاحظات إغلاق اليومية (اختياري)..." rows="2" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); padding: 0.8rem; font-size: 0.95rem; resize: none;"></textarea>
+             </div>
+
+             <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                 <button class="place-order-btn" onclick="confirmCloseDailyRegister()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #fff; font-weight: 800; font-size: 1.1rem; border: none; padding: 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"><i class="fa-solid fa-lock"></i> تأكيد إغلاق اليومية وبدء يوم جديد</button>
+                 <button class="checkout-btn" onclick="printDailyCloseReport()" style="background: rgba(255,255,255,0.08); border: 1px solid var(--color-border); color: var(--color-text); font-weight: 700; padding: 0.8rem; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-print"></i> طباعة تقرير إغلاق اليومية</button>
+             </div>
+         </div>
+    </div>
+
+    <!-- POS Past Registers Archive Modal Overlay -->
+    <div class="modal-backdrop" id="posPastRegistersModalBackdrop" style="z-index: 1260;">
+         <div class="checkout-modal" style="max-width: 900px; width: 95%; padding: 3rem 2rem; background-color: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 12px; max-height: 85vh; display: flex; flex-direction: column;">
+             <button class="close-modal-btn" onclick="closePastRegistersModal()"><i class="fa-solid fa-xmark"></i></button>
+             
+             <div style="text-align: center; margin-bottom: 1.5rem; flex-shrink: 0;">
+                 <div style="font-size: 2.2rem; color: #3498db; margin-bottom: 0.4rem;"><i class="fa-solid fa-box-archive"></i></div>
+                 <h2 style="font-family: var(--font-heading); font-size: 1.8rem; margin: 0; letter-spacing: 0.05em; color: var(--color-text);">أرشيف اليوميات السابقة (REGISTERS ARCHIVE)</h2>
+                 <p style="font-size: 0.95rem; color: var(--color-text-muted); margin-top: 0.3rem;">جميع تقارير اليوميات التي تم إغلاقها سابقاً ومحفوظة للمراجعة والطباعة</p>
+             </div>
+
+             <div style="overflow-y: auto; flex: 1; margin-bottom: 1rem; border: 1px solid var(--color-border); border-radius: 8px;">
+                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                     <thead style="background: rgba(0,0,0,0.4); position: sticky; top: 0; z-index: 2;">
+                         <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); text-transform: uppercase;">
+                             <th style="padding: 1rem;">ID اليومية</th>
+                             <th style="padding: 1rem;">التاريخ</th>
+                             <th style="padding: 1rem;">الطلبيات</th>
+                             <th style="padding: 1rem;">المبيعات</th>
+                             <th style="padding: 1rem;">المرتجعات</th>
+                             <th style="padding: 1rem;">الصافي</th>
+                             <th style="padding: 1rem;">المسؤول</th>
+                             <th style="padding: 1rem; text-align: center;">طباعة / مراجعة</th>
+                         </tr>
+                     </thead>
+                     <tbody id="pastRegistersTableBody">
+                         <!-- Dynamically Populated -->
+                     </tbody>
+                 </table>
+             </div>
+
+             <div style="text-align: center; flex-shrink: 0;">
+                 <button class="checkout-btn" onclick="closePastRegistersModal()" style="background: rgba(255,255,255,0.08); border: 1px solid var(--color-border); color: var(--color-text); font-weight: 700; padding: 0.8rem 2rem; border-radius: 6px; cursor: pointer;">إغلاق النافذة</button>
+             </div>
+         </div>
+    </div>
+
     <!-- Simulated Google Sign-In Overlay -->
     <div class="mock-auth-overlay" id="googleAuthOverlay" style="display: none;">
         <div class="mock-google-card">
@@ -1959,6 +2048,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=14.0.0"></script>
+    <script src="app.js?v=15.0.0"></script>
 </body>
 </html>
