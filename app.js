@@ -3085,7 +3085,7 @@ function processPosSale() {
 
 let lastPosSaleObj = null;
 
-// Print ONLY Delivery Sticker WITH COD Total Amount
+// Print ONLY Delivery Sticker WITH COD Total Amount (Full A4 Page Format)
 function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     const cleanName = (name || "CUSTOMER").toUpperCase();
     const cleanPhone = phone || "N/A";
@@ -3109,7 +3109,7 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     if (idEl) idEl.textContent = cleanOrderId;
     if (totEl) totEl.textContent = cleanTotal;
 
-    const printWin = window.open('', '_blank', 'width=650,height=750,scrollbars=yes,resizable=yes');
+    const printWin = window.open('', '_blank', 'width=800,height=950,scrollbars=yes,resizable=yes');
     if (printWin) {
         printWin.document.write(`
             <!DOCTYPE html>
@@ -3118,36 +3118,36 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                 <meta charset="utf-8">
                 <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
                 <style>
-                    @page { margin: 0mm; size: auto; }
+                    @page { margin: 10mm; size: A4 portrait; }
                     html, body {
                         margin: 0; padding: 0;
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                     }
-                    body { display: flex; justify-content: center; align-items: flex-start; padding: 25px 15px; }
+                    body { display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
                     .sticker-card {
-                        width: 100%; max-width: 380px; border: 2px dashed #000; border-radius: 6px; padding: 25px 20px; background: #fff; box-sizing: border-box;
+                        width: 100%; max-width: 190mm; border: 3px dashed #000; border-radius: 8px; padding: 35px 30px; background: #fff; box-sizing: border-box;
                     }
-                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
-                    .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 3px; font-weight: 900; }
-                    .brand-header p { font-size: 12px; margin: 4px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
-                    .info-group { margin-bottom: 14px; }
-                    .info-label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 2px; }
-                    .info-value { font-size: 16px; font-weight: 800; color: #000; word-break: break-word; }
+                    .brand-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 16px; margin-bottom: 24px; }
+                    .brand-header h1 { font-size: 42px; margin: 0; letter-spacing: 5px; font-weight: 900; }
+                    .brand-header p { font-size: 15px; margin: 6px 0 0 0; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
+                    .info-group { margin-bottom: 20px; }
+                    .info-label { font-size: 13px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 4px; }
+                    .info-value { font-size: 22px; font-weight: 800; color: #000; word-break: break-word; }
                     .cod-box {
-                        margin-top: 6px;
+                        margin-top: 15px;
                         background: #f0f0f0;
-                        border: 1px solid #000;
-                        padding: 8px 12px;
-                        border-radius: 4px;
+                        border: 2px solid #000;
+                        padding: 14px 20px;
+                        border-radius: 6px;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
                     }
-                    .sticker-footer { border-top: 2px solid #000; padding-top: 12px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
-                    .meta-details { font-size: 12px; font-weight: 800; }
-                    .barcode-sim { font-family: monospace; font-size: 22px; letter-spacing: -2px; font-weight: 300; }
+                    .sticker-footer { border-top: 3px solid #000; padding-top: 16px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; }
+                    .meta-details { font-size: 15px; font-weight: 800; }
+                    .barcode-sim { font-family: monospace; font-size: 28px; letter-spacing: -2px; font-weight: 300; }
                 </style>
             </head>
             <body>
@@ -3169,8 +3169,8 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                         <div class="info-value">${cleanAddress}</div>
                     </div>
                     <div class="cod-box">
-                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #000;">COLLECT AMOUNT (COD):</span>
-                        <span style="font-size: 20px; font-weight: 900; color: #000;">${cleanTotal}</span>
+                        <span style="font-size: 14px; font-weight: 800; text-transform: uppercase; color: #000;">COLLECT AMOUNT (COD):</span>
+                        <span style="font-size: 26px; font-weight: 900; color: #000;">${cleanTotal}</span>
                     </div>
                     <div class="sticker-footer">
                         <div class="meta-details">
@@ -3197,7 +3197,7 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     }
 }
 
-// Print ONLY Sales Invoice WITH Product Thumbnails
+// Print ONLY Sales Invoice WITH Product Thumbnails (Full A4 Page Format)
 function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
     const cleanName = (orderData.customerName || orderData.customer || "CUSTOMER").toUpperCase();
     const cleanPhone = orderData.customerPhone || orderData.phone || "N/A";
@@ -3216,21 +3216,21 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
         const imgUrl = item.image || (prod ? getProductMainImage(prod) : 'assets/favicon.jpg');
         itemsTableRows += `
             <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px 4px; vertical-align: middle; width: 50px;">
-                    <img src="${imgUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; display: block;">
+                <td style="padding: 12px 6px; vertical-align: middle; width: 65px;">
+                    <img src="${imgUrl}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; display: block;">
                 </td>
-                <td style="padding: 10px; vertical-align: middle;">
-                    <div style="font-weight: 800; font-size: 14px; color: #000; font-family: sans-serif;">${item.name}</div>
-                    <div style="font-size: 12px; color: #555; font-family: sans-serif; margin-top: 2px;">Size: <strong>${item.size}</strong> &bull; Qty: <strong>${item.quantity}</strong></div>
+                <td style="padding: 12px 10px; vertical-align: middle;">
+                    <div style="font-weight: 800; font-size: 16px; color: #000; font-family: sans-serif;">${item.name}</div>
+                    <div style="font-size: 13px; color: #555; font-family: sans-serif; margin-top: 3px;">Size: <strong>${item.size}</strong> &bull; Qty: <strong>${item.quantity}</strong></div>
                 </td>
-                <td style="padding: 10px 4px; text-align: right; font-weight: 800; vertical-align: middle; font-size: 14px; color: #000; font-family: sans-serif;">
+                <td style="padding: 12px 6px; text-align: right; font-weight: 800; vertical-align: middle; font-size: 16px; color: #000; font-family: sans-serif;">
                     $${(item.price * item.quantity).toFixed(2)}
                 </td>
             </tr>
         `;
     });
 
-    const printWin = window.open('', '_blank', 'width=700,height=850,scrollbars=yes,resizable=yes');
+    const printWin = window.open('', '_blank', 'width=800,height=950,scrollbars=yes,resizable=yes');
     if (printWin) {
         printWin.document.write(`
             <!DOCTYPE html>
@@ -3239,7 +3239,7 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                 <meta charset="utf-8">
                 <title>STYLUXE Sales Invoice ${cleanOrderId}</title>
                 <style>
-                    @page { margin: 5mm; size: auto; }
+                    @page { margin: 10mm; size: A4 portrait; }
                     html, body {
                         margin: 0; padding: 0;
                         background-color: #ffffff !important;
@@ -3248,15 +3248,15 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                     }
                     body { display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
                     .invoice-card {
-                        width: 100%; max-width: 400px; border: 2px solid #000; border-radius: 6px; padding: 24px 20px; background: #fff; box-sizing: border-box;
+                        width: 100%; max-width: 190mm; border: 2px solid #000; border-radius: 8px; padding: 35px 30px; background: #fff; box-sizing: border-box;
                     }
-                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px; }
-                    .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 4px; font-weight: 900; }
-                    .brand-header p { font-size: 12px; margin: 4px 0 0 0; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
-                    .invoice-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                    .totals-table { width: 100%; border-top: 2px solid #000; padding-top: 12px; margin-top: 15px; font-size: 14px; }
-                    .totals-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-                    .totals-row.final { font-size: 18px; font-weight: 900; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
+                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 20px; }
+                    .brand-header h1 { font-size: 40px; margin: 0; letter-spacing: 5px; font-weight: 900; }
+                    .brand-header p { font-size: 14px; margin: 6px 0 0 0; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
+                    .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    .totals-table { width: 100%; border-top: 2px solid #000; padding-top: 14px; margin-top: 20px; font-size: 16px; }
+                    .totals-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+                    .totals-row.final { font-size: 22px; font-weight: 900; border-top: 2px solid #000; padding-top: 10px; margin-top: 10px; }
                 </style>
             </head>
             <body>
@@ -3266,7 +3266,7 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         <p>OFFICIAL SALES RECEIPT / INVOICE</p>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px;">
                         <div>
                             <div>ORDER: <strong>${cleanOrderId}</strong></div>
                             <div>DATE: <strong>${cleanDate}</strong></div>
@@ -3277,7 +3277,7 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         </div>
                     </div>
 
-                    <div style="font-size: 12px; margin-bottom: 12px; background: #f9f9f9; padding: 8px 10px; border-radius: 4px; border: 1px solid #eee; color: #000;">
+                    <div style="font-size: 14px; margin-bottom: 16px; background: #f9f9f9; padding: 12px 16px; border-radius: 6px; border: 1px solid #eee; color: #000;">
                         <div>CUSTOMER: <strong>${cleanName}</strong></div>
                         <div>PHONE: <strong>${cleanPhone}</strong></div>
                         <div>ADDRESS: <strong>${cleanAddress}</strong></div>
@@ -3285,10 +3285,10 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
 
                     <table class="invoice-table">
                         <thead>
-                            <tr style="border-bottom: 2px solid #000; text-align: left; font-size: 11px; text-transform: uppercase;">
-                                <th style="padding: 6px 4px;">ITEM</th>
-                                <th style="padding: 6px;">DETAILS</th>
-                                <th style="padding: 6px 4px; text-align: right;">TOTAL</th>
+                            <tr style="border-bottom: 2px solid #000; text-align: left; font-size: 12px; text-transform: uppercase;">
+                                <th style="padding: 8px 6px;">ITEM</th>
+                                <th style="padding: 8px 10px;">DETAILS</th>
+                                <th style="padding: 8px 6px; text-align: right;">TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3313,9 +3313,8 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                         </div>
                     </div>
 
-                    <div style="text-align: center; font-size: 11px; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 12px; color: #555;">
-                        <p style="margin: 0; font-weight: 700;">THANK YOU FOR SHOPPING AT STYLUXE!</p>
-                        <p style="margin: 4px 0 0 0;">Returns & exchanges accepted within 14 days with original receipt.</p>
+                    <div style="text-align: center; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 16px;">
+                        <p style="margin: 0; font-weight: 800; font-size: 14px; letter-spacing: 1px; color: #000;">THANK YOU FOR SHOPPING AT STYLUXE!</p>
                     </div>
                 </div>
 
