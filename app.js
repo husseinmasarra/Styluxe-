@@ -2220,6 +2220,7 @@ function renderAdminProducts() {
             <td>
                 <div style="font-weight: 600;">Sizes: ${p.sizes.join(", ")}</div>
                 <div style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.3rem;">Colors: ${p.colors ? p.colors.join(", ") : "Black, Charcoal, Grey"}</div>
+                ${p.barcode ? `<div style="font-size: 1.05rem; color: var(--color-text); margin-top: 0.3rem;"><i class="fa-solid fa-barcode"></i> SKU/Barcode: <strong>${p.barcode}</strong></div>` : ''}
                 <div style="font-size: 1rem; color: var(--color-accent); margin-top: 0.5rem; word-break: break-all; max-height: 45px; overflow-y: auto;">
                     ${inventoryStr}
                 </div>
@@ -2450,6 +2451,7 @@ function openEditProductModal(productId) {
 
     document.getElementById("newProdPrice").value = prod.price;
     document.getElementById("newProdCostPrice").value = prod.costPrice || (prod.price * 0.6).toFixed(2);
+    if (document.getElementById("newProdBarcode")) document.getElementById("newProdBarcode").value = prod.barcode || "";
     document.getElementById("newProdSizes").value = prod.sizes ? prod.sizes.join(", ") : "";
     document.getElementById("newProdColors").value = prod.colors ? prod.colors.join(", ") : "";
     document.getElementById("newProdDesc").value = prod.description || "";
@@ -2589,6 +2591,9 @@ async function handleNewProductSubmit(event) {
 
     const preorder = document.getElementById("newProdPreorder").checked;
 
+    const barcodeInput = document.getElementById("newProdBarcode");
+    const barcode = barcodeInput ? barcodeInput.value.trim() : "";
+
     const productData = {
         name: name.toUpperCase(),
         category: category,
@@ -2596,6 +2601,7 @@ async function handleNewProductSubmit(event) {
         price: price,
         costPrice: costPrice,
         priority: priority,
+        barcode: barcode,
         image: img,
         description: desc,
         sizes: sizes,
@@ -2806,6 +2812,7 @@ function filterPosCatalog() {
             const categoryLower = p.category.toLowerCase();
             const deptLower = p.department.toLowerCase();
             const idStr = p.id.toString();
+            const barcodeLower = (p.barcode || "").toLowerCase();
             const colorsLower = (p.colors || []).map(c => c.toLowerCase()).join(" ");
             const sizesLower = (p.sizes || []).map(s => s.toLowerCase()).join(" ");
 
@@ -2814,6 +2821,7 @@ function filterPosCatalog() {
                 brandLower.includes(keyword) ||
                 categoryLower.includes(keyword) ||
                 deptLower.includes(keyword) ||
+                barcodeLower.includes(keyword) ||
                 colorsLower.includes(keyword) ||
                 sizesLower.includes(keyword) ||
                 idStr === keyword || 
@@ -3479,7 +3487,10 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     if (idEl) idEl.textContent = cleanOrderId;
     if (totEl) totEl.textContent = cleanTotal;
 
-    const printWin = window.open('', '_blank', 'width=650,height=750,scrollbars=yes,resizable=yes');
+    const stickerWidth = (STORE_SETTINGS && parseFloat(STORE_SETTINGS.sticker_width)) || 100;
+    const stickerHeight = (STORE_SETTINGS && parseFloat(STORE_SETTINGS.sticker_height)) || 70;
+
+    const printWin = window.open('', '_blank', `width=${Math.max(500, stickerWidth * 4)},height=${Math.max(500, stickerHeight * 4)},scrollbars=yes,resizable=yes`);
     if (printWin) {
         printWin.document.write(`
             <!DOCTYPE html>
@@ -3488,36 +3499,58 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                 <meta charset="utf-8">
                 <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
                 <style>
-                    @page { margin: 0mm; size: auto; }
+                    @page {
+                        margin: 0;
+                        size: ${stickerWidth}mm ${stickerHeight}mm;
+                    }
                     html, body {
-                        margin: 0; padding: 0;
+                        margin: 0;
+                        padding: 0;
+                        width: ${stickerWidth}mm;
+                        height: ${stickerHeight}mm;
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                        overflow: hidden;
                     }
-                    body { display: flex; justify-content: center; align-items: flex-start; padding: 25px 15px; }
+                    body {
+                        padding: 2.5mm;
+                        box-sizing: border-box;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
                     .sticker-card {
-                        width: 100%; max-width: 380px; border: 2px dashed #000; border-radius: 6px; padding: 25px 20px; background: #fff; box-sizing: border-box;
+                        width: 100%;
+                        height: 100%;
+                        border: 2px dashed #000;
+                        border-radius: 4px;
+                        padding: 6px 10px;
+                        background: #fff;
+                        box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
                     }
-                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
-                    .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 3px; font-weight: 900; }
-                    .brand-header p { font-size: 12px; margin: 4px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
-                    .info-group { margin-bottom: 14px; }
-                    .info-label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 2px; }
-                    .info-value { font-size: 16px; font-weight: 800; color: #000; word-break: break-word; }
+                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+                    .brand-header h1 { font-size: 24px; margin: 0; letter-spacing: 2px; font-weight: 900; }
+                    .brand-header p { font-size: 10px; margin: 2px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+                    .info-group { margin-bottom: 6px; }
+                    .info-label { font-size: 10px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 1px; }
+                    .info-value { font-size: 14px; font-weight: 800; color: #000; word-break: break-word; }
                     .cod-box {
-                        margin-top: 8px;
+                        margin-top: 4px;
                         background: #f0f0f0;
                         border: 1px solid #000;
-                        padding: 8px 12px;
+                        padding: 6px 10px;
                         border-radius: 4px;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
                     }
-                    .sticker-footer { border-top: 2px solid #000; padding-top: 12px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
-                    .meta-details { font-size: 12px; font-weight: 800; }
-                    .barcode-sim { font-family: monospace; font-size: 22px; letter-spacing: -2px; font-weight: 300; }
+                    .sticker-footer { border-top: 2px solid #000; padding-top: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+                    .meta-details { font-size: 11px; font-weight: 800; }
+                    .barcode-sim { font-family: monospace; font-size: 18px; letter-spacing: -2px; font-weight: 300; }
                 </style>
             </head>
             <body>
@@ -6307,6 +6340,9 @@ function populateSettingsFields() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
     const returnPassInput = document.getElementById("settingsReturnPassword");
+    const stickerPresetSelect = document.getElementById("settingsStickerPreset");
+    const stickerWidthInput = document.getElementById("settingsStickerWidth");
+    const stickerHeightInput = document.getElementById("settingsStickerHeight");
     const smtpHostInput = document.getElementById("settingsSmtpHost");
     const smtpPortInput = document.getElementById("settingsSmtpPort");
     const smtpUserInput = document.getElementById("settingsSmtpUser");
@@ -6318,7 +6354,9 @@ function populateSettingsFields() {
     if (feeInput) feeInput.value = STORE_SETTINGS.shipping_fee || "5";
     if (thresholdInput) thresholdInput.value = STORE_SETTINGS.free_shipping_threshold || "150";
     if (returnPassInput) returnPassInput.value = STORE_SETTINGS.return_password || "admin123";
-    if (smtpHostInput) smtpHostInput.value = STORE_SETTINGS.smtp_host || "";
+    if (stickerPresetSelect) stickerPresetSelect.value = STORE_SETTINGS.sticker_preset || "100x70";
+    if (stickerWidthInput) stickerWidthInput.value = STORE_SETTINGS.sticker_width || "100";
+    if (stickerHeightInput) stickerHeightInput.value = STORE_SETTINGS.sticker_height || "70";
     if (smtpPortInput) smtpPortInput.value = STORE_SETTINGS.smtp_port || "";
     if (smtpUserInput) smtpUserInput.value = STORE_SETTINGS.smtp_user || "";
     if (smtpPassInput) smtpPassInput.value = STORE_SETTINGS.smtp_pass || "";
@@ -6412,10 +6450,29 @@ function applyHeroBackgroundFromSettings() {
     }
 }
 
+function applyStickerPresetDimensions() {
+    const preset = document.getElementById("settingsStickerPreset") ? document.getElementById("settingsStickerPreset").value : "100x70";
+    const wInput = document.getElementById("settingsStickerWidth");
+    const hInput = document.getElementById("settingsStickerHeight");
+    if (preset === "100x70") {
+        if (wInput) wInput.value = 100;
+        if (hInput) hInput.value = 70;
+    } else if (preset === "80x50") {
+        if (wInput) wInput.value = 80;
+        if (hInput) hInput.value = 50;
+    } else if (preset === "100x150") {
+        if (wInput) wInput.value = 100;
+        if (hInput) hInput.value = 150;
+    }
+}
+
 async function saveAllGeneralSettings() {
     const feeInput = document.getElementById("settingsShippingFee");
     const thresholdInput = document.getElementById("settingsFreeShippingThreshold");
     const returnPassInput = document.getElementById("settingsReturnPassword");
+    const stickerPresetSelect = document.getElementById("settingsStickerPreset");
+    const stickerWidthInput = document.getElementById("settingsStickerWidth");
+    const stickerHeightInput = document.getElementById("settingsStickerHeight");
     const smtpHostInput = document.getElementById("settingsSmtpHost");
     const smtpPortInput = document.getElementById("settingsSmtpPort");
     const smtpUserInput = document.getElementById("settingsSmtpUser");
@@ -6428,6 +6485,9 @@ async function saveAllGeneralSettings() {
     if (feeInput) payload.shipping_fee = feeInput.value;
     if (thresholdInput) payload.free_shipping_threshold = thresholdInput.value;
     if (returnPassInput) payload.return_password = returnPassInput.value.trim();
+    if (stickerPresetSelect) payload.sticker_preset = stickerPresetSelect.value;
+    if (stickerWidthInput) payload.sticker_width = stickerWidthInput.value;
+    if (stickerHeightInput) payload.sticker_height = stickerHeightInput.value;
     if (smtpHostInput) payload.smtp_host = smtpHostInput.value.trim();
     if (smtpPortInput) payload.smtp_port = smtpPortInput.value.trim();
     if (smtpUserInput) payload.smtp_user = smtpUserInput.value.trim();
