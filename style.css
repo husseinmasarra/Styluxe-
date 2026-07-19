@@ -4670,16 +4670,16 @@ body[data-theme="light"] .size-chart-table th {
         display: none !important;
     }
 
-    /* 4. Display Delivery Sticker label in full A4 format */
+    /* 4. Display Delivery Sticker label in natural compact sticker size */
     #posLabelPaper {
         display: block !important;
         position: relative !important;
         width: 100% !important;
-        max-width: 190mm !important;
-        margin: 5mm auto !important;
-        padding: 12mm 10mm !important;
-        border: 3px dashed #000000 !important;
-        border-radius: 8px !important;
+        max-width: 110mm !important;
+        margin: 10mm auto !important;
+        padding: 8mm 6mm !important;
+        border: 2px dashed #000000 !important;
+        border-radius: 6px !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         box-shadow: none !important;
