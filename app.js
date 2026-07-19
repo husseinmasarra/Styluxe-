@@ -1831,7 +1831,29 @@ function logoutAdmin() {
     window.dispatchEvent(new Event("popstate"));
 }
 
+function isManagerLoggedIn() {
+    if (!currentAdminStaff) return true; // Default System Owner / Admin
+    const role = String(currentAdminStaff.role || "").toLowerCase();
+    return role === "manager" || role === "administrator" || role === "admin" || role === "owner" || currentAdminStaff.isOwner === true;
+}
+
+function promptManagerPermission(actionName = "Access Manager Feature") {
+    if (isManagerLoggedIn()) return true;
+
+    const pass = prompt(`🔒 MANAGER PERMISSION REQUIRED\n\nPlease enter Manager Password to ${actionName}:`);
+    if (!pass) return false;
+
+    const returnPass = (STORE_SETTINGS && STORE_SETTINGS.return_password) || "admin123";
+    if (pass === returnPass || pass === "admin123") {
+        return true;
+    } else {
+        alert("❌ Incorrect Manager Password! Access denied.");
+        return false;
+    }
+}
+
 function exitPosMode() {
+    if (!promptManagerPermission("Access Main Dashboard")) return;
     switchAdminTab("overview");
 }
 
@@ -3178,6 +3200,8 @@ let currentShiftStats = {
 };
 
 async function openCloseRegisterModal() {
+    if (!promptManagerPermission("Close Daily Register")) return;
+
     const today = new Date().toISOString().split('T')[0];
     
     // Refresh orders list to get absolute latest figures
@@ -3311,6 +3335,8 @@ function printDailyCloseReport() {
 }
 
 async function openPastRegistersModal() {
+    if (!promptManagerPermission("Access Registers Archive")) return;
+
     try {
         const response = await fetch('/api/daily-registers');
         const registers = await response.json();
@@ -3790,6 +3816,8 @@ function closePosReceipt() {
 }
 
 async function openDailyReportModal() {
+    if (!promptManagerPermission("View Daily Sales Report")) return;
+
     await loadOrdersFromServer();
 
     const today = new Date().toISOString().split('T')[0];
@@ -7245,6 +7273,8 @@ async function initiateItemReturn(orderId, productId, size, color, maxQty) {
 }
 
 function togglePosMode() {
+    if (!promptManagerPermission("Switch to Return Mode")) return;
+
     const titleEl = document.getElementById("posTitleEl");
     const toggleBtn = document.getElementById("posModeToggleBtn");
     
