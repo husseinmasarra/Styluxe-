@@ -3204,7 +3204,7 @@ async function openCloseRegisterModal() {
     if (dateEl) dateEl.textContent = today;
 
     const countEl = document.getElementById("closeRegOrdersCount");
-    if (countEl) countEl.textContent = `${todaySalesOrders.length} طلبية`;
+    if (countEl) countEl.textContent = `${todaySalesOrders.length} ORDERS`;
 
     const salesEl = document.getElementById("closeRegTotalSales");
     if (salesEl) salesEl.textContent = formatPrice(salesTotal);
@@ -3228,7 +3228,7 @@ function closeCloseRegisterModal() {
 }
 
 async function confirmCloseDailyRegister() {
-    if (!confirm("هل أنت تأكد من إغلاق اليومية الحالية وأرشفتها لبدء يوم جديد؟")) return;
+    if (!confirm("Are you sure you want to close the daily register and open a new shift?")) return;
 
     const staffName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
     const notesEl = document.getElementById("closeRegNotes");
@@ -3252,18 +3252,18 @@ async function confirmCloseDailyRegister() {
         });
 
         if (response.ok) {
-            alert("✅ تم إغلاق اليومية بنجاح وأرشفتها في سجل اليوميات السابقة! تم فتح يوم جديد.");
+            alert("✅ Daily Register closed successfully and stored in Archive! A new shift is now open.");
             closeCloseRegisterModal();
             if (typeof loadOrdersFromServer === 'function') {
                 await loadOrdersFromServer();
             }
         } else {
             const err = await response.json();
-            alert("فشل إغلاق اليومية: " + (err.error || "خطأ في الاتصال"));
+            alert("Failed to close register: " + (err.error || "Connection error"));
         }
     } catch (err) {
         console.error("Failed to close daily register:", err);
-        alert("خطأ في الشبكة أثناء إغلاق اليومية.");
+        alert("Network error while closing daily register.");
     }
 }
 
@@ -3319,7 +3319,7 @@ async function openPastRegistersModal() {
         if (tbody) {
             tbody.innerHTML = "";
             if (!registers || registers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">لا توجد يوميات مغلقة في الأرشيف حالياً.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">No closed daily registers in archive yet.</td></tr>`;
             } else {
                 registers.forEach(reg => {
                     const tr = document.createElement("tr");
@@ -3333,7 +3333,7 @@ async function openPastRegistersModal() {
                         <td style="padding: 1rem; color: var(--color-accent); font-weight: 900; font-size: 1.1rem;">$${(reg.netSales || 0).toFixed(2)}</td>
                         <td style="padding: 1rem; color: var(--color-text-muted);">${reg.closedBy || 'SYSTEM'}</td>
                         <td style="padding: 1rem; text-align: center;">
-                            <button onclick="printArchivedRegister('${reg.id}')" style="background: rgba(199, 163, 105, 0.15); border: 1px solid rgba(199, 163, 105, 0.4); color: var(--color-accent); padding: 0.4rem 0.8rem; font-size: 0.9rem; font-weight: 700; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-print"></i> طباعة</button>
+                            <button onclick="printArchivedRegister('${reg.id}')" style="background: rgba(199, 163, 105, 0.15); border: 1px solid rgba(199, 163, 105, 0.4); color: var(--color-accent); padding: 0.4rem 0.8rem; font-size: 0.9rem; font-weight: 700; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-print"></i> PRINT REPORT</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -3345,7 +3345,7 @@ async function openPastRegistersModal() {
         if (modal) modal.classList.add("active");
     } catch (err) {
         console.error("Failed to load past registers:", err);
-        alert("فشل تحميل أرشيف اليوميات.");
+        alert("Failed to load daily registers archive.");
     }
 }
 
@@ -3492,7 +3492,11 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                         <div class="info-value">${cleanPhone}</div>
                     </div>
                     <div class="info-group">
-                        <span class="info-label">Delivery Address:</span>
+                        <span class="info-label">Fulfillment Type:</span>
+                        <div class="info-value" style="color: #000; font-weight: 900;">${(cleanAddress.toUpperCase().includes("PICKUP") || cleanAddress.toUpperCase().includes("STORE")) ? "STORE PICKUP 🏬" : "DELIVERY 🚚"}</div>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Address / Location:</span>
                         <div class="info-value">${cleanAddress}</div>
                     </div>
                     <div class="cod-box">
@@ -3681,7 +3685,8 @@ function triggerInvoicePrint(orderData, cartItems, subtotal, discount, total) {
                     <div class="customer-info-box">
                         <div>CUSTOMER: <strong>${cleanName}</strong></div>
                         <div>PHONE: <strong>${cleanPhone}</strong></div>
-                        <div>ADDRESS: <strong>${cleanAddress}</strong></div>
+                        <div>FULFILLMENT TYPE: <strong>${(cleanAddress.toUpperCase().includes("PICKUP") || cleanAddress.toUpperCase().includes("STORE")) ? "STORE PICKUP 🏬" : "DELIVERY 🚚"}</strong></div>
+                        <div>ADDRESS / LOCATION: <strong>${cleanAddress}</strong></div>
                     </div>
 
                     <table class="invoice-table">
