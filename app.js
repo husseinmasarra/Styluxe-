@@ -2391,6 +2391,9 @@ function openAddProductModal() {
     if (titleEl) titleEl.textContent = "ADD NEW PRODUCT";
 
     addProductForm.reset();
+    if (document.getElementById("newProdBarcode")) {
+        document.getElementById("newProdBarcode").value = "";
+    }
 
     const fileInput = document.getElementById("newProdImgFile");
     if (fileInput) {
