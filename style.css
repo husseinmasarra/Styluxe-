@@ -653,11 +653,11 @@ img {
     align-items: center;
     overflow-x: auto;
     scrollbar-width: none;
-    background: rgba(15, 15, 15, 0.85);
-    border: 1px solid rgba(199, 163, 105, 0.25);
-    border-radius: 50px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
     max-width: fit-content;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: none !important;
 }
 
 .department-controls::-webkit-scrollbar {
@@ -670,8 +670,8 @@ img {
     letter-spacing: 0.12em;
     padding: 1rem 2.8rem;
     border-radius: 40px;
-    border: 1px solid transparent;
-    background: transparent;
+    border: 1px solid rgba(199, 163, 105, 0.3);
+    background: rgba(20, 20, 20, 0.6);
     color: rgba(255, 255, 255, 0.7);
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
@@ -681,7 +681,7 @@ img {
 
 .dept-tag:hover {
     color: #c7a369;
-    background: rgba(199, 163, 105, 0.1);
+    background: rgba(199, 163, 105, 0.15);
 }
 
 .dept-tag.active {
@@ -702,24 +702,24 @@ img {
 
 .filter-tags-row {
     width: 100%;
-    padding: 1rem 1.8rem;
-    background: rgba(20, 20, 20, 0.5);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(199, 163, 105, 0.2);
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    padding: 0.5rem 0;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
 .filter-secondary-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.8rem;
-    background: rgba(15, 15, 15, 0.65);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(199, 163, 105, 0.2);
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    padding: 0.5rem 0;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     gap: 1.5rem;
     flex-wrap: wrap;
 }
@@ -4366,13 +4366,13 @@ body[data-theme="light"] .size-chart-table th {
 .brand-slider-container {
     width: 100%;
     overflow: hidden;
-    padding: 2.2rem 1.5rem;
+    padding: 1rem 0;
     margin-bottom: 2.5rem;
-    background: rgba(20, 20, 20, 0.45);
-    border: 1px solid rgba(199, 163, 105, 0.2);
-    border-radius: 24px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
 }
 
 .brand-slider {
