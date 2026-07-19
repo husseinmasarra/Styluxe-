@@ -235,18 +235,14 @@ function ensureProductInventory(product) {
   }
   if (!product.inventory) {
     product.inventory = {};
-    product.sizes.forEach(size => {
-      product.colors.forEach(color => {
-        const key = `${size}-${color}`;
-        if (size === "M" && color === "Black") {
-          product.inventory[key] = 0; // Seeding out of stock
-        } else if (size === "L" && color === "Black" && product.id === 1) {
-          product.inventory[key] = 1; // 1 left (purchasing triggers out of stock)
-        } else {
-          product.inventory[key] = 10;
-        }
+    if (Array.isArray(product.sizes)) {
+      product.sizes.forEach(size => {
+        product.colors.forEach(color => {
+          const key = `${size}-${color}`;
+          product.inventory[key] = (typeof product.stock === 'number') ? product.stock : 10;
+        });
       });
-    });
+    }
   }
   if (product.costPrice === undefined || product.costPrice === null) {
     product.costPrice = parseFloat((product.price * 0.6).toFixed(2));
