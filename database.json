@@ -1,0 +1,141 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "STYLUXE OVERSIZED COTTON HOODIE",
+      "price": 85,
+      "category": "Hoodies",
+      "department": "Men",
+      "image": "assets/hoodie_black.png",
+      "description": "Premium fleece hoodie",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "stock": 10,
+      "inventory": {
+        "S-Black": 10,
+        "M-Black": 10,
+        "L-Black": 10,
+        "XL-Black": 10,
+        "XXL-Black": 10
+      }
+    },
+    {
+      "id": 2,
+      "name": "MATTE BOMBER LEATHER JACKET",
+      "price": 180,
+      "category": "Jackets",
+      "department": "Men",
+      "image": "assets/jacket_leather.png",
+      "description": "Leather bomber jacket",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "stock": 10,
+      "inventory": {
+        "S-Black": 10,
+        "M-Black": 10,
+        "L-Black": 10,
+        "XL-Black": 10
+      }
+    },
+    {
+      "id": 3,
+      "name": "SIGNATURE CARGO DENIM JEANS",
+      "price": 95,
+      "category": "Jeans",
+      "department": "Men",
+      "image": "assets/jeans_cargo.png",
+      "description": "Heavy denim jeans",
+      "sizes": [
+        "30",
+        "32",
+        "34",
+        "36"
+      ],
+      "colors": [
+        "Black",
+        "Charcoal",
+        "Grey"
+      ],
+      "stock": 10,
+      "inventory": {
+        "30-Black": 10,
+        "32-Black": 10,
+        "34-Black": 10,
+        "36-Black": 10
+      }
+    }
+  ],
+  "users": [],
+  "orders": [],
+  "staff": [
+    {
+      "id": 1,
+      "name": "Global Manager",
+      "email": "manager@example.com",
+      "password": "staff123",
+      "role": "Manager",
+      "permissions": [
+        "manage_products",
+        "manage_orders",
+        "pos_access",
+        "manage_staff"
+      ],
+      "status": "Active"
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Hoodies",
+      "img": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200",
+      "department": "Men",
+      "priority": 1
+    },
+    {
+      "id": 2,
+      "name": "Jackets",
+      "img": "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200",
+      "department": "Men",
+      "priority": 2
+    },
+    {
+      "id": 3,
+      "name": "Jeans",
+      "img": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=200",
+      "department": "Men",
+      "priority": 3
+    }
+  ],
+  "brands": [
+    {
+      "name": "Styluxe",
+      "img": "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=200"
+    }
+  ],
+  "suppliers": [],
+  "invoices": [],
+  "coupons": [],
+  "settings": {
+    "free_shipping_threshold": 150,
+    "shipping_fee": 5
+  }
+}
