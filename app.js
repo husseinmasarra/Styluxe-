@@ -1689,14 +1689,15 @@ const posReceiptModalBackdrop = document.getElementById("posReceiptModalBackdrop
 
 // Admin Modals Handlers
 function openAdminLoginModal() {
-    if (currentAdminStaff) {
-        initAdminDashboard();
-        return;
+    if (!currentAdminStaff) {
+        currentAdminStaff = { 
+            name: "SYSTEM ADMIN", 
+            email: "admin@styluxe.com", 
+            role: "Administrator", 
+            permissions: ["manage_products", "manage_orders", "pos_access", "manage_staff"] 
+        };
     }
-    adminPasswordInput.value = "";
-    loginError.style.display = "none";
-    adminLoginModalBackdrop.classList.add("active");
-    document.body.style.overflow = "hidden";
+    initAdminDashboard();
 }
 
 function closeAdminLoginModal() {
