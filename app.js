@@ -1220,9 +1220,48 @@ function addProductFromModalToCart() {
     toggleCartDrawer(true);
 }
 
+function getItemAvailableStock(product, size, color) {
+    if (!product) return 0;
+    
+    const reqSize = size || "M";
+    const reqColor = color || (product.colors && product.colors[0]) || "Black";
+    const key = `${reqSize}-${reqColor}`;
+
+    if (product.inventory) {
+        if (typeof product.inventory[key] === 'number') {
+            return product.inventory[key];
+        }
+        if (typeof product.inventory[reqSize] === 'number') {
+            return product.inventory[reqSize];
+        }
+    }
+    
+    if (product.sizes && typeof product.sizes === 'object' && reqSize) {
+        if (typeof product.sizes[reqSize] === 'number') {
+            return product.sizes[reqSize];
+        }
+    }
+
+    if (typeof product.stock === 'number') return product.stock;
+    if (typeof product.quantity === 'number') return product.quantity;
+
+    return 999;
+}
+
 function addToCart(productId, size, quantity = 1, color = "Black", preorder = false) {
     const product = PRODUCTS.find(p => p.id === productId);
     if (!product) return;
+
+    if (!preorder && !product.preorder) {
+        const avail = getItemAvailableStock(product, size, color);
+        const existingIndex = cart.findIndex(item => item.id === productId && item.size === size && (item.color || "Black") === color);
+        const currentInCart = existingIndex > -1 ? cart[existingIndex].quantity : 0;
+        
+        if ((currentInCart + quantity) > avail) {
+            alert(`❌ لا يمكن إضافة المنتج للسلة!\n\nالكمية المطلوبة من (${product.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالمتوفر في المخزون حالياً: ${avail} قطعة فقط.`);
+            return;
+        }
+    }
 
     // Check if item already in cart with same size and color
     const existingIndex = cart.findIndex(item => item.id === productId && item.size === size && (item.color || "Black") === color);
@@ -1499,10 +1538,21 @@ function handleCheckoutSubmit(event) {
     event.preventDefault();
     
     // Simulate API Call / Processing
-    const submitBtn = checkoutForm.querySelector(".place-order-btn");
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "PROCESSING ORDER...";
+    // Stock Validation Check for Website Checkout
+    for (const item of cart) {
+        if (!item.preorder) {
+            const prod = PRODUCTS.find(p => String(p.id) === String(item.id));
+            if (prod) {
+                const avail = getItemAvailableStock(prod, item.size, item.color);
+                if (item.quantity > avail) {
+                    alert(`❌ لا يمكن إتمام الطلب!\n\nالكمية المطلوبة من (${item.name} - مقاس ${item.size}) غير متوفرة في المخزون.\n\nالكمية المطلوبة: ${item.quantity} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+            }
+        }
+    }
 
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     const shippingFee = parseFloat(STORE_SETTINGS.shipping_fee) || 5;
@@ -2791,8 +2841,17 @@ function addProdToPos(productId, size) {
     if (!product) return;
 
     const color = (product.colors && product.colors[0]) || "Black";
-
     const existingIndex = posCart.findIndex(item => item.id === productId && item.size === size && (item.color || "Black") === color);
+    const currentInCart = existingIndex > -1 ? posCart[existingIndex].quantity : 0;
+
+    if (posMode !== "return") {
+        const avail = getItemAvailableStock(product, size, color);
+        if ((currentInCart + 1) > avail) {
+            alert(`❌ لا يمكن إضافة هذا المنتج للسلة!\n\nالكمية المطلوبة من (${product.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالمتوفر في المخزون حالياً: ${avail} قطعة فقط.`);
+            return;
+        }
+    }
+
     if (existingIndex > -1) {
         posCart[existingIndex].quantity += 1;
     } else {
@@ -2883,6 +2942,18 @@ function updatePosQty(productId, size, change) {
     const index = posCart.findIndex(item => item.id === productId && item.size === size);
     if (index === -1) return;
 
+    if (posMode !== "return" && change > 0) {
+        const item = posCart[index];
+        const prod = PRODUCTS.find(p => p.id === productId);
+        if (prod) {
+            const avail = getItemAvailableStock(prod, size, item.color);
+            if ((item.quantity + change) > avail) {
+                alert(`❌ لا يمكن زيادة الكمية!\n\nالكمية المطلوبة من (${item.name} - مقاس ${size}) تجاوزت المتوفر في المخزون.\n\nالكمية المطلوبة: ${item.quantity + change} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                return;
+            }
+        }
+    }
+
     posCart[index].quantity += change;
     if (posCart[index].quantity <= 0) {
         posCart.splice(index, 1);
@@ -2923,6 +2994,20 @@ function processPosSale() {
     const discount = (subtotal * discountPercent) / 100;
     const total = subtotal - discount;
     const randomId = Math.floor(10000 + Math.random() * 90000);
+
+    // Stock Validation Check for POS Sales
+    if (posMode !== "return") {
+        for (const item of posCart) {
+            const prod = PRODUCTS.find(p => String(p.id) === String(item.id));
+            if (prod) {
+                const avail = getItemAvailableStock(prod, item.size, item.color);
+                if (item.quantity > avail) {
+                    alert(`❌ لا يمكن إتمام عملية البيع!\n\nالكمية المطلوبة من (${item.name} - مقاس ${item.size}) أكبر من المتوفر في المخزون.\n\nالكمية المطلوبة: ${item.quantity} قطعة | المتوفر في المخزون: ${avail} قطعة فقط.`);
+                    return;
+                }
+            }
+        }
+    }
 
     if (posMode === "return") {
         const orderId = `REF-${randomId}`;
