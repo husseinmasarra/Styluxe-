@@ -1149,6 +1149,30 @@
                                 <input type="text" id="settingsReturnPassword" value="admin123" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
                             </div>
 
+                            <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-print"></i> Delivery Sticker Dimensions (Thermal Printer)</h3>
+                            
+                            <div class="form-group">
+                                <label for="settingsStickerPreset">Sticker Size Preset</label>
+                                <select id="settingsStickerPreset" onchange="applyStickerPresetDimensions()" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%; border-radius: 4px;">
+                                    <option value="100x70">Standard Shipping Label (100mm x 70mm)</option>
+                                    <option value="80x50">Compact Thermal Label (80mm x 50mm)</option>
+                                    <option value="100x150">Large Courier Label (100mm x 150mm)</option>
+                                    <option value="custom">Custom Dimensions (Set mm below)</option>
+                                </select>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label for="settingsStickerWidth">Sticker Width (mm)</label>
+                                    <input type="number" id="settingsStickerWidth" step="1" value="100" min="40" max="300" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settingsStickerHeight">Sticker Height (mm)</label>
+                                    <input type="number" id="settingsStickerHeight" step="1" value="70" min="30" max="300" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                                </div>
+                            </div>
+
                             <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-envelope"></i> SMTP Email Configuration</h3>
                             
                             <div class="form-group">
@@ -1502,6 +1526,11 @@
                       <div class="form-group">
                           <label for="newProdPriority">Priority *</label>
                           <input type="number" id="newProdPriority" required value="1" min="1" placeholder="e.g. 1" style="width: 100%; height: 50px;">
+                      </div>
+
+                      <div class="form-group">
+                          <label for="newProdBarcode">Barcode / SKU (Optional)</label>
+                          <input type="text" id="newProdBarcode" placeholder="e.g. 123456789012" style="width: 100%; height: 50px;">
                       </div>
                       
                       <div class="form-group">
@@ -2048,6 +2077,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=23.0.0"></script>
+    <script src="app.js?v=24.0.0"></script>
 </body>
 </html>
