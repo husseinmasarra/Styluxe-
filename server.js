@@ -1533,18 +1533,70 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        // Decrement inventory stock counts
+        // Validate stock availability on backend
+        let stockError = null;
         if (Array.isArray(items)) {
-          items.forEach(item => {
-            const product = db.products.find(p => p.id === parseInt(item.id));
-            if (product && product.inventory) {
-              const size = item.size;
+          for (const item of items) {
+            const product = db.products.find(p => String(p.id) === String(item.id));
+            if (product) {
+              const requested = parseInt(item.quantity) || 1;
+              let available = 999999;
+              
+              const size = item.size || "M";
               const color = item.color || (product.colors && product.colors[0]) || "Black";
               const key = `${size}-${color}`;
+
+              if (product.inventory) {
+                if (typeof product.inventory[key] === 'number') available = product.inventory[key];
+                else if (typeof product.inventory[size] === 'number') available = product.inventory[size];
+              } else if (product.sizes && typeof product.sizes === 'object' && product.sizes[size] !== undefined) {
+                available = product.sizes[size];
+              } else if (typeof product.stock === 'number') {
+                available = product.stock;
+              } else if (typeof product.quantity === 'number') {
+                available = product.quantity;
+              }
+
+              if (requested > available) {
+                stockError = `المخزون غير كافٍ للمنتج (${product.title || product.name || 'Item'} - مقاس ${size}). الكمية المطلوبة: ${requested} | المتوفر حالياً: ${available} قطعة فقط.`;
+                break;
+              }
+            }
+          }
+        }
+
+        if (stockError) {
+          sendJsonResponse(res, { error: stockError }, 400);
+          return;
+        }
+
+        // Decrement inventory stock counts on sale
+        if (Array.isArray(items)) {
+          items.forEach(item => {
+            const product = db.products.find(p => String(p.id) === String(item.id));
+            if (product) {
+              const qty = parseInt(item.quantity) || 1;
               
-              if (product.inventory[key] !== undefined) {
-                const qty = parseInt(item.quantity) || 1;
-                product.inventory[key] = Math.max(0, product.inventory[key] - qty);
+              if (typeof product.stock === 'number') product.stock = Math.max(0, product.stock - qty);
+              if (typeof product.quantity === 'number') product.quantity = Math.max(0, product.quantity - qty);
+              
+              if (product.sizes && typeof product.sizes === 'object' && item.size) {
+                if (product.sizes[item.size] !== undefined) {
+                  product.sizes[item.size] = Math.max(0, product.sizes[item.size] - qty);
+                }
+              }
+
+              if (product.inventory) {
+                const size = item.size || "M";
+                const color = item.color || (product.colors && product.colors[0]) || "Black";
+                const key = `${size}-${color}`;
+                
+                if (product.inventory[key] !== undefined) {
+                  product.inventory[key] = Math.max(0, product.inventory[key] - qty);
+                }
+                if (product.inventory[size] !== undefined) {
+                  product.inventory[size] = Math.max(0, product.inventory[size] - qty);
+                }
               }
             }
           });
