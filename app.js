@@ -3409,12 +3409,6 @@ async function printArchivedRegister(regId) {
         console.error("Failed to print archived register:", e);
     }
 }
-    posDiscountInput.value = "0";
-
-    // Clear POS cart
-    posCart = [];
-    renderPosTicketItems();
-}
 
 let lastPosSaleObj = null;
 
