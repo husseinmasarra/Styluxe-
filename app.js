@@ -3163,6 +3163,252 @@ function processPosSale() {
     posCustomerName.value = "";
     posCustomerPhone.value = "";
     if (addressInput) addressInput.value = "";
+}
+
+// ==========================================
+// DAILY REGISTER CLOSING & ARCHIVE SYSTEM
+// ==========================================
+
+let currentShiftStats = {
+    todayDate: "",
+    ordersCount: 0,
+    totalSales: 0,
+    totalReturns: 0,
+    netSales: 0
+};
+
+async function openCloseRegisterModal() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Refresh orders list to get absolute latest figures
+    if (typeof loadOrdersFromServer === 'function') {
+        await loadOrdersFromServer();
+    }
+
+    const todaySalesOrders = (ordersList || []).filter(o => o.date === today && !String(o.id).startsWith("REF-"));
+    const todayReturnOrders = (ordersList || []).filter(o => o.date === today && String(o.id).startsWith("REF-"));
+
+    const salesTotal = todaySalesOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const returnsTotal = todayReturnOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const netTotal = Math.max(0, salesTotal - returnsTotal);
+
+    currentShiftStats = {
+        todayDate: today,
+        ordersCount: todaySalesOrders.length,
+        totalSales: salesTotal,
+        totalReturns: returnsTotal,
+        netSales: netTotal
+    };
+
+    const dateEl = document.getElementById("closeRegDate");
+    if (dateEl) dateEl.textContent = today;
+
+    const countEl = document.getElementById("closeRegOrdersCount");
+    if (countEl) countEl.textContent = `${todaySalesOrders.length} طلبية`;
+
+    const salesEl = document.getElementById("closeRegTotalSales");
+    if (salesEl) salesEl.textContent = formatPrice(salesTotal);
+
+    const returnsEl = document.getElementById("closeRegTotalReturns");
+    if (returnsEl) returnsEl.textContent = formatPrice(returnsTotal);
+
+    const netEl = document.getElementById("closeRegNetSales");
+    if (netEl) netEl.textContent = formatPrice(netTotal);
+
+    const staffEl = document.getElementById("closeRegStaffName");
+    if (staffEl) staffEl.textContent = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+
+    const modal = document.getElementById("posCloseRegisterModalBackdrop");
+    if (modal) modal.classList.add("active");
+}
+
+function closeCloseRegisterModal() {
+    const modal = document.getElementById("posCloseRegisterModalBackdrop");
+    if (modal) modal.classList.remove("active");
+}
+
+async function confirmCloseDailyRegister() {
+    if (!confirm("هل أنت تأكد من إغلاق اليومية الحالية وأرشفتها لبدء يوم جديد؟")) return;
+
+    const staffName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+    const notesEl = document.getElementById("closeRegNotes");
+    const notes = notesEl ? notesEl.value.trim() : "";
+
+    const payload = {
+        closedBy: staffName,
+        notes: notes,
+        closingDate: currentShiftStats.todayDate,
+        totalSales: currentShiftStats.totalSales,
+        totalOrders: currentShiftStats.ordersCount,
+        totalReturns: currentShiftStats.totalReturns,
+        netSales: currentShiftStats.netSales
+    };
+
+    try {
+        const response = await fetch('/api/daily-registers/close', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert("✅ تم إغلاق اليومية بنجاح وأرشفتها في سجل اليوميات السابقة! تم فتح يوم جديد.");
+            closeCloseRegisterModal();
+            if (typeof loadOrdersFromServer === 'function') {
+                await loadOrdersFromServer();
+            }
+        } else {
+            const err = await response.json();
+            alert("فشل إغلاق اليومية: " + (err.error || "خطأ في الاتصال"));
+        }
+    } catch (err) {
+        console.error("Failed to close daily register:", err);
+        alert("خطأ في الشبكة أثناء إغلاق اليومية.");
+    }
+}
+
+function printDailyCloseReport() {
+    const staffName = currentAdminStaff ? currentAdminStaff.name : "SYSTEM ADMIN";
+    const printWin = window.open('', '_blank', 'width=800,height=900');
+    if (printWin) {
+        printWin.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>DAILY REGISTER CLOSE REPORT - ${currentShiftStats.todayDate}</title>
+                <style>
+                    @page { margin: 10mm; size: A4 portrait; }
+                    body { font-family: monospace, sans-serif; padding: 20px; color: #000; }
+                    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+                    .header h1 { font-size: 32px; margin: 0; }
+                    .row { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 10px; }
+                    .net-box { border: 2px solid #000; padding: 15px; text-align: center; font-size: 22px; font-weight: 900; margin: 25px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>STYLUXE</h1>
+                    <h2>OFFICIAL DAILY REGISTER CLOSE REPORT</h2>
+                    <p>Date: ${currentShiftStats.todayDate} | Closed By: ${staffName}</p>
+                </div>
+                <div class="row"><span>Total Orders:</span><span>${currentShiftStats.ordersCount}</span></div>
+                <div class="row"><span>Total Sales Gross:</span><span>$${currentShiftStats.totalSales.toFixed(2)}</span></div>
+                <div class="row"><span>Total Returns / Refunds:</span><span>-$${currentShiftStats.totalReturns.toFixed(2)}</span></div>
+                <div class="net-box">
+                    NET CASH IN REGISTER: $${currentShiftStats.netSales.toFixed(2)}
+                </div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <p>*** END OF SHIFT REPORT ***</p>
+                </div>
+                <script>
+                    window.onload = function() { window.focus(); window.print(); };
+                </script>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+    }
+}
+
+async function openPastRegistersModal() {
+    try {
+        const response = await fetch('/api/daily-registers');
+        const registers = await response.json();
+
+        const tbody = document.getElementById("pastRegistersTableBody");
+        if (tbody) {
+            tbody.innerHTML = "";
+            if (!registers || registers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">لا توجد يوميات مغلقة في الأرشيف حالياً.</td></tr>`;
+            } else {
+                registers.forEach(reg => {
+                    const tr = document.createElement("tr");
+                    tr.style.borderBottom = "1px solid var(--color-border)";
+                    tr.innerHTML = `
+                        <td style="padding: 1rem; font-weight: 700; color: var(--color-text);">${reg.id}</td>
+                        <td style="padding: 1rem; color: var(--color-text);">${reg.date}</td>
+                        <td style="padding: 1rem; color: var(--color-accent); font-weight: 700;">${reg.totalOrders}</td>
+                        <td style="padding: 1rem; color: #2ecc71; font-weight: 700;">$${(reg.totalSales || 0).toFixed(2)}</td>
+                        <td style="padding: 1rem; color: #e74c3c; font-weight: 700;">-$${(reg.totalReturns || 0).toFixed(2)}</td>
+                        <td style="padding: 1rem; color: var(--color-accent); font-weight: 900; font-size: 1.1rem;">$${(reg.netSales || 0).toFixed(2)}</td>
+                        <td style="padding: 1rem; color: var(--color-text-muted);">${reg.closedBy || 'SYSTEM'}</td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <button onclick="printArchivedRegister('${reg.id}')" style="background: rgba(199, 163, 105, 0.15); border: 1px solid rgba(199, 163, 105, 0.4); color: var(--color-accent); padding: 0.4rem 0.8rem; font-size: 0.9rem; font-weight: 700; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-print"></i> طباعة</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        const modal = document.getElementById("posPastRegistersModalBackdrop");
+        if (modal) modal.classList.add("active");
+    } catch (err) {
+        console.error("Failed to load past registers:", err);
+        alert("فشل تحميل أرشيف اليوميات.");
+    }
+}
+
+function closePastRegistersModal() {
+    const modal = document.getElementById("posPastRegistersModalBackdrop");
+    if (modal) modal.classList.remove("active");
+}
+
+async function printArchivedRegister(regId) {
+    try {
+        const response = await fetch('/api/daily-registers');
+        const registers = await response.json();
+        const reg = registers.find(r => r.id === regId);
+        if (!reg) {
+            alert("لم يتم العثور على سجل اليومية.");
+            return;
+        }
+
+        const printWin = window.open('', '_blank', 'width=800,height=900');
+        if (printWin) {
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>ARCHIVED REGISTER REPORT - ${reg.id}</title>
+                    <style>
+                        @page { margin: 10mm; size: A4 portrait; }
+                        body { font-family: monospace, sans-serif; padding: 20px; color: #000; }
+                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+                        .header h1 { font-size: 32px; margin: 0; }
+                        .row { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 10px; }
+                        .net-box { border: 2px solid #000; padding: 15px; text-align: center; font-size: 22px; font-weight: 900; margin: 25px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>STYLUXE</h1>
+                        <h2>ARCHIVED DAILY REGISTER REPORT</h2>
+                        <p>ID: ${reg.id} | Date: ${reg.date} | Closed By: ${reg.closedBy || 'SYSTEM'}</p>
+                    </div>
+                    <div class="row"><span>Closed Timestamp:</span><span>${new Date(reg.closedAt).toLocaleString()}</span></div>
+                    <div class="row"><span>Total Orders:</span><span>${reg.totalOrders}</span></div>
+                    <div class="row"><span>Total Sales Gross:</span><span>$${(reg.totalSales || 0).toFixed(2)}</span></div>
+                    <div class="row"><span>Total Returns / Refunds:</span><span>-$${(reg.totalReturns || 0).toFixed(2)}</span></div>
+                    <div class="net-box">
+                        NET CASH IN REGISTER: $${(reg.netSales || 0).toFixed(2)}
+                    </div>
+                    ${reg.notes ? `<p style="margin-top: 20px;"><strong>Notes:</strong> ${reg.notes}</p>` : ''}
+                    <div style="text-align: center; margin-top: 40px;">
+                        <p>*** END OF ARCHIVED REPORT ***</p>
+                    </div>
+                    <script>
+                        window.onload = function() { window.focus(); window.print(); };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+    } catch (e) {
+        console.error("Failed to print archived register:", e);
+    }
+}
     posDiscountInput.value = "0";
 
     // Clear POS cart
