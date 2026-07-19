@@ -1588,7 +1588,7 @@ const server = http.createServer(async (req, res) => {
               }
 
               if (requested > available) {
-                stockError = `المخزون غير كافٍ للمنتج (${product.title || product.name || 'Item'} - مقاس ${size}). الكمية المطلوبة: ${requested} | المتوفر حالياً: ${available} قطعة فقط.`;
+                stockError = `OUT OF STOCK: Item (${product.title || product.name || 'Item'} - Size ${size}) requested quantity (${requested}) exceeds available stock (${available} units).`;
                 break;
               }
             }
