@@ -3085,7 +3085,7 @@ function processPosSale() {
 
 let lastPosSaleObj = null;
 
-// Print ONLY Delivery Sticker WITH COD Total Amount (Full A4 Page Format)
+// Print ONLY Delivery Sticker WITH COD Total Amount (Natural Compact Sticker Size)
 function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     const cleanName = (name || "CUSTOMER").toUpperCase();
     const cleanPhone = phone || "N/A";
@@ -3109,7 +3109,7 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
     if (idEl) idEl.textContent = cleanOrderId;
     if (totEl) totEl.textContent = cleanTotal;
 
-    const printWin = window.open('', '_blank', 'width=800,height=950,scrollbars=yes,resizable=yes');
+    const printWin = window.open('', '_blank', 'width=650,height=750,scrollbars=yes,resizable=yes');
     if (printWin) {
         printWin.document.write(`
             <!DOCTYPE html>
@@ -3118,36 +3118,36 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                 <meta charset="utf-8">
                 <title>STYLUXE Delivery Sticker ${cleanOrderId}</title>
                 <style>
-                    @page { margin: 10mm; size: A4 portrait; }
+                    @page { margin: 0mm; size: auto; }
                     html, body {
                         margin: 0; padding: 0;
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                     }
-                    body { display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+                    body { display: flex; justify-content: center; align-items: flex-start; padding: 25px 15px; }
                     .sticker-card {
-                        width: 100%; max-width: 190mm; border: 3px dashed #000; border-radius: 8px; padding: 35px 30px; background: #fff; box-sizing: border-box;
+                        width: 100%; max-width: 380px; border: 2px dashed #000; border-radius: 6px; padding: 25px 20px; background: #fff; box-sizing: border-box;
                     }
-                    .brand-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 16px; margin-bottom: 24px; }
-                    .brand-header h1 { font-size: 42px; margin: 0; letter-spacing: 5px; font-weight: 900; }
-                    .brand-header p { font-size: 15px; margin: 6px 0 0 0; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
-                    .info-group { margin-bottom: 20px; }
-                    .info-label { font-size: 13px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 4px; }
-                    .info-value { font-size: 22px; font-weight: 800; color: #000; word-break: break-word; }
+                    .brand-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
+                    .brand-header h1 { font-size: 32px; margin: 0; letter-spacing: 3px; font-weight: 900; }
+                    .brand-header p { font-size: 12px; margin: 4px 0 0 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+                    .info-group { margin-bottom: 14px; }
+                    .info-label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: 700; display: block; margin-bottom: 2px; }
+                    .info-value { font-size: 16px; font-weight: 800; color: #000; word-break: break-word; }
                     .cod-box {
-                        margin-top: 15px;
+                        margin-top: 8px;
                         background: #f0f0f0;
-                        border: 2px solid #000;
-                        padding: 14px 20px;
-                        border-radius: 6px;
+                        border: 1px solid #000;
+                        padding: 8px 12px;
+                        border-radius: 4px;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
                     }
-                    .sticker-footer { border-top: 3px solid #000; padding-top: 16px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; }
-                    .meta-details { font-size: 15px; font-weight: 800; }
-                    .barcode-sim { font-family: monospace; font-size: 28px; letter-spacing: -2px; font-weight: 300; }
+                    .sticker-footer { border-top: 2px solid #000; padding-top: 12px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
+                    .meta-details { font-size: 12px; font-weight: 800; }
+                    .barcode-sim { font-family: monospace; font-size: 22px; letter-spacing: -2px; font-weight: 300; }
                 </style>
             </head>
             <body>
@@ -3169,8 +3169,8 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                         <div class="info-value">${cleanAddress}</div>
                     </div>
                     <div class="cod-box">
-                        <span style="font-size: 14px; font-weight: 800; text-transform: uppercase; color: #000;">COLLECT AMOUNT (COD):</span>
-                        <span style="font-size: 26px; font-weight: 900; color: #000;">${cleanTotal}</span>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #000;">COLLECT AMOUNT (COD):</span>
+                        <span style="font-size: 20px; font-weight: 900; color: #000;">${cleanTotal}</span>
                     </div>
                     <div class="sticker-footer">
                         <div class="meta-details">
