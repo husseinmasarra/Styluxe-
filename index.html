@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Core stylesheet -->
-    <link rel="stylesheet" href="style.css?v=31.0.0">
+    <link rel="stylesheet" href="style.css?v=32.0.0">
 
     <!-- Google & Apple Social Authentication SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -46,19 +46,15 @@
     <!-- Header / Navigation -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
-            <!-- Mobile Menu Toggle -->
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
-                <i class="fa-solid fa-bars-staggered"></i>
-            </button>
-
-            <!-- Navigation Links (Left) -->
-            <nav class="nav-links" id="navLinks">
-                <a href="#collections" onclick="showHomePage()" class="active">HOME</a>
-                <a href="#shop-section" onclick="filterByDepartment('Men')">MEN</a>
-                <a href="#shop-section" onclick="filterByDepartment('Women')">WOMEN</a>
-                <a href="#shop-section" onclick="filterByDepartment('Kids')">KIDS</a>
-                <a href="#about">ABOUT US</a>
-            </nav>
+            <!-- Left Group: Menu and Search Triggers -->
+            <div class="nav-left-group">
+                <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Toggle Menu" onclick="togglePradaDrawer()">
+                    <i class="fa-solid fa-bars-staggered"></i> <span class="nav-btn-text">Menu</span>
+                </button>
+                <button class="nav-search-btn" id="navSearchBtn" aria-label="Search" onclick="togglePradaSearch()">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span class="nav-btn-text">Search</span>
+                </button>
+            </div>
 
             <!-- Brand Logo (Center) -->
             <div class="brand-logo">
@@ -67,6 +63,8 @@
 
             <!-- Header Utilities (Right) -->
             <div class="nav-utilities">
+                <a href="https://wa.me/96171987654" target="_blank" class="nav-contact-link">Contact us</a>
+
                 <!-- Theme Toggle Button -->
                 <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme" onclick="toggleTheme()">
                     <i class="fa-solid fa-moon"></i>
@@ -76,7 +74,6 @@
                 <div class="currency-picker" style="position: relative;">
                     <button class="theme-toggle-btn" id="userMenuBtn" aria-label="User Account" onclick="toggleUserMenu(event)">
                         <i class="fa-solid fa-user"></i>
-                        <span id="navUserGreeting" style="font-size: 1rem; font-weight: 700; letter-spacing: 0.05em; margin-left: 0.8rem; display: none;">HI, GUEST</span>
                     </button>
                     <div class="currency-dropdown" id="userMenuDropdown" style="width: 160px; right: 0;">
                         <!-- Logged Out -->
@@ -97,33 +94,39 @@
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="cart-count" id="cartCount">0</span>
                 </button>
-
-                <!-- Search Collapsible Box -->
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="SEARCH PRODUCTS..." aria-label="Search">
-                    <button id="searchBtn" aria-label="Search Button">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
             </div>
         </div>
     </header>
 
-    <!-- Mobile Navigation Drawer -->
-    <div class="mobile-drawer" id="mobileDrawer">
-        <div class="drawer-header">
-            <div class="drawer-title">MENU</div>
-            <button class="close-drawer-btn" id="closeDrawerBtn"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Prada-Style Side Navigation Drawer -->
+    <div class="prada-drawer" id="pradaDrawer">
+        <!-- Left Pane -->
+        <div class="drawer-left-pane">
+            <div class="pane-header">
+                <button class="close-drawer-btn" onclick="togglePradaDrawer()"><i class="fa-solid fa-xmark"></i> Close</button>
+                <button class="drawer-search-toggle" onclick="focusDrawerSearch()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+            </div>
+            <div class="drawer-search-bar" id="drawerSearchBar">
+                <input type="text" id="drawerSearchInput" placeholder="Search products..." oninput="onDrawerSearchInput(this.value)">
+            </div>
+            <div class="drawer-menu-links">
+                <button class="dept-link active" id="deptLinkMen" onclick="selectDrawerDept('Men', this)">Men <i class="fa-solid fa-chevron-right"></i></button>
+                <button class="dept-link" id="deptLinkWomen" onclick="selectDrawerDept('Women', this)">Women <i class="fa-solid fa-chevron-right"></i></button>
+                <button class="dept-link" id="deptLinkKids" onclick="selectDrawerDept('Kids', this)">Kids <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
         </div>
-        <nav class="drawer-links">
-            <a href="#home" onclick="toggleMobileDrawer()">HOME</a>
-            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Men')">MEN</a>
-            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Women')">WOMEN</a>
-            <a href="#shop-section" onclick="toggleMobileDrawer(); filterByDepartment('Kids')">KIDS</a>
-            <a href="#about" onclick="toggleMobileDrawer()">ABOUT US</a>
-        </nav>
+
+        <!-- Right Pane -->
+        <div class="drawer-right-pane">
+            <div class="pane-header">
+                <span id="selectedDeptTitle">MEN CATEGORIES</span>
+            </div>
+            <div class="drawer-category-links" id="drawerCategoryLinks">
+                <!-- Dynamically populated categories -->
+            </div>
+        </div>
     </div>
-    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="drawer-backdrop" id="drawerBackdrop" onclick="togglePradaDrawer()"></div>
 
     <!-- Main Content Area -->
     <main>
@@ -2081,6 +2084,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=31.0.0"></script>
+    <script src="app.js?v=32.0.0"></script>
 </body>
 </html>
