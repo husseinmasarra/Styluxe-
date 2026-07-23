@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Core stylesheet -->
-    <link rel="stylesheet" href="style.css?v=29.0.0">
+    <link rel="stylesheet" href="style.css?v=30.0.0">
 
     <!-- Google & Apple Social Authentication SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1173,6 +1173,12 @@
                                 </div>
                             </div>
 
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="settingsStickerQrTemplate">Sticker QR Code Template (e.g. for BBS Delivery)</label>
+                                <input type="text" id="settingsStickerQrTemplate" value="{ORDER_ID}" placeholder="e.g. BBS-{ORDER_ID} or {ORDER_ID}" style="background-color: var(--color-background); border: 1px solid var(--color-border); padding: 1rem; color: var(--color-text); width: 100%;">
+                                <span style="font-size: 1.1rem; color: var(--color-text-muted); margin-top: 0.4rem; display: block;">Use <code>{ORDER_ID}</code> for order number or <code>{TOTAL}</code> for COD amount.</span>
+                            </div>
+
                             <h3 style="font-size: 1.6rem; color: var(--color-accent); border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-top: 1rem;"><i class="fa-solid fa-envelope"></i> SMTP Email Configuration</h3>
                             
                             <div class="form-group">
@@ -2077,6 +2083,6 @@
     </a>
 
     <!-- Custom JS App logic -->
-    <script src="app.js?v=29.0.0"></script>
+    <script src="app.js?v=30.0.0"></script>
 </body>
 </html>
