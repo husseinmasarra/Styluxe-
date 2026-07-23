@@ -3926,7 +3926,7 @@ body[data-theme="light"] .apple-spinner {
 .main-image-container img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.1s ease-out;
     transform-origin: center;
 }
