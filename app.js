@@ -92,11 +92,7 @@ const checkoutForm = document.getElementById("checkoutForm");
 const successModalBackdrop = document.getElementById("successModalBackdrop");
 const orderNumberText = document.getElementById("orderNumber");
 
-// MOBILE MENU DOM ELEMENTS
-const menuToggle = document.getElementById("menuToggle");
-const mobileDrawer = document.getElementById("mobileDrawer");
-const closeDrawerBtn = document.getElementById("closeDrawerBtn");
-const drawerBackdrop = document.getElementById("drawerBackdrop");
+// MOBILE MENU DOM ELEMENTS (Legacy replaced by Prada Side Menu)
 
 // DATABASE SYNC ACTIONS
 async function loadProductsFromServer() {
@@ -370,10 +366,7 @@ function setupEventListeners() {
         gallery.addEventListener("touchmove", handleMove, { passive: true });
     }
 
-    // Mobile Menu Drawer
-    menuToggle.addEventListener("click", toggleMobileDrawer);
-    closeDrawerBtn.addEventListener("click", toggleMobileDrawer);
-    drawerBackdrop.addEventListener("click", toggleMobileDrawer);
+    // Mobile Menu Drawer (Legacy listeners removed, handled inline by Prada Side Menu)
 
 
 
@@ -697,11 +690,157 @@ function changeCurrency(currency) {
     }
 }
 
-// MOBILE DRAWER TOGGLE
-function toggleMobileDrawer() {
-    mobileDrawer.classList.toggle("active");
-    drawerBackdrop.classList.toggle("active");
-    document.body.style.overflow = mobileDrawer.classList.contains("active") ? "hidden" : "";
+// Prada-Style Side Navigation Drawer Logic
+function togglePradaDrawer(isOpen) {
+    const drawer = document.getElementById("pradaDrawer");
+    const backdrop = document.getElementById("drawerBackdrop");
+    if (!drawer || !backdrop) return;
+
+    const isCurrentlyActive = drawer.classList.contains("active");
+    const targetState = (isOpen === undefined) ? !isCurrentlyActive : isOpen;
+
+    if (targetState) {
+        drawer.classList.add("active");
+        backdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        // Render the categories for the currently active department button
+        const activeDeptBtn = drawer.querySelector(".dept-link.active");
+        if (activeDeptBtn) {
+            const deptText = activeDeptBtn.textContent.replace(/<[^>]*>/g, "").trim();
+            renderDrawerCategories(deptText);
+        } else {
+            renderDrawerCategories("Men");
+        }
+    } else {
+        drawer.classList.remove("active");
+        backdrop.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+}
+
+function selectDrawerDept(dept, btnElement) {
+    const drawer = document.getElementById("pradaDrawer");
+    if (!drawer) return;
+
+    drawer.querySelectorAll(".dept-link").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    if (btnElement) {
+        btnElement.classList.add("active");
+    }
+
+    renderDrawerCategories(dept);
+}
+
+function renderDrawerCategories(dept) {
+    const container = document.getElementById("drawerCategoryLinks");
+    const titleEl = document.getElementById("selectedDeptTitle");
+    if (!container || !titleEl) return;
+
+    titleEl.textContent = `${dept} Categories`;
+    container.innerHTML = "";
+
+    // Dynamically retrieve unique categories from products database for the selected department
+    const categories = new Set();
+    if (window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
+        window.PRODUCTS.forEach(p => {
+            if (p.department && p.department.trim().toLowerCase() === dept.trim().toLowerCase()) {
+                if (p.category) {
+                    categories.add(p.category.trim());
+                }
+            }
+        });
+    }
+
+    const catList = Array.from(categories).sort();
+
+    // View All button
+    const viewAllBtn = document.createElement("button");
+    viewAllBtn.className = "drawer-category-btn";
+    viewAllBtn.textContent = `View All ${dept}`;
+    viewAllBtn.onclick = () => selectDrawerCategory(dept, "All");
+    container.appendChild(viewAllBtn);
+
+    catList.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = "drawer-category-btn";
+        btn.textContent = cat;
+        btn.onclick = () => selectDrawerCategory(dept, cat);
+        container.appendChild(btn);
+    });
+}
+
+function selectDrawerCategory(dept, cat) {
+    activeDepartment = dept;
+    activeCategory = cat;
+    
+    // Clear search queries for fresh category view
+    searchQuery = "";
+    const mainSearch = document.getElementById("searchInput");
+    if (mainSearch) mainSearch.value = "";
+    const drawerSearch = document.getElementById("drawerSearchInput");
+    if (drawerSearch) drawerSearch.value = "";
+
+    updateActiveDepartmentUI(dept);
+    updateActiveCategoryUI(cat);
+
+    filterProducts();
+
+    const shopSec = document.getElementById("shop-section");
+    if (shopSec) {
+        shopSec.scrollIntoView({ behavior: "smooth" });
+    }
+
+    togglePradaDrawer(false);
+}
+
+function updateActiveDepartmentUI(dept) {
+    const deptControls = document.getElementById("departmentControls");
+    if (deptControls) {
+        deptControls.querySelectorAll("button").forEach(btn => {
+            if (btn.textContent.trim().toUpperCase() === dept.toUpperCase()) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+    }
+}
+
+function updateActiveCategoryUI(cat) {
+    const filterTags = document.getElementById("filterTags");
+    if (filterTags) {
+        filterTags.querySelectorAll(".filter-tag").forEach(tag => {
+            if (tag.textContent.trim().toUpperCase() === cat.toUpperCase()) {
+                tag.classList.add("active");
+            } else {
+                tag.classList.remove("active");
+            }
+        });
+    }
+}
+
+function onDrawerSearchInput(query) {
+    searchQuery = query.trim();
+    const mainSearch = document.getElementById("searchInput");
+    if (mainSearch) mainSearch.value = searchQuery;
+    filterProducts();
+}
+
+function togglePradaSearch() {
+    togglePradaDrawer(true);
+    focusDrawerSearch();
+}
+
+function focusDrawerSearch() {
+    const searchBar = document.getElementById("drawerSearchBar");
+    const searchInput = document.getElementById("drawerSearchInput");
+    if (searchBar && searchInput) {
+        searchBar.classList.add("active");
+        searchInput.focus();
+    }
 }
 
 // TOGGLE CART SIDEBAR DRAWER
