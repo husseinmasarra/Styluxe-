@@ -5110,23 +5110,9 @@ const GALLERY_MOCKS = {
     ]
 };
 
-// Returns an array of gallery images for the specified product
 function getProductGalleryImages(product) {
     if (!product || !product.image) return [];
-    const imgs = splitProductImages(product.image);
-    if (imgs.length > 1) {
-        return imgs;
-    }
-    if (GALLERY_MOCKS[product.id]) {
-        return GALLERY_MOCKS[product.id];
-    }
-    // Dynamic fallbacks based on category to maintain premium feel
-    const mainImg = imgs[0] || product.image;
-    return [
-        mainImg,
-        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=600", // Minimalist clothing hanger
-        "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&q=80&w=600"  // Cotton styling display
-    ];
+    return splitProductImages(product.image);
 }
 
 // Populates gallery thumbnails list in modal
@@ -5137,6 +5123,12 @@ function loadProductGallery(product) {
 
     thumbnailGrid.innerHTML = "";
     const images = getProductGalleryImages(product);
+
+    if (images.length <= 1) {
+        thumbnailGrid.style.display = "none";
+        return;
+    }
+    thumbnailGrid.style.display = "flex";
 
     images.forEach((imgUrl, index) => {
         const thumb = document.createElement("img");
