@@ -3587,7 +3587,9 @@ function triggerStickerPrint(name, phone, address, date, orderId, totalAmount) {
                             <div>DATE: ${cleanDate}</div>
                             <div>ORDER: ${cleanOrderId}</div>
                         </div>
-                        <div class="barcode-sim">||||| | |||| ||| |||</div>
+                        <div class="qr-code-section" style="display: flex; align-items: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent((STORE_SETTINGS.sticker_qr_template || "{ORDER_ID}").replace("{ORDER_ID}", orderId).replace("{TOTAL}", totalAmount || "0"))}" alt="QR Code" style="width: 60px; height: 60px; display: block; border: 1px solid #000; padding: 2px;">
+                        </div>
                     </div>
                 </div>
                 <script>
@@ -6338,6 +6340,7 @@ function populateSettingsFields() {
     const stickerPresetSelect = document.getElementById("settingsStickerPreset");
     const stickerWidthInput = document.getElementById("settingsStickerWidth");
     const stickerHeightInput = document.getElementById("settingsStickerHeight");
+    const stickerQrTemplateInput = document.getElementById("settingsStickerQrTemplate");
     const smtpHostInput = document.getElementById("settingsSmtpHost");
     const smtpPortInput = document.getElementById("settingsSmtpPort");
     const smtpUserInput = document.getElementById("settingsSmtpUser");
@@ -6352,6 +6355,7 @@ function populateSettingsFields() {
     if (stickerPresetSelect) stickerPresetSelect.value = STORE_SETTINGS.sticker_preset || "100x70";
     if (stickerWidthInput) stickerWidthInput.value = STORE_SETTINGS.sticker_width || "100";
     if (stickerHeightInput) stickerHeightInput.value = STORE_SETTINGS.sticker_height || "70";
+    if (stickerQrTemplateInput) stickerQrTemplateInput.value = STORE_SETTINGS.sticker_qr_template || "{ORDER_ID}";
     if (smtpPortInput) smtpPortInput.value = STORE_SETTINGS.smtp_port || "";
     if (smtpUserInput) smtpUserInput.value = STORE_SETTINGS.smtp_user || "";
     if (smtpPassInput) smtpPassInput.value = STORE_SETTINGS.smtp_pass || "";
@@ -6468,6 +6472,7 @@ async function saveAllGeneralSettings() {
     const stickerPresetSelect = document.getElementById("settingsStickerPreset");
     const stickerWidthInput = document.getElementById("settingsStickerWidth");
     const stickerHeightInput = document.getElementById("settingsStickerHeight");
+    const stickerQrTemplateInput = document.getElementById("settingsStickerQrTemplate");
     const smtpHostInput = document.getElementById("settingsSmtpHost");
     const smtpPortInput = document.getElementById("settingsSmtpPort");
     const smtpUserInput = document.getElementById("settingsSmtpUser");
@@ -6483,6 +6488,7 @@ async function saveAllGeneralSettings() {
     if (stickerPresetSelect) payload.sticker_preset = stickerPresetSelect.value;
     if (stickerWidthInput) payload.sticker_width = stickerWidthInput.value;
     if (stickerHeightInput) payload.sticker_height = stickerHeightInput.value;
+    if (stickerQrTemplateInput) payload.sticker_qr_template = stickerQrTemplateInput.value.trim();
     if (smtpHostInput) payload.smtp_host = smtpHostInput.value.trim();
     if (smtpPortInput) payload.smtp_port = smtpPortInput.value.trim();
     if (smtpUserInput) payload.smtp_user = smtpUserInput.value.trim();
